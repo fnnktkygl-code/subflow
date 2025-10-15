@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Define the solid black color for the launch screen background. -->
+    <color name="launch_background_color">#000000</color>
+</resources>
+

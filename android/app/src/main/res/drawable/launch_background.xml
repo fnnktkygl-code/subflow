@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This is a layer-list drawable that combines a background color and a logo. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 1. The Background Color Layer -->
+    <!-- This item sets the solid background color for the launch screen.
+         It references the color we'll define in colors.xml -->
+    <item android:drawable="@color/launch_background" />
+
+    <!-- 2. The Logo Layer -->
+    <!-- This item places your logo in the center of the screen.
+         You should replace "@drawable/your_logo_name" with the actual name
+         of your logo file (e.g., @drawable/logo). -->
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/your_logo_name" />
+    </item>
+</layer-list>

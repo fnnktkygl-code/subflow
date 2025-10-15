@@ -1,0 +1,8 @@
+# Flutter/Dart build outputs and cache
+/build/
+/.dart_tool/
+
+# IDE and editor files
+.metadata
+
+# Downloaded archives
