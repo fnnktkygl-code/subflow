@@ -1,3 +1,5 @@
+// lib/provider/simplified_subscription_provider.dart
+
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'dart:math';
@@ -15,7 +17,7 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
   double get totalMonthlyCost {
     return _subscriptions.fold(0.0, (sum, sub) {
       if (sub.amount >= 0) return sum;
-      return sum + _getMonthlyAmount(sub);
+      return sum + getMonthlyAmount(sub);
     });
   }
 
@@ -23,7 +25,7 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
     final map = <String, double>{};
     for (var sub in _subscriptions) {
       if (sub.amount >= 0) continue;
-      final monthly = _getMonthlyAmount(sub);
+      final monthly = getMonthlyAmount(sub);
       map.update(sub.category, (v) => v + monthly, ifAbsent: () => monthly);
     }
     return Map.fromEntries(
@@ -39,7 +41,7 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
     final activeSubs = getActiveSubscriptions(snoozedIds);
     return activeSubs.fold(0.0, (sum, sub) {
       if (sub.amount >= 0) return sum;
-      return sum + _getMonthlyAmount(sub);
+      return sum + getMonthlyAmount(sub);
     });
   }
 
@@ -48,21 +50,21 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
     final map = <String, double>{};
     for (var sub in activeSubs) {
       if (sub.amount >= 0) continue;
-      final monthly = _getMonthlyAmount(sub);
+      final monthly = getMonthlyAmount(sub);
       map.update(sub.category, (v) => v + monthly, ifAbsent: () => monthly);
     }
     return Map.fromEntries(
         map.entries.toList()..sort((a, b) => b.value.compareTo(a.value)));
   }
 
-  double _getMonthlyAmount(Subscription sub) {
+  double getMonthlyAmount(Subscription sub) {
     switch (sub.cycle) {
       case 'Monthly':
         return sub.amount.abs();
       case 'Yearly':
         return sub.amount.abs() / 12;
       case 'Weekly':
-        return sub.amount.abs() * 4.348;
+        return sub.amount.abs() * 4.348; // Approximation for 52/12
       default:
         return sub.amount.abs();
     }
@@ -72,6 +74,7 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
     _box = await Hive.openBox<Subscription>('subscriptions_box');
     _subscriptions = _box.values.toList()
       ..sort((a, b) => a.startDate.compareTo(b.startDate));
+    notifyListeners();
   }
 
   Future<void> addSubscription(Subscription sub) async {
@@ -98,6 +101,17 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> clearAllSubscriptions() async {
+    for (var sub in _subscriptions) {
+      _notifications.cancelNotification(sub.id);
+    }
+    await _box.clear();
+    _subscriptions = [];
+    notifyListeners();
+  }
+
+  // --- METHODS MOVED INSIDE THE CLASS ---
+
   Map<DateTime, List<Subscription>> groupByDate([List<Subscription>? subs]) {
     final subscriptions = subs ?? _subscriptions;
     final map = <DateTime, List<Subscription>>{};
@@ -112,20 +126,21 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
         map.putIfAbsent(key, () => []).add(sub);
 
         current = _getNextDate(current, sub.cycle);
-        if (current == sub.startDate) break;
+        if (current == sub.startDate) break; // Avoid infinite loops
       }
     }
     return map;
   }
 
-  double calculateCashFlowForMonth(Set<String> snoozedIds, DateTime targetMonth) {
+  double calculateCashFlowForMonth(
+      Set<String> snoozedIds, DateTime targetMonth) {
     final activeSubs = getActiveSubscriptions(snoozedIds);
     double total = 0.0;
 
     for (var sub in activeSubs) {
       DateTime current = sub.startDate;
 
-      // Avance rapide jusqu'à la période concernée
+      // Fast-forward to the relevant period
       while (current.year < targetMonth.year ||
           (current.year == targetMonth.year && current.month < targetMonth.month)) {
         DateTime next = _getNextDate(current, sub.cycle);
@@ -133,8 +148,9 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
         current = next;
       }
 
-      // Additionne les occurrences dans le mois cible
-      while (current.month == targetMonth.month && current.year == targetMonth.year) {
+      // Sum occurrences within the target month
+      while (current.month == targetMonth.month &&
+          current.year == targetMonth.year) {
         if (sub.endDate != null && current.isAfter(sub.endDate!)) break;
         total += sub.amount;
 
@@ -164,8 +180,7 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
         final isLeapDay = current.month == 2 && current.day == 29;
         return DateTime(current.year + 1, current.month, isLeapDay ? 28 : current.day);
       default:
-        return current.add(const Duration(days: 365 * 10));
+        return current.add(const Duration(days: 365 * 10)); // Far-future date
     }
   }
 }
-

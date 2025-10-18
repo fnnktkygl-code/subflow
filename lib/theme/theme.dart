@@ -1,402 +1,570 @@
-import 'package:flutter/material.dart';
-import '/theme/custom_colors.dart'; // ✅ Import the custom colors extension
+// lib/theme/theme.dart
 
-// 🎨 TYPOGRAPHY - Modern, readable, Gen Z friendly
+import 'package:flutter/material.dart';
+import '/theme/custom_colors.dart';
+
+// 耳 MODERN TYPOGRAPHY SYSTEM
+// Using Inter for body text (excellent readability) and SF Pro Display for headlines
 const TextTheme appTextTheme = TextTheme(
-  // Display styles - for big headlines
+  // Display styles - Bold, impactful headlines
   displayLarge: TextStyle(
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.bold,
-    fontSize: 40,
-    letterSpacing: -1.5,
-    height: 1.1,
+    fontFamily: 'SF Pro Display',
+    fontWeight: FontWeight.w700,
+    fontSize: 57,
+    letterSpacing: -0.25,
+    height: 1.12,
   ),
   displayMedium: TextStyle(
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.bold,
-    fontSize: 36,
-    letterSpacing: -1.2,
-    height: 1.15,
+    fontFamily: 'SF Pro Display',
+    fontWeight: FontWeight.w700,
+    fontSize: 45,
+    letterSpacing: 0,
+    height: 1.16,
   ),
   displaySmall: TextStyle(
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.bold,
-    fontSize: 32,
-    letterSpacing: -1.0,
-    height: 1.2,
+    fontFamily: 'SF Pro Display',
+    fontWeight: FontWeight.w600,
+    fontSize: 36,
+    letterSpacing: 0,
+    height: 1.22,
   ),
 
-  // Headline styles
-  // - for section headers
+  // Headlines - Section headers
   headlineLarge: TextStyle(
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.bold,
-    fontSize: 28,
-    letterSpacing: -0.8,
+    fontFamily: 'SF Pro Display',
+    fontWeight: FontWeight.w600,
+    fontSize: 32,
+    letterSpacing: 0,
     height: 1.25,
   ),
   headlineMedium: TextStyle(
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.bold,
-    fontSize: 24,
-    letterSpacing: -0.6,
-    height: 1.3,
+    fontFamily: 'SF Pro Display',
+    fontWeight: FontWeight.w600,
+    fontSize: 28,
+    letterSpacing: 0,
+    height: 1.29,
   ),
   headlineSmall: TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'SF Pro Display',
     fontWeight: FontWeight.w600,
-    fontSize: 20,
-    letterSpacing: -0.4,
-    height: 1.35,
+    fontSize: 24,
+    letterSpacing: 0,
+    height: 1.33,
   ),
 
-  // Title styles - for card titles
+  // Titles - Card and component titles
   titleLarge: TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'Inter',
     fontWeight: FontWeight.w600,
-    fontSize: 18,
-    letterSpacing: -0.3,
-    height: 1.4,
+    fontSize: 22,
+    letterSpacing: 0,
+    height: 1.27,
   ),
   titleMedium: TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'Inter',
     fontWeight: FontWeight.w600,
-    fontSize: 16,
-    letterSpacing: -0.2,
-    height: 1.4,
-  ),
-  titleSmall: TextStyle(
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.w600,
-    fontSize: 14,
-    letterSpacing: 0,
-    height: 1.4,
-  ),
-
-  // Body styles - for regular text
-  bodyLarge: TextStyle(
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.normal,
     fontSize: 16,
     letterSpacing: 0.15,
     height: 1.5,
   ),
-  bodyMedium: TextStyle(
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.normal,
+  titleSmall: TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w600,
     fontSize: 14,
-    letterSpacing: 0.25,
-    height: 1.45,
-  ),
-  bodySmall: TextStyle(
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.normal,
-    fontSize: 12,
-    letterSpacing: 0.4,
-    height: 1.4,
+    letterSpacing: 0.1,
+    height: 1.43,
   ),
 
-  // Label styles - for buttons and small UI elements
+  // Body - Main content text
+  bodyLarge: TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w400,
+    fontSize: 16,
+    letterSpacing: 0.5,
+    height: 1.5,
+  ),
+  bodyMedium: TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w400,
+    fontSize: 14,
+    letterSpacing: 0.25,
+    height: 1.43,
+  ),
+  bodySmall: TextStyle(
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w400,
+    fontSize: 12,
+    letterSpacing: 0.4,
+    height: 1.33,
+  ),
+
+  // Labels - Buttons and UI elements
   labelLarge: TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'Inter',
     fontWeight: FontWeight.w600,
     fontSize: 14,
-    letterSpacing: 0.8,
-    height: 1.2,
+    letterSpacing: 0.1,
+    height: 1.43,
   ),
   labelMedium: TextStyle(
-    fontFamily: 'Poppins',
+    fontFamily: 'Inter',
     fontWeight: FontWeight.w600,
     fontSize: 12,
     letterSpacing: 0.5,
-    height: 1.2,
+    height: 1.33,
   ),
   labelSmall: TextStyle(
-    fontFamily: 'Poppins',
-    fontWeight: FontWeight.w500,
-    fontSize: 10,
+    fontFamily: 'Inter',
+    fontWeight: FontWeight.w600,
+    fontSize: 11,
     letterSpacing: 0.5,
-    height: 1.2,
+    height: 1.45,
   ),
 );
 
-// 🎨 COLOR CONSTANTS - Inspired by your logo
-const Color leafGreen = Color(0xFF7FD86B); // From your logo
-const Color freshGreen = Color(0xFF5FC54E);
-const Color vibrantTeal = Color(0xFF00D9C0);
-const Color electricBlue = Color(0xFF4B7BF5);
-const Color sunnyYellow = Color(0xFFFFC107);
-const Color coralPink = Color(0xFFFF6B9D);
+// 耳 MODERN COLOR PALETTE
+// Based on contemporary design systems (Radix, Tailwind, Shadcn)
+const Color primaryGreen = Color(0xFF10B981); // Emerald-500
+const Color primaryGreenDark = Color(0xFF059669); // Emerald-600
+const Color secondaryTeal = Color(0xFF06B6D4); // Cyan-500
+const Color accentBlue = Color(0xFF3B82F6); // Blue-500
+const Color warningAmber = Color(0xFFF59E0B); // Amber-500
+const Color errorRed = Color(0xFFEF4444); // Red-500
 
-// ☀️ LIGHT THEME - Fresh, vibrant, inspired by growth
+// ✅ NEW: Purple-ish colors for the light theme
+const Color primaryPurple = Color(0xFF6366F1); // Indigo-500
+const Color secondaryViolet = Color(0xFF8B5CF6); // Violet-500
+
+// 笘 ｸLIGHT THEME - Clean, modern, accessible (NOW PURPLE)
 final ThemeData lightThemeData = ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
 
-  // ✅ ADDED: Custom theme extension for heatmap colors
   extensions: const <ThemeExtension<dynamic>>[
     CustomColors(
-      successGradient: [leafGreen, freshGreen],
-      errorGradient: [Color(0xFFFF5449), sunnyYellow],
-      heatmapExpense: Color(0xFFFF8A80), // A softer red for expenses
-      heatmapIncome: vibrantTeal,         // A cool teal for income
+      // Semantic colors remain the same
+      successGradient: [Color(0xFF10B981), Color(0xFF059669)],
+      errorGradient: [Color(0xFFEF4444), Color(0xFFF59E0B)],
+      heatmapExpense: Color(0xFFF87171), // Red-400
+      heatmapIncome: Color(0xFF34D399), // Emerald-400
       categoryColors: {},
     ),
   ],
 
-  // Primary colors from your logo's green
-  colorScheme: ColorScheme.light(
-    primary: leafGreen,
-    onPrimary: Colors.white,
-    primaryContainer: const Color(0xFFE8F5E3),
-    onPrimaryContainer: const Color(0xFF1A5010),
+  colorScheme: const ColorScheme.light(
+    // ✅ Primary - Indigo
+    primary: primaryPurple,
+    onPrimary: Color(0xFFFFFFFF),
+    primaryContainer: Color(0xFFE0E7FF), // Indigo-100
+    onPrimaryContainer: Color(0xFF3730A3), // Indigo-900
 
-    secondary: vibrantTeal,
-    onSecondary: Colors.white,
-    secondaryContainer: const Color(0xFFD0F5F0),
-    onSecondaryContainer: const Color(0xFF003D37),
+    // ✅ Secondary - Violet
+    secondary: secondaryViolet,
+    onSecondary: Color(0xFFFFFFFF),
+    secondaryContainer: Color(0xFFEDE9FE), // Violet-100
+    onSecondaryContainer: Color(0xFF4C1D95), // Violet-900
 
-    tertiary: electricBlue,
-    onTertiary: Colors.white,
-    tertiaryContainer: const Color(0xFFDEE7FF),
-    onTertiaryContainer: const Color(0xFF001A41),
+    // ✅ Tertiary - Blue (complements purple well)
+    tertiary: accentBlue,
+    onTertiary: Color(0xFFFFFFFF),
+    tertiaryContainer: Color(0xFFDBEAFE), // Blue-100
+    onTertiaryContainer: Color(0xFF1E3A8A), // Blue-900
 
-    error: const Color(0xFFFF5449),
-    onError: Colors.white,
-    errorContainer: const Color(0xFFFFDAD6),
-    onErrorContainer: const Color(0xFF410002),
+    // Error - Red
+    error: Color(0xFFEF4444),
+    onError: Color(0xFFFFFFFF),
+    errorContainer: Color(0xFFFEE2E2), // Red-100
+    onErrorContainer: Color(0xFF7F1D1D), // Red-900
 
-    surface: Colors.white,
-    onSurface: const Color(0xFF1C1B1F),
-    surfaceContainerLowest: const Color(0xFFFFFFFF),
-    surfaceContainerLow: const Color(0xFFF7F7F7),
-    surfaceContainer: const Color(0xFFF2F2F7),
-    surfaceContainerHigh: const Color(0xFFECECF1),
-    surfaceContainerHighest: const Color(0xFFE6E6EB),
+    // ✅ Surface - Neutral grays from Indigo family for a purple-ish tint
+    surface: Color(0xFFFFFFFF),
+    onSurface: Color(0xFF1E1B4B), // Indigo-950
+    surfaceContainerLowest: Color(0xFFFFFFFF),
+    surfaceContainerLow: Color(0xFFEEF2FF), // Indigo-50
+    surfaceContainer: Color(0xFFE0E7FF), // Indigo-100
+    surfaceContainerHigh: Color(0xFFC7D2FE), // Indigo-200
+    surfaceContainerHighest: Color(0xFFA5B4FC), // Indigo-300
 
-    outline: const Color(0xFFCACAD0),
-    outlineVariant: const Color(0xFFE6E6EB),
-    shadow: const Color(0xFF000000),
+    // ✅ Outline - Borders and dividers from Indigo family
+    outline: Color(0xFFC7D2FE), // Indigo-200
+    outlineVariant: Color(0xFFE0E7FF), // Indigo-100
+    shadow: Color(0xFF000000), // Note: We override this in the card
 
-    inverseSurface: const Color(0xFF313033),
-    onInverseSurface: const Color(0xFFF4EFF4),
-    inversePrimary: const Color(0xFFADDD9F),
+    // Inverse
+    inverseSurface: Color(0xFF1E1B4B), // Indigo-950
+    onInverseSurface: Color(0xFFEEF2FF), // Indigo-50
+    inversePrimary: Color(0xFF818CF8), // Indigo-400
   ),
 
-  scaffoldBackgroundColor: const Color(0xFFFAFAFA),
+  scaffoldBackgroundColor: const Color(0xFFEEF2FF), // ✅ Indigo-50
   textTheme: appTextTheme,
 
-  // Elevated elements - floating, modern
+  // Card theme - Elevated, modern
+  cardTheme: const CardTheme(
+    elevation: 0,
+    shadowColor: Colors.transparent,
+    surfaceTintColor: Colors.transparent,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(16)),
+    ),
+    clipBehavior: Clip.antiAlias,
+    margin: EdgeInsets.zero,
+  ),
+
+  // Elevated button - Primary actions
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      elevation: 8,
-      shadowColor: leafGreen.withOpacity(0.3),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      textStyle: const TextStyle(
+        fontFamily: 'Inter',
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+        letterSpacing: 0.1,
+      ),
     ),
   ),
 
-  cardTheme: CardTheme(
-    elevation: 8,
-    shadowColor: Colors.black.withOpacity(0.08),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-    clipBehavior: Clip.antiAlias,
+  // Filled button (alternative style)
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    ),
   ),
 
-  chipTheme: ChipThemeData(
-    backgroundColor: const Color(0xFFE8F5E3),
-    selectedColor: leafGreen,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-    labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  // Chip theme
+  chipTheme: const ChipThemeData(
+    backgroundColor: Color(0xFFE0E7FF), // ✅ Indigo-100
+    selectedColor: Color(0xFFC7D2FE), // ✅ Indigo-200
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+    ),
+    labelStyle: TextStyle(
+      fontFamily: 'Inter',
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+    ),
+    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
 
+  // Divider
   dividerTheme: const DividerThemeData(
-    color: Color(0xFFE6E6EB),
+    color: Color(0xFFE0E7FF), // ✅ Indigo-100
     thickness: 1,
     space: 1,
   ),
+
+  // Input decoration
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: const Color(0xFFE0E7FF), // ✅ Indigo-100
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: primaryPurple, width: 2),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  ),
 );
 
-// 🌙 DARK THEME - Sleek, modern, with vibrant accents
+// 嫌 DARK THEME - Rich, comfortable, OLED-friendly
 final ThemeData darkThemeData = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
 
-  // ✅ ADDED: Custom theme extension for heatmap colors
   extensions: const <ThemeExtension<dynamic>>[
     CustomColors(
-      successGradient: [leafGreen, freshGreen],
-      errorGradient: [Color(0xFFFFB4AB), sunnyYellow],
-      heatmapExpense: Color(0xFFCF6679), // A muted, elegant red for expenses
-      heatmapIncome: vibrantTeal,         // Vibrant teal pops nicely in dark mode
+      successGradient: [Color(0xFF34D399), Color(0xFF10B981)],
+      errorGradient: [Color(0xFFF87171), Color(0xFFFBBF24)],
+      heatmapExpense: Color(0xFFF87171), // Red-400
+      heatmapIncome: Color(0xFF34D399), // Emerald-400
       categoryColors: {},
     ),
   ],
 
-  colorScheme: ColorScheme.dark(
-    primary: leafGreen,
-    onPrimary: const Color(0xFF1B885E),
-    primaryContainer: const Color(0xFF2D5026),
-    onPrimaryContainer: const Color(0xFFCBEFBC),
+  colorScheme: const ColorScheme.dark(
+    // Primary - Emerald green (lighter for dark mode)
+    primary: Color(0xFF34D399),
+    onPrimary: Color(0xFF064E3B),
+    primaryContainer: Color(0xFF065F46), // Emerald-800
+    onPrimaryContainer: Color(0xFFD1FAE5),
 
-    secondary: vibrantTeal,
-    onSecondary: const Color(0xFF34D5C4),
-    secondaryContainer: const Color(0xFF005048),
-    onSecondaryContainer: const Color(0xFFA6F2E8),
+    // Secondary - Cyan
+    secondary: Color(0xFF22D3EE),
+    onSecondary: Color(0xFF164E63),
+    secondaryContainer: Color(0xFF155E75), // Cyan-800
+    onSecondaryContainer: Color(0xFFCFFAFE),
 
-    tertiary: electricBlue,
-    onTertiary: const Color(0xFF002C6D),
-    tertiaryContainer: const Color(0xFF1E4791),
-    onTertiaryContainer: const Color(0xFFDEE7FF),
+    // Tertiary - Blue
+    tertiary: Color(0xFF60A5FA),
+    onTertiary: Color(0xFF1E3A8A),
+    tertiaryContainer: Color(0xFF1E40AF), // Blue-800
+    onTertiaryContainer: Color(0xFFDBEAFE),
 
-    error: const Color(0xFFFFB4AB),
-    onError: const Color(0xFF690005),
-    errorContainer: const Color(0xFF93000A),
-    onErrorContainer: const Color(0xFFFFDAD6),
+    // Error - Red
+    error: Color(0xFFF87171),
+    onError: Color(0xFF7F1D1D),
+    errorContainer: Color(0xFF991B1B), // Red-800
+    onErrorContainer: Color(0xFFFEE2E2),
 
-    surface: const Color(0xFF121212),
-    onSurface: const Color(0xFFE6E1E5),
-    surfaceContainerLowest: const Color(0xFF0D0D0D),
-    surfaceContainerLow: const Color(0xFF1A1A1A),
-    surfaceContainer: const Color(0xFF1E1E1E),
-    surfaceContainerHigh: const Color(0xFF282828),
-    surfaceContainerHighest: const Color(0xFF333333),
+    // Surface - Rich dark surfaces
+    surface: Color(0xFF0F172A), // Slate-900
+    onSurface: Color(0xFFF1F5F9), // Slate-100
+    surfaceContainerLowest: Color(0xFF020617), // Slate-950
+    surfaceContainerLow: Color(0xFF1E293B), // Slate-800
+    surfaceContainer: Color(0xFF334155), // Slate-700
+    surfaceContainerHigh: Color(0xFF475569), // Slate-600
+    surfaceContainerHighest: Color(0xFF64748B), // Slate-500
 
-    outline: const Color(0xFF54565A),
-    outlineVariant: const Color(0xFF44464A),
-    shadow: const Color(0xFF000000),
+    // Outline
+    outline: Color(0xFF475569), // Slate-600
+    outlineVariant: Color(0xFF334155), // Slate-700
+    shadow: Color(0xFF000000),
 
-    inverseSurface: const Color(0xFFE6E1E5),
-    onInverseSurface: const Color(0xFF313033),
-    inversePrimary: leafGreen,
+    // Inverse
+    inverseSurface: Color(0xFFF1F5F9), // Slate-100
+    onInverseSurface: Color(0xFF1E293B), // Slate-800
+    inversePrimary: Color(0xFF10B981),
   ),
 
-  scaffoldBackgroundColor: const Color(0xFF0D0D0D),
+  scaffoldBackgroundColor: const Color(0xFF020617),
   textTheme: appTextTheme,
+
+  cardTheme: const CardTheme(
+    elevation: 0,
+    shadowColor: Colors.transparent,
+    surfaceTintColor: Colors.transparent,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(16)),
+    ),
+    clipBehavior: Clip.antiAlias,
+    margin: EdgeInsets.zero,
+  ),
 
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      elevation: 12,
-      shadowColor: leafGreen.withOpacity(0.4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      textStyle: const TextStyle(
+        fontFamily: 'Inter',
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+        letterSpacing: 0.1,
+      ),
     ),
   ),
 
-  cardTheme: CardTheme(
-    elevation: 12,
-    shadowColor: Colors.black.withOpacity(0.5),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-    clipBehavior: Clip.antiAlias,
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    ),
   ),
 
-  chipTheme: ChipThemeData(
-    backgroundColor: const Color(0xFF2D5026),
-    selectedColor: leafGreen,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-    labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+  chipTheme: const ChipThemeData(
+    backgroundColor: Color(0xFF1E293B),
+    selectedColor: Color(0xFF065F46),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+    ),
+    labelStyle: TextStyle(
+      fontFamily: 'Inter',
+      fontSize: 13,
+      fontWeight: FontWeight.w500,
+    ),
+    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
 
   dividerTheme: const DividerThemeData(
-    color: Color(0xFF44464A),
+    color: Color(0xFF334155),
     thickness: 1,
     space: 1,
   ),
+
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: const Color(0xFF1E293B),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFF34D399), width: 2),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFF87171), width: 2),
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  ),
 );
 
-// 💖 BARBIE THEME - Playful, pink, premium
+// 猪 BARBIE THEME - Refined and sophisticated
 final ThemeData barbieThemeData = ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
 
-  // ✅ ADDED: Custom theme extension for heatmap colors
   extensions: const <ThemeExtension<dynamic>>[
     CustomColors(
-      successGradient: [coralPink, Color(0xFFFF9EC5)],
-      errorGradient: [Color(0xFFFF5252), sunnyYellow],
-      heatmapExpense: Color(0xFFF48FB1), // A softer, complementary pink
-      heatmapIncome: sunnyYellow,         // Sunny yellow for a cheerful income color
+      successGradient: [Color(0xFFEC4899), Color(0xFFF472B6)],
+      errorGradient: [Color(0xFFEF4444), Color(0xFFF59E0B)],
+      heatmapExpense: Color(0xFFF472B6), // Pink-400
+      heatmapIncome: Color(0xFFFBBF24), // Amber-400
       categoryColors: {},
     ),
   ],
 
-  colorScheme: ColorScheme.light(
-    primary: coralPink,
-    onPrimary: Colors.white,
-    primaryContainer: const Color(0xFFFFE8F0),
-    onPrimaryContainer: const Color(0xFF5C0020),
+  colorScheme: const ColorScheme.light(
+    primary: Color(0xFFEC4899), // Pink-500
+    onPrimary: Color(0xFFFFFFFF),
+    primaryContainer: Color(0xFFFCE7F3), // Pink-100
+    onPrimaryContainer: Color(0xFF831843), // Pink-900
 
-    secondary: const Color(0xFFFF9EC5),
-    onSecondary: Colors.white,
-    secondaryContainer: const Color(0xFFFFD6E9),
-    onSecondaryContainer: const Color(0xFF3D0018),
+    secondary: Color(0xFFF472B6), // Pink-400
+    onSecondary: Color(0xFFFFFFFF),
+    secondaryContainer: Color(0xFFFDF2F8), // Pink-50
+    onSecondaryContainer: Color(0xFF9F1239), // Pink-800
 
-    tertiary: const Color(0xFFFFB74D),
-    onTertiary: Colors.white,
-    tertiaryContainer: const Color(0xFFFFE5B4),
-    onTertiaryContainer: const Color(0xFF3D2800),
+    tertiary: Color(0xFFFBBF24), // Amber-400
+    onTertiary: Color(0xFF78350F), // Amber-900
+    tertiaryContainer: Color(0xFFFEF3C7), // Amber-100
+    onTertiaryContainer: Color(0xFF78350F),
 
-    error: const Color(0xFFFF5252),
-    onError: Colors.white,
-    errorContainer: const Color(0xFFFFDAD6),
-    onErrorContainer: const Color(0xFF410002),
+    error: Color(0xFFEF4444),
+    onError: Color(0xFFFFFFFF),
+    errorContainer: Color(0xFFFEE2E2),
+    onErrorContainer: Color(0xFF7F1D1D),
 
-    surface: const Color(0xFFFFF8F7),
-    onSurface: const Color(0xFF5C3645),
-    surfaceContainerLowest: const Color(0xFFFFFFFF),
-    surfaceContainerLow: const Color(0xFFFFF0F5),
-    surfaceContainer: const Color(0xFFFFE8F0),
-    surfaceContainerHigh: const Color(0xFFFFD9E7),
-    surfaceContainerHighest: const Color(0xFFFFCBDD),
+    // Surface - Using Rose family for a more subtle thematic background
+    surface: Color(0xFFFFFBFE), // Custom near-white
+    onSurface: Color(0xFF500724), // Rose-950
+    surfaceContainerLowest: Color(0xFFFFFFFF),
+    surfaceContainerLow: Color(0xFFFFF1F2), // Rose-50
+    surfaceContainer: Color(0xFFFFE4E6), // Rose-100
+    surfaceContainerHigh: Color(0xFFFECDD3), // Rose-200
+    surfaceContainerHighest: Color(0xFFFDA4AF), // Rose-300
 
-    outline: const Color(0xFFFFB3D9),
-    outlineVariant: const Color(0xFFFFD9E7),
-    shadow: coralPink.withOpacity(0.3),
+    // Outline - Borders and dividers from Rose family
+    outline: Color(0xFFFDA4AF), // Rose-300
+    outlineVariant: Color(0xFFFECDD3), // Rose-200
+    shadow: Color(0xFF000000),
 
-    inverseSurface: const Color(0xFF614A54),
-    onInverseSurface: const Color(0xFFFFF0F5),
-    inversePrimary: const Color(0xFFFFB3D9),
+    inverseSurface: Color(0xFF831843),
+    onInverseSurface: Color(0xFFFDF2F8),
+    inversePrimary: Color(0xFFF9A8D4),
   ),
 
-  scaffoldBackgroundColor: const Color(0xFFFFF8F7),
-  textTheme: appTextTheme.apply(
-    bodyColor: const Color(0xFF5C3645),
-    displayColor: const Color(0xFF4A2D3A),
+  scaffoldBackgroundColor: const Color(0xFFFFFBFE), // Custom near-white base
+  textTheme: appTextTheme,
+
+  cardTheme: const CardTheme(
+    elevation: 0,
+    shadowColor: Colors.transparent,
+    surfaceTintColor: Colors.transparent,
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(16)),
+    ),
+    clipBehavior: Clip.antiAlias,
+    margin: EdgeInsets.zero,
   ),
 
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      elevation: 10,
-      shadowColor: coralPink.withOpacity(0.4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      textStyle: const TextStyle(
+        fontFamily: 'Inter',
+        fontWeight: FontWeight.w600,
+        fontSize: 14,
+        letterSpacing: 0.1,
+      ),
     ),
   ),
 
-  cardTheme: CardTheme(
-    elevation: 10,
-    shadowColor: coralPink.withOpacity(0.2),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-    clipBehavior: Clip.antiAlias,
+  filledButtonTheme: FilledButtonThemeData(
+    style: FilledButton.styleFrom(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+    ),
   ),
 
-  chipTheme: ChipThemeData(
-    backgroundColor: const Color(0xFFFFE8F0),
-    selectedColor: coralPink,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-    labelStyle: const TextStyle(
+  chipTheme: const ChipThemeData(
+    backgroundColor: Color(0xFFFFE4E6), // Rose-100
+    selectedColor: Color(0xFFFECDD3), // Rose-200
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(8)),
+    ),
+    labelStyle: TextStyle(
+      fontFamily: 'Inter',
       fontSize: 13,
-      fontWeight: FontWeight.w600,
-      letterSpacing: 0.5,
+      fontWeight: FontWeight.w500,
     ),
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
 
-  dividerTheme: DividerThemeData(
-    color: coralPink.withOpacity(0.2),
+  dividerTheme: const DividerThemeData(
+    color: Color(0xFFFFE4E6), // Rose-100
     thickness: 1,
     space: 1,
+  ),
+
+  inputDecorationTheme: InputDecorationTheme(
+    filled: true,
+    fillColor: const Color(0xFFFFE4E6), // Rose-100
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide.none,
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFEC4899), width: 2),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
+    ),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
   ),
 );

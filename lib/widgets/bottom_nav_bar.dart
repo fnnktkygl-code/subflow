@@ -1,11 +1,13 @@
+// lib/widgets/bottom_nav_bar.dart
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../../provider/simplified_subscription_provider.dart';
+import '../provider/simplified_subscription_provider.dart';
 import 'package:aada_app/provider/simplified_gamification.dart';
 import '../pages/home_page.dart';
-import '../../pages/settings_page.dart';
+import '../pages/settings_page.dart';
 import '../pages/schedule_page.dart';
 import '../pages/subscriptions_page.dart';
 import '../models/subscription_model.dart';
@@ -41,14 +43,10 @@ class BottomNavBarState extends State<BottomNavBar>
   late PageController _pageController;
   late AnimationController _pulseController;
   late AnimationController _fabController;
-// Inside BottomNavBarState (or as a top-level helper)
+
   bool isBarbieTheme(BuildContext context) {
     final theme = Theme.of(context);
-    // Option 1: Compare primary color to Barbie theme's primary
     return theme.colorScheme.primary == barbieThemeData.colorScheme.primary;
-
-    // Option 2: If you want more robust checking, you can add a
-    // bool property in CustomColors and check it here.
   }
 
   @override
@@ -82,7 +80,11 @@ class BottomNavBarState extends State<BottomNavBar>
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOutCubic,
       );
-      scrollBehavior.forceShow();
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          scrollBehavior.forceShow();
+        }
+      });
     }
   }
 
@@ -117,6 +119,41 @@ class BottomNavBarState extends State<BottomNavBar>
       ),
     );
     return result ?? false;
+  }
+
+  @override
+  void enterSelectionMode(String subscriptionId) {
+    HapticFeedback.mediumImpact();
+    super.enterSelectionMode(subscriptionId);
+    scrollBehavior.forceShow();
+  }
+
+  @override
+  void exitSelectionMode() {
+    HapticFeedback.lightImpact();
+    super.exitSelectionMode();
+    scrollBehavior.forceShow();
+  }
+
+  @override
+  void clearAllSelections() {
+    HapticFeedback.lightImpact();
+    super.clearAllSelections();
+    scrollBehavior.forceShow();
+  }
+
+  @override
+  void toggleSnooze(String subscriptionId) {
+    HapticFeedback.selectionClick();
+    super.toggleSnooze(subscriptionId);
+    scrollBehavior.forceShow();
+  }
+
+  @override
+  void selectAllSubscriptions(SimplifiedSubscriptionProvider provider) {
+    HapticFeedback.mediumImpact();
+    super.selectAllSubscriptions(provider);
+    scrollBehavior.forceShow();
   }
 
   @override
@@ -162,41 +199,28 @@ class BottomNavBarState extends State<BottomNavBar>
             if (!didPop) _onNavItemTapped(0);
           },
           child: Scaffold(
-            backgroundColor: colorScheme.surface,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: Stack(
               children: [
-                // Page content with proper padding
+                // ============================================================
+                // PAGE CONTENT
+                // ============================================================
                 Positioned.fill(
-                  child: AnimatedBuilder(
-                    animation: scrollAnimation,
-                    builder: (context, child) {
-                      final topOffset =
-                          (topPadding + 70) * scrollAnimation.value;
-                      final bottomOffset =
-                          (100 + bottomPadding) * scrollAnimation.value;
-
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          top: topOffset,
-                          bottom: bottomOffset,
-                        ),
-                        child: child,
-                      );
-                    },
-                    child: buildWithScrollBehavior(
-                      child: PageView(
-                        controller: _pageController,
-                        onPageChanged: (index) {
-                          setState(() => _currentIndex = index);
-                          scrollBehavior.forceShow();
-                        },
-                        children: pages,
-                      ),
+                  child: buildWithScrollBehavior(
+                    child: PageView(
+                      controller: _pageController,
+                      onPageChanged: (index) {
+                        setState(() => _currentIndex = index);
+                        scrollBehavior.forceShow();
+                      },
+                      children: pages,
                     ),
                   ),
                 ),
 
-                // Floating glass app bar
+                // ============================================================
+                // APP BAR - Scroll aware at top
+                // ============================================================
                 Positioned(
                   top: 0,
                   left: 0,
@@ -213,7 +237,9 @@ class BottomNavBarState extends State<BottomNavBar>
                   ),
                 ),
 
-                // Bottom navbar & actions
+                // ✅ DEFINITIVE FIX: Combine "What If" bar and Nav Bar into a single
+                // animated unit that slides up and down together. This implements
+                // the user's suggestion for a more dynamic and intuitive UI.
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -223,11 +249,13 @@ class BottomNavBarState extends State<BottomNavBar>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // The "What If" bar is now part of this animated column
                         if (isSelectionMode)
                           buildWhatIfActionBar(
                             provider: provider,
                             colorScheme: colorScheme,
                           ),
+                        // The main nav bar follows below it
                         _buildModernNavBar(
                           context,
                           colorScheme,
@@ -264,10 +292,10 @@ class BottomNavBarState extends State<BottomNavBar>
               bottom: 12,
             ),
             decoration: BoxDecoration(
-              color: colorScheme.surface.withOpacity(0.85),
+              color: colorScheme.surfaceContainerLow.withOpacity(0.85),
               border: Border(
                 bottom: BorderSide(
-                  color: colorScheme.outline.withOpacity(0.1),
+                  color: colorScheme.outlineVariant.withOpacity(0.1),
                   width: 1,
                 ),
               ),
@@ -282,7 +310,6 @@ class BottomNavBarState extends State<BottomNavBar>
                     letterSpacing: -0.5,
                   ),
                 ),
-                // Theme toggle button with Barbie support
                 Material(
                   color: Colors.transparent,
                   child: InkWell(
@@ -294,10 +321,10 @@ class BottomNavBarState extends State<BottomNavBar>
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer.withOpacity(0.5),
+                        color: colorScheme.primaryContainer.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: themeIcon(context), // ✅ Barbie-ready icon
+                      child: themeIcon(context),
                     ),
                   ),
                 ),
@@ -309,25 +336,32 @@ class BottomNavBarState extends State<BottomNavBar>
     );
   }
 
-  /// Barbie / Light / Dark mode icon helper
   Widget themeIcon(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDarkMode = colorScheme.brightness == Brightness.dark;
 
+    Color iconBgColor = colorScheme.primaryContainer
+        .withOpacity(isDarkMode ? 0.4 : 0.6);
+    IconData themeIconData =
+    isDarkMode ? Icons.dark_mode_outlined : Icons.wb_sunny_outlined;
+    Widget iconWidget = Icon(themeIconData,
+        size: 22, color: colorScheme.onPrimaryContainer);
+
+    if (!isDarkMode && isBarbieTheme(context)) {
+      iconWidget =
+          Image.asset('assets/icons/barbie.png', height: 22, width: 22);
+      iconBgColor = colorScheme.secondaryContainer.withOpacity(0.6);
+    }
+
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: colorScheme.primaryContainer.withOpacity(0.6),
+        color: iconBgColor,
       ),
-      padding: const EdgeInsets.all(8.0),
-      child: isDarkMode
-          ? const Icon(Icons.dark_mode, size: 24)
-          : isBarbieTheme(context)
-          ? Image.asset('assets/icons/barbie.png', height: 24, width: 24)
-          : const Icon(Icons.wb_sunny, size: 24),
+      padding: const EdgeInsets.all(6.0),
+      child: iconWidget,
     );
   }
-
 
   Widget _buildModernNavBar(
       BuildContext context,
@@ -337,30 +371,22 @@ class BottomNavBarState extends State<BottomNavBar>
       ) {
     return RepaintBoundary(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 20.0 + bottomPadding),
+        padding: EdgeInsets.fromLTRB(12.0, 16.0, 12.0, 16.0 + bottomPadding),
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.bottomCenter,
           children: [
-            // Glass nav bar
             ClipRRect(
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(28),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20.0, sigmaY: 20.0),
+                filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
                 child: Container(
-                  height: 70,
+                  height: 65,
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [ // ✅ FIXED
-                        colorScheme.surfaceContainer.withOpacity(0.9),
-                        colorScheme.surfaceContainer.withOpacity(0.8),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(32),
+                    color: colorScheme.surfaceContainerLow.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(28),
                     border: Border.all(
-                      color: colorScheme.outline.withOpacity(0.15),
+                      color: colorScheme.outlineVariant.withOpacity(0.15),
                       width: 1,
                     ),
                   ),
@@ -379,7 +405,7 @@ class BottomNavBarState extends State<BottomNavBar>
                         index: 1,
                         colorScheme: colorScheme,
                       ),
-                      const SizedBox(width: 70),
+                      const SizedBox(width: 65), // Space for FAB
                       _buildModernNavItem(
                         icon: Icons.view_list_rounded,
                         label: 'Subs',
@@ -397,9 +423,8 @@ class BottomNavBarState extends State<BottomNavBar>
                 ),
               ),
             ),
-            // Floating Action Button
             Positioned(
-              bottom: 30,
+              bottom: 25,
               child: _buildGamifiedFab(context, colorScheme, provider),
             ),
           ],
@@ -415,51 +440,37 @@ class BottomNavBarState extends State<BottomNavBar>
     required ColorScheme colorScheme,
   }) {
     final isSelected = _currentIndex == index;
+
     return GestureDetector(
       onTap: () => _onNavItemTapped(index),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeInOutCubic,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        transform: Matrix4.identity()..scale(isSelected ? 1.05 : 1.0),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOutCubic,
-              padding: EdgeInsets.all(isSelected ? 8 : 6),
-              decoration: BoxDecoration(
-                gradient: isSelected
-                    ? LinearGradient( // ✅ FIXED
-                  colors: [colorScheme.primary, colorScheme.secondary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                )
-                    : null,
-                color: isSelected ? null : Colors.transparent,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                icon,
-                size: isSelected ? 24 : 22,
-                color: isSelected
-                    ? colorScheme.onPrimary
-                    : colorScheme.onSurfaceVariant,
-              ),
+            Icon(
+              icon,
+              size: 22,
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant.withOpacity(0.7),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 3),
             AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeInOutCubic,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
               style: TextStyle(
                 fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected
                     ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant,
-                letterSpacing: 0.3,
+                    : colorScheme.onSurfaceVariant.withOpacity(0.7),
+                letterSpacing: 0.2,
               ),
               child: Text(label),
             ),
@@ -477,29 +488,47 @@ class BottomNavBarState extends State<BottomNavBar>
     return AnimatedBuilder(
       animation: Listenable.merge([_pulseController, _fabController]),
       builder: (context, child) {
-        final pulseScale = 1.0 + (_pulseController.value * 0.04);
+        final pulseScale = 1.0 + (_pulseController.value * 0.03);
         final tapScale = _fabController.value;
 
         return Transform.scale(
           scale: pulseScale * tapScale,
           child: SizedBox(
-            width: 68,
-            height: 68,
+            width: 60,
+            height: 60,
             child: FloatingActionButton(
               onPressed: () {
                 HapticFeedback.mediumImpact();
+                _fabController.reverse().then((_) => _fabController.forward());
                 subs_popup.showAddSubscriptionPopup(
                   context,
                       (newSub) {
                     provider.addSubscription(newSub);
-                    context
-                        .read<SimplifiedGamification>()
-                        .onSubscriptionAdded();
+                    context.read<SimplifiedGamification>().onSubscriptionAdded();
                   },
                 );
               },
-              elevation: 6.0,
-              child: const Icon(Icons.add_rounded, size: 32),
+              elevation: 4.0,
+              highlightElevation: 8.0,
+              splashColor: colorScheme.onPrimary.withOpacity(0.3),
+              shape: const CircleBorder(),
+              child: Ink(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [colorScheme.primary, colorScheme.secondary],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.add_rounded,
+                    size: 30,
+                    color: colorScheme.onPrimary,
+                  ),
+                ),
+              ),
             ),
           ),
         );
@@ -507,3 +536,4 @@ class BottomNavBarState extends State<BottomNavBar>
     );
   }
 }
+

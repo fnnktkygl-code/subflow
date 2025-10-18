@@ -1,8 +1,12 @@
+// lib/pages/schedule_page.dart
+
+import 'package:aada_app/widgets/shared/page_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provider/simplified_subscription_provider.dart';
 import '../views/modern_calendar_view.dart';
 import '../models/subscription_model.dart';
+import '../theme/design_system.dart'; // Import Design System
 
 class Schedule extends StatefulWidget {
   final void Function(Subscription) onEdit;
@@ -11,7 +15,7 @@ class Schedule extends StatefulWidget {
   final bool Function(String) isSubscriptionSnoozed;
   final void Function(String) onLongPress;
   final void Function(String) onTap;
-  final void Function(String) onSnoozeChanged;
+  final void Function(String) onSnoozeChanged; // Check type
   final Set<String> snoozedIds;
 
   const Schedule({
@@ -22,90 +26,90 @@ class Schedule extends StatefulWidget {
     required this.isSubscriptionSnoozed,
     required this.onLongPress,
     required this.onTap,
-    required this.onSnoozeChanged,
+    required this.onSnoozeChanged, // Check type
     required this.snoozedIds,
   });
 
   @override
-  State<Schedule> createState() =>
-      _ScheduleState();
+  State<Schedule> createState() => _ScheduleState();
 }
 
-class _ScheduleState extends State<Schedule>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _fadeController;
-  late final Animation<double> _fadeAnimation;
-  late final Animation<Offset> _slideAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-
-    _fadeAnimation = CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOutCubicEmphasized,
-    );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeOutCubic,
-    ));
-
-    // Start animation
-    _fadeController.forward();
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    super.dispose();
-  }
-
+class _ScheduleState extends State<Schedule> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final provider = context.watch<SimplifiedSubscriptionProvider>();
 
-    return Container(
-      color: theme.colorScheme.surface,
-      child: provider.subscriptions.isEmpty
-          ? _buildEmptyState(theme.colorScheme)
-          : SlideTransition(
-        position: _slideAnimation,
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: ModernCalendarView(
-            onEdit: widget.onEdit,
-            onDelete: widget.onDelete,
-            isSelectionMode: widget.isSelectionMode,
-            isSubscriptionSnoozed: widget.isSubscriptionSnoozed,
-            onLongPress: widget.onLongPress,
-            onTap: widget.onTap,
-            onSnoozeChanged: widget.onSnoozeChanged,
-            snoozedIds: widget.snoozedIds,
+    if (provider.subscriptions.isEmpty) {
+      return _buildEmptyState(theme.colorScheme);
+    }
+
+    // ✅ RECO: Define the height of the "What If" bar plus some extra padding
+    // This value is used to extend the scrollable area.
+    const double whatIfBarAreaHeight = 220.0 + 40.0; // 220 for the bar, 40 for comfort
+
+    return PageLayout(
+      onRefresh: () async {
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
+      slivers: [
+        // ✅ RECO: It's crucial that the main content is in a SliverToBoxAdapter,
+        // NOT a SliverFillRemaining. This allows the content to scroll freely.
+        SliverToBoxAdapter(
+          child: RefreshIndicator(
+            color: colorScheme.primary,
+            backgroundColor: colorScheme.surface,
+            onRefresh: () async {
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: ModernCalendarView(
+              onEdit: widget.onEdit,
+              onDelete: widget.onDelete,
+              isSelectionMode: widget.isSelectionMode,
+              isSubscriptionSnoozed: widget.isSubscriptionSnoozed,
+              onLongPress: widget.onLongPress,
+              onTap: widget.onTap,
+              onSnoozChanged: (subId) => widget.onSnoozeChanged(subId),
+              snoozedIds: widget.snoozedIds,
+              onSnoozeChanged: (_) {},
+            ),
           ),
         ),
-      ),
+
+        // ✅ RECO: This is the core of the solution.
+        // We add a conditional spacer INSIDE the CustomScrollView. This sliver
+        // only exists when in selection mode, adding extra scrollable space
+        // at the bottom to push the content above the "What If" bar.
+        if (widget.isSelectionMode)
+          const SliverToBoxAdapter(
+            child: SizedBox(height: whatIfBarAreaHeight),
+          ),
+
+        // This is the normal padding for when the nav bar is visible.
+        SliverToBoxAdapter(
+          child: SizedBox(height: _getBottomPadding(context)),
+        ),
+      ],
     );
   }
 
+  double _getBottomPadding(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final bottomViewInset = mediaQuery.viewInsets.bottom;
+    // This padding ensures content is not hidden behind the regular nav bar.
+    return 120.0 + (bottomViewInset > 0 ? 0 : DesignSystem.spacing12);
+  }
+
   Widget _buildEmptyState(ColorScheme colorScheme) {
-    return Center(
-      child: FadeTransition(
-        opacity: _fadeAnimation,
+    // Empty state remains the same
+    return Scaffold(
+      body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Icon container with gradient
               Container(
                 padding: const EdgeInsets.all(36),
                 decoration: BoxDecoration(
@@ -122,13 +126,6 @@ class _ScheduleState extends State<Schedule>
                     color: colorScheme.primary.withOpacity(0.2),
                     width: 2,
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.primary.withOpacity(0.15),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
                 ),
                 child: Icon(
                   Icons.calendar_today_rounded,
@@ -137,8 +134,6 @@ class _ScheduleState extends State<Schedule>
                 ),
               ),
               const SizedBox(height: 32),
-
-              // Title
               Text(
                 "No Schedule Yet",
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -147,49 +142,12 @@ class _ScheduleState extends State<Schedule>
                 ),
               ),
               const SizedBox(height: 12),
-
-              // Description
               Text(
                 "Add subscriptions to see them\norganized in your calendar view",
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   height: 1.6,
-                ),
-              ),
-              const SizedBox(height: 28),
-
-              // Hint with icon
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: colorScheme.outline.withOpacity(0.2),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.add_circle_outline_rounded,
-                      size: 20,
-                      color: colorScheme.primary,
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      "Tap the + button to start",
-                      style: TextStyle(
-                        color: colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ],
@@ -199,3 +157,4 @@ class _ScheduleState extends State<Schedule>
     );
   }
 }
+

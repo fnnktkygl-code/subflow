@@ -1,10 +1,13 @@
+// lib/widgets/subscription_card.dart
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/subscription_model.dart';
-
+import '../models/subscription_model.dart'; //
+import '../utils/home_helpers.dart'; //
+import '../theme/design_system.dart'; //
+import '../theme/theme.dart'; //
 
 class SubscriptionCard extends StatefulWidget {
-  final Subscription subscription;
+  final Subscription subscription; //
   final DateTime displayDate;
   final bool isAmountBlurred;
   final bool isSnoozed;
@@ -45,40 +48,6 @@ class _SubscriptionCardState extends State<SubscriptionCard>
     super.dispose();
   }
 
-  Color _getCategoryColor(String category) {
-    final colors = {
-      'Home': Colors.orange.shade400,
-      'Utilities': Colors.blue.shade400,
-      'Telecom': Colors.purple.shade400,
-      'Media & Entertainment': Colors.pink.shade400,
-      'Health & Wellness': Colors.green.shade400,
-      'Transport': Colors.cyan.shade400,
-      'Insurance': Colors.indigo.shade400,
-      'Financial': Colors.teal.shade400,
-      'Shopping': Colors.amber.shade400,
-      'Gaming': Colors.deepPurple.shade400,
-      'Software': Colors.lightBlue.shade400,
-    };
-    return colors[category] ?? Colors.grey.shade400;
-  }
-
-  IconData _getCategoryIcon(String category) {
-    final icons = {
-      'Home': Icons.home_rounded,
-      'Utilities': Icons.bolt_rounded,
-      'Telecom': Icons.phone_iphone_rounded,
-      'Media & Entertainment': Icons.play_circle_outline_rounded,
-      'Health & Wellness': Icons.favorite_rounded,
-      'Transport': Icons.directions_car_rounded,
-      'Insurance': Icons.shield_rounded,
-      'Financial': Icons.account_balance_rounded,
-      'Shopping': Icons.shopping_bag_rounded,
-      'Gaming': Icons.sports_esports_rounded,
-      'Software': Icons.code_rounded,
-    };
-    return icons[category] ?? Icons.category_rounded;
-  }
-
   Widget _buildShimmerEffect() {
     return AnimatedBuilder(
       animation: _shimmerController,
@@ -109,14 +78,16 @@ class _SubscriptionCardState extends State<SubscriptionCard>
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final bool isOutflow = widget.subscription.amount < 0;
-    final Color amountColor = isOutflow
-        ? colorScheme.error
-        : Colors.green.shade600;
+    final bool isOutflow = widget.subscription.amount < 0; //
+    // Keep income color consistent green, or use tertiary if preferred
+    final Color incomeColor = const Color(0xFF10B981); // Or colorScheme.tertiary;
+    final Color amountColor = isOutflow ? colorScheme.error : incomeColor;
 
-    final categoryColor = _getCategoryColor(widget.subscription.category);
-    final categoryIcon = _getCategoryIcon(widget.subscription.category);
+
+    final categoryColor = HomeHelpers.getCategoryColor(widget.subscription.category); //
+    final categoryIcon = HomeHelpers.getCategoryIcon(widget.subscription.category); //
 
     final TextDecoration textDecoration =
     widget.isSnoozed ? TextDecoration.lineThrough : TextDecoration.none;
@@ -134,37 +105,38 @@ class _SubscriptionCardState extends State<SubscriptionCard>
         curve: Curves.easeOutCubic,
         margin: const EdgeInsets.symmetric(vertical: 4.0),
         transform: Matrix4.identity()
-          ..scale(_isPressed ? 0.97 : 1.0),
+          ..scale(_isPressed ? 0.98 : 1.0), // Reduced press scale slightly
         decoration: BoxDecoration(
+          // ✅ Use surfaceContainerLow for the base color
+          color: colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(DesignSystem.radiusXL), //
           boxShadow: [
             BoxShadow(
-              color: widget.isSelectionMode && widget.isSnoozed
-                  ? colorScheme.primary.withOpacity(0.3)
-                  : colorScheme.shadow.withOpacity(0.08),
-              blurRadius: _isPressed ? 12 : 24,
-              offset: Offset(0, _isPressed ? 2 : 8),
-              spreadRadius: widget.isSelectionMode && widget.isSnoozed ? 2 : 0,
+              // ✅ Softer shadow settings
+              color: colorScheme.shadow.withOpacity(isDark ? 0.15 : 0.06), // Use shadow color with low opacity
+              blurRadius: 16, // Softer blur
+              offset: Offset(0, 4), // Smaller offset
+              spreadRadius: 0, // No spread
             ),
+            // Optional: Add a subtle highlight for selected state if needed
+            if (widget.isSelectionMode && widget.isSnoozed)
+              BoxShadow(
+                color: colorScheme.primary.withOpacity(0.2),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
           ],
-          borderRadius: BorderRadius.circular(24),
+          // ✅ Add a subtle border for definition
+          border: Border.all(
+            color: colorScheme.outlineVariant.withOpacity(0.5),
+            width: 0.5,
+          ),
         ),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(DesignSystem.radiusXL), //
           child: Stack(
             children: [
-              // Background gradient
-              Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      colorScheme.surfaceContainerHigh,
-                      colorScheme.surfaceContainer,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-              ),
+              // ❌ Removed solid background container, base color is set in BoxDecoration now
 
               // Accent color stripe
               Positioned(
@@ -172,7 +144,7 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                 top: 0,
                 bottom: 0,
                 child: Container(
-                  width: 6,
+                  width: DesignSystem.spacing2, //
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -189,14 +161,14 @@ class _SubscriptionCardState extends State<SubscriptionCard>
               // Shimmer effect for urgent items
               if (isDueToday && !widget.isSnoozed) _buildShimmerEffect(),
 
-              // Border for selected state
+              // Border for selected state (Keep if you like the visual cue)
               if (widget.isSelectionMode && widget.isSnoozed)
                 Container(
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusXL), //
                     border: Border.all(
                       color: colorScheme.primary,
-                      width: 2.5,
+                      width: 2.0, // Reduced thickness slightly
                     ),
                   ),
                 ),
@@ -204,9 +176,14 @@ class _SubscriptionCardState extends State<SubscriptionCard>
               // Content
               AnimatedOpacity(
                 duration: const Duration(milliseconds: 300),
-                opacity: widget.isSnoozed && !widget.isSelectionMode ? 0.5 : 1.0,
+                opacity: widget.isSnoozed && !widget.isSelectionMode ? 0.6 : 1.0, // Slightly less opaque when snoozed
                 child: Padding(
-                  padding: const EdgeInsets.all(20.0),
+                  padding: EdgeInsets.fromLTRB( // Adjust left padding for stripe
+                      DesignSystem.spacing10, //
+                      DesignSystem.spacing10, //
+                      DesignSystem.spacing10, //
+                      DesignSystem.spacing10 //
+                  ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -217,37 +194,31 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                           Hero(
                             tag: 'logo_${widget.subscription.id}_${widget.displayDate}',
                             child: Container(
-                              width: 60,
-                              height: 60,
+                              width: 52, // Slightly smaller logo
+                              height: 52,
                               decoration: BoxDecoration(
+                                // Use surface for the logo background for contrast
                                 color: colorScheme.surface,
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(DesignSystem.radiusMedium), // Slightly smaller radius
                                 boxShadow: [
-                                  BoxShadow(
-                                    color: categoryColor.withOpacity(0.3),
-                                    blurRadius: 12,
-                                    spreadRadius: 1,
+                                  BoxShadow( // Subtle shadow for logo
+                                    color: colorScheme.shadow.withOpacity(isDark ? 0.1 : 0.05),
+                                    blurRadius: 6,
+                                    offset: Offset(0, 2),
                                   ),
                                 ],
                               ),
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(DesignSystem.radiusMedium), //
                                 child: Image.network(
-                                  widget.subscription.logoUrl,
-                                  fit: BoxFit.cover,
+                                  widget.subscription.logoUrl, //
+                                  fit: BoxFit.contain, // Use contain to prevent cropping
                                   errorBuilder: (_, __, ___) => Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          categoryColor.withOpacity(0.3),
-                                          categoryColor.withOpacity(0.1),
-                                        ],
-                                      ),
-                                    ),
+                                    color: colorScheme.surfaceContainer, // Fallback color
                                     child: Icon(
                                       Icons.image_not_supported_outlined,
-                                      color: colorScheme.onSurface.withOpacity(0.4),
-                                      size: 28,
+                                      color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                                      size: 20,
                                     ),
                                   ),
                                 ),
@@ -256,34 +227,35 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                           ),
                           // Category badge
                           Positioned(
-                            bottom: -4,
-                            right: -4,
+                            bottom: -5, // Adjusted position
+                            right: -5,
                             child: Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: EdgeInsets.all(DesignSystem.spacing1), // Smaller padding
                               decoration: BoxDecoration(
                                 color: categoryColor,
                                 shape: BoxShape.circle,
                                 border: Border.all(
-                                  color: colorScheme.surface,
-                                  width: 2,
+                                  // Border against card background (surfaceContainerLow)
+                                  color: colorScheme.surfaceContainerLow,
+                                  width: 1.5, // Thinner border
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: categoryColor.withOpacity(0.4),
-                                    blurRadius: 8,
+                                    color: categoryColor.withOpacity(0.2), // Softer shadow
+                                    blurRadius: 4,
                                   ),
                                 ],
                               ),
                               child: Icon(
                                 categoryIcon,
-                                size: 14,
+                                size: 11, // Smaller icon
                                 color: Colors.white,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: DesignSystem.spacing8), // Reduced spacing
 
                       // Name, date, and status
                       Expanded(
@@ -295,12 +267,11 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                               children: [
                                 Expanded(
                                   child: Text(
-                                    widget.subscription.name,
+                                    widget.subscription.name, //
                                     style: textTheme.bodyLarge?.copyWith(
-                                      fontWeight: FontWeight.bold,
+                                      fontWeight: FontWeight.w600,
                                       decoration: textDecoration,
                                       color: colorScheme.onSurface,
-                                      fontSize: 16,
                                       letterSpacing: -0.3,
                                     ),
                                     maxLines: 1,
@@ -308,115 +279,117 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                                   ),
                                 ),
                                 if (isDueToday && !widget.isSnoozed) ...[
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: DesignSystem.spacing4), //
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 4,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: DesignSystem.spacing4, //
+                                      vertical: DesignSystem.spacing1, //
                                     ),
                                     decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.red.shade400,
-                                          Colors.orange.shade400,
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.red.withOpacity(0.3),
-                                          blurRadius: 8,
-                                        ),
-                                      ],
+                                      color: colorScheme.errorContainer, // Use container color
+                                      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall), //
                                     ),
-                                    child: const Text(
+                                    child: Text(
                                       'TODAY',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 0.5,
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: colorScheme.onErrorContainer, // Use on container color
+                                        fontWeight: FontWeight.bold, // Bolder
+                                        letterSpacing: 0.4,
                                       ),
                                     ),
                                   ),
                                 ],
                               ],
                             ),
-                            const SizedBox(height: 6),
+                            SizedBox(height: DesignSystem.spacing2), // Reduced space
                             Row(
                               children: [
                                 Icon(
                                   Icons.calendar_today_rounded,
-                                  size: 14,
-                                  color: colorScheme.onSurface.withOpacity(0.5),
+                                  size: 12, // Smaller icon
+                                  color: colorScheme.onSurfaceVariant.withOpacity(0.6), // Slightly less prominent
                                 ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  DateFormat('EEE, d MMM').format(widget.displayDate),
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    decoration: textDecoration,
-                                    color: colorScheme.onSurfaceVariant,
-                                    fontSize: 13,
+                                SizedBox(width: DesignSystem.spacing2), //
+                                Expanded(
+                                  child: Text(
+                                    DateFormat('EEE, d MMM').format(widget.displayDate),
+                                    style: textTheme.bodySmall?.copyWith(
+                                      decoration: textDecoration,
+                                      color: colorScheme.onSurfaceVariant.withOpacity(0.8), // Slightly more prominent date
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500, // Semi-bold date
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 if (isUpcoming && !isDueToday) ...[
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: DesignSystem.spacing2), //
                                   Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: DesignSystem.spacing4, //
+                                      vertical: DesignSystem.spacing1, //
                                     ),
                                     decoration: BoxDecoration(
-                                      color: Colors.orange.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(6),
+                                      color: warningAmber.withOpacity(0.15), // Use warningAmber
+                                      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall), //
                                     ),
                                     child: Text(
-                                      'in $daysUntil day${daysUntil == 1 ? '' : 's'}',
-                                      style: TextStyle(
-                                        color: Colors.orange.shade700,
-                                        fontSize: 11,
+                                      'in $daysUntil d',
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: warningAmber, // Use warningAmber
                                         fontWeight: FontWeight.w600,
+                                        fontSize: 10,
                                       ),
                                     ),
                                   ),
                                 ],
                               ],
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: DesignSystem.spacing2), // Reduced space
                             // Subscription cycle badge
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.sync_rounded,
-                                  size: 12,
-                                  color: categoryColor,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  widget.subscription.cycle,
-                                  style: TextStyle(
-                                    fontSize: 11,
+                            Container( // Wrap in container for padding
+                              padding: EdgeInsets.symmetric(horizontal: DesignSystem.spacing2, vertical: DesignSystem.spacing1/2), //
+                              decoration: BoxDecoration(
+                                color: categoryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(DesignSystem.radiusSmall / 2), //
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min, // Fit content
+                                children: [
+                                  Icon(
+                                    Icons.sync_rounded,
+                                    size: 10, // Smaller icon
                                     color: categoryColor,
-                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: DesignSystem.spacing1), //
+                                  Text(
+                                    widget.subscription.cycle.toUpperCase(), // Uppercase cycle
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: categoryColor,
+                                      fontWeight: FontWeight.bold, // Bolder cycle
+                                      fontSize: 9, // Smaller font
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      SizedBox(width: DesignSystem.spacing6), // Reduced spacing
 
                       // Amount or Checkbox
                       widget.isSelectionMode
                           ? Transform.scale(
-                        scale: 1.2,
+                        scale: 1.1, // Slightly smaller checkbox scale
                         child: Checkbox(
+                          visualDensity: VisualDensity.compact, // Make checkbox smaller
                           value: widget.isSnoozed,
                           onChanged: widget.onSnoozeChanged,
                           activeColor: colorScheme.primary,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(DesignSystem.radiusSmall / 2), //
                           ),
                         ),
                       )
@@ -426,38 +399,38 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                         children: [
                           Text(
                             widget.isAmountBlurred
-                                ? 'â€¢â€¢â€¢ â‚¬'
-                                : '${isOutflow ? '' : '+'}${widget.subscription.amount.toStringAsFixed(2)} \u20AC', // Replaced ' â‚¬' with ' \u20AC'
-                            style: textTheme.titleLarge?.copyWith(
+                                ? '•••• €' // Space before euro
+                                : '${isOutflow ? '-' : '+'}${widget.subscription.amount.abs().toStringAsFixed(2)} €', // Use abs() and add sign; space before euro
+                            style: textTheme.titleMedium?.copyWith( // Use titleMedium
                               color: amountColor,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.bold, // Bolder amount
                               decoration: textDecoration,
-                              fontSize: 20,
-                              letterSpacing: -0.5,
+                              letterSpacing: -0.2, // Adjust spacing
                             ),
                           ),
-                          if (!widget.isAmountBlurred) ...[
-                            const SizedBox(height: 4),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: amountColor.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                isOutflow ? 'expense' : 'income',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: amountColor,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          ],
+                          // Remove the expense/income badge if desired for cleaner look
+                          // if (!widget.isAmountBlurred) ...[
+                          //   SizedBox(height: DesignSystem.spacing1),
+                          //   Container(
+                          //     padding: EdgeInsets.symmetric(
+                          //       horizontal: DesignSystem.spacing4,
+                          //       vertical: DesignSystem.spacing1 / 2,
+                          //     ),
+                          //     decoration: BoxDecoration(
+                          //       color: amountColor.withOpacity(0.12),
+                          //       borderRadius: BorderRadius.circular(DesignSystem.radiusSmall / 2),
+                          //     ),
+                          //     child: Text(
+                          //       isOutflow ? 'EXPENSE' : 'INCOME', // Uppercase
+                          //       style: textTheme.labelSmall?.copyWith(
+                          //         fontWeight: FontWeight.bold,
+                          //         color: amountColor,
+                          //         fontSize: 8, // Smaller font
+                          //         letterSpacing: 0.5,
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ],
                         ],
                       ),
                     ],
@@ -472,9 +445,9 @@ class _SubscriptionCardState extends State<SubscriptionCard>
   }
 }
 
-// Helper class for data structure
+// Helper class for data structure (can be removed if defined elsewhere)
 class SubscriptionOccurrence {
-  final Subscription subscription;
+  final Subscription subscription; //
   final DateTime date;
   SubscriptionOccurrence(this.subscription, this.date);
 }

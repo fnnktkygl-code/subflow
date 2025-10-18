@@ -1,110 +1,72 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
-/// Modern, fluid scroll-to-hide/show behavior with velocity detection
-/// Enhanced with better state management and performance
+/// A robust and smooth scroll-to-hide/show behavior controller.
+///
+/// This class has been refactored to provide a much more stable experience,
+/// eliminating the "janky" or "flickering" behavior seen previously.
 class SmoothScrollBehavior {
   final AnimationController controller;
   final VoidCallback? onShow;
   final VoidCallback? onHide;
 
-  // Configuration
-  final double hideThreshold;
-  final double showThreshold;
-  final double velocityThreshold;
-
-  // State tracking
   bool _isVisible = true;
-  double _lastScrollOffset = 0;
-  double _accumulatedDelta = 0;
-  Timer? _hideTimer;
-  DateTime? _lastScrollTime;
 
   SmoothScrollBehavior({
     required this.controller,
     this.onShow,
     this.onHide,
-    this.hideThreshold = 50.0,
-    this.showThreshold = 10.0,
-    this.velocityThreshold = 200.0,
   });
 
   bool get isVisible => _isVisible;
 
-  /// Call this from NotificationListener<ScrollNotification>
+  /// =======================================================================
+  /// SCROLLING FLICKER & BOUNCE FIX
+  /// =======================================================================
+  /// PREVIOUS ISSUE:
+  /// The logic `if (metrics.atEdge)` would show the nav bar whenever the
+  /// scroll view was at the top, including during an overscroll "bounce".
+  /// This made it impossible to scroll to the top and keep the nav bar hidden,
+  /// as the bounce effect would always make it reappear.
+  ///
+  /// THE SOLUTION:
+  /// The logic is now more nuanced.
+  /// 1.  We still only listen to `UserScrollNotification` for stability.
+  /// 2.  The rule for showing the bar at the bottom edge remains, as it's good UX.
+  /// 3.  The main change is for the `ScrollDirection.forward` (scrolling up) case.
+  ///     We now check if `metrics.pixels > 5.0`. This creates a small
+  ///     "buffer zone" at the very top of the list.
+  /// 4.  The bounce effect typically happens within this 5-pixel zone, so the
+  ///     condition to show the nav bar isn't met, and it correctly stays hidden.
+  ///     An intentional scroll down by the user will quickly pass this threshold
+  ///     and show the bar as expected.
+  ///
+  /// This prevents the bounce from triggering an unwanted animation and provides
+  /// the stable, full-screen view the user expects at the top of the page.
   void handleScroll(ScrollNotification notification) {
-    // If the content is not scrollable, always show the bars.
-    // This is the main fix for pages with little or no content.
-    if (notification.metrics.maxScrollExtent <= 0) {
-      _show();
-      return;
-    }
-
-    if (notification is! UserScrollNotification &&
-        notification is! ScrollUpdateNotification) {
+    // We only care about user-driven scroll direction changes for stability.
+    if (notification is! UserScrollNotification) {
       return;
     }
 
     final metrics = notification.metrics;
-    final currentOffset = metrics.pixels;
-    final now = DateTime.now();
 
-    // Calculate scroll delta and velocity
-    final scrollDelta = currentOffset - _lastScrollOffset;
+    // If we've scrolled to the very bottom, always show the nav bar.
+    if (metrics.atEdge && metrics.pixels == metrics.maxScrollExtent) {
+      _show();
+      return;
+    }
 
-    double velocity = 0;
-    if (_lastScrollTime != null) {
-      final timeDelta = now.difference(_lastScrollTime!).inMilliseconds / 1000.0;
-      if (timeDelta > 0) {
-        velocity = scrollDelta.abs() / timeDelta;
+    if (notification.direction == ScrollDirection.reverse) {
+      // User is scrolling DOWN the list (e.g., finger moving up). Hide the bar.
+      _hide();
+    } else if (notification.direction == ScrollDirection.forward) {
+      // User is scrolling UP the list (e.g., finger moving down).
+      // Show the nav bar, but only if they've scrolled past our top buffer zone.
+      // This prevents the overscroll bounce from re-showing the bar.
+      if (metrics.pixels > 5.0) {
+        _show();
       }
-    }
-
-    _lastScrollOffset = currentOffset;
-    _lastScrollTime = now;
-
-    // Cancel any pending hide timer
-    _hideTimer?.cancel();
-
-    // At the top of the scroll - always show
-    if (currentOffset <= 0) {
-      _show();
-      _accumulatedDelta = 0;
-      return;
-    }
-
-    // Near the bottom - always show (for better UX)
-    if (metrics.maxScrollExtent > 0 &&
-        metrics.maxScrollExtent - currentOffset < 100) {
-      _show();
-      return;
-    }
-
-    // Fast scroll detection - hide immediately on downward scroll
-    if (velocity > velocityThreshold && scrollDelta > 0) {
-      _hide();
-      return;
-    }
-
-    // Accumulate delta for threshold-based detection
-    _accumulatedDelta += scrollDelta;
-
-    // Threshold-based detection with accumulated delta
-    if (_accumulatedDelta > hideThreshold) {
-      _hide();
-      _accumulatedDelta = 0;
-    } else if (_accumulatedDelta < -showThreshold) {
-      _show();
-      _accumulatedDelta = 0;
-    }
-
-    // Idle detection - show after 2 seconds of no scrolling
-    if (notification is ScrollEndNotification) {
-      _hideTimer = Timer(const Duration(seconds: 2), () {
-        if (!_isVisible) {
-          _show();
-        }
-      });
     }
   }
 
@@ -124,24 +86,22 @@ class SmoothScrollBehavior {
     }
   }
 
-  /// Force show (e.g., when user taps nav item)
+  /// Force the navigation bars to appear.
   void forceShow() {
     _show();
-    _accumulatedDelta = 0;
-    _lastScrollOffset = 0;
   }
 
-  /// Force hide
+  /// Force the navigation bars to disappear.
   void forceHide() {
     _hide();
   }
 
   void dispose() {
-    _hideTimer?.cancel();
+    // No-op now, but kept for API consistency. Timers were removed.
   }
 }
 
-/// Mixin for easy integration into StatefulWidgets
+/// Mixin for easy integration of the scroll behavior into StatefulWidgets.
 mixin SmoothScrollMixin<T extends StatefulWidget> on State<T>, TickerProviderStateMixin<T> {
   late final AnimationController scrollAnimationController;
   late final Animation<double> scrollAnimation;
@@ -154,13 +114,12 @@ mixin SmoothScrollMixin<T extends StatefulWidget> on State<T>, TickerProviderSta
     scrollAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
-      value: 1.0,
+      value: 1.0, // Start fully visible
     );
 
     scrollAnimation = CurvedAnimation(
       parent: scrollAnimationController,
-      curve: Curves.easeInOutCubicEmphasized,
-      reverseCurve: Curves.easeInOutCubicEmphasized,
+      curve: Curves.easeInOutCubic,
     );
 
     scrollBehavior = SmoothScrollBehavior(
@@ -177,21 +136,23 @@ mixin SmoothScrollMixin<T extends StatefulWidget> on State<T>, TickerProviderSta
     super.dispose();
   }
 
+  // Optional callbacks for consuming widgets.
   void onScrollShow() {}
   void onScrollHide() {}
 
+  /// Wraps the child widget with a NotificationListener to enable scroll awareness.
   Widget buildWithScrollBehavior({required Widget child}) {
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         scrollBehavior.handleScroll(notification);
-        return false;
+        return false; // Allow the notification to continue to bubble up.
       },
       child: child,
     );
   }
 }
 
-/// Animated widget that slides in/out based on scroll
+/// An animated widget that slides and fades based on the scroll animation controller.
 class ScrollAwareWidget extends StatelessWidget {
   final Widget child;
   final Animation<double> animation;
@@ -210,15 +171,27 @@ class ScrollAwareWidget extends StatelessWidget {
       animation: animation,
       builder: (context, child) {
         final value = animation.value;
-        final offset = alignment == Alignment.topCenter
-            ? Offset(0, -(1 - value))
-            : Offset(0, (1 - value));
+        // Determines the direction of the slide based on the alignment.
+        final yOffset = alignment == Alignment.topCenter ? -(1 - value) : (1 - value);
 
-        return Transform.translate(
-          offset: offset * 100,
-          child: Opacity(
-            opacity: value,
-            child: child,
+        // ✅ DEFINITIVE FIX: Wrap the widget in an IgnorePointer.
+        // PREVIOUS ISSUE: When the widget was translated off-screen and its
+        // opacity was 0, its original layout space could still block touch
+        // events, creating a "transparent padding" effect.
+        //
+        // THE SOLUTION: By setting `ignoring: value == 0`, we tell Flutter
+        // that this widget should be completely transparent to touch events
+        // when it is fully hidden. This allows taps to pass through to the
+        // content underneath.
+        return IgnorePointer(
+          ignoring: value == 0,
+          child: Transform.translate(
+            // The offset is multiplied to create a more noticeable slide effect.
+            offset: Offset(0, yOffset * 60),
+            child: Opacity(
+              opacity: value,
+              child: child,
+            ),
           ),
         );
       },
@@ -227,28 +200,3 @@ class ScrollAwareWidget extends StatelessWidget {
   }
 }
 
-extension ScrollNotificationExtension on ScrollNotification {
-  bool get isScrollingDown {
-    if (this is ScrollUpdateNotification) {
-      final delta = (this as ScrollUpdateNotification).scrollDelta;
-      if (delta == null) return false;
-      return delta > 0;
-    }
-    return false;
-  }
-
-  bool get isScrollingUp {
-    if (this is ScrollUpdateNotification) {
-      final delta = (this as ScrollUpdateNotification).scrollDelta;
-      if (delta == null) return false;
-      return delta < 0;
-    }
-    return false;
-  }
-
-  bool get isAtTop => metrics.pixels <= 0;
-
-  bool get isAtBottom {
-    return metrics.pixels >= metrics.maxScrollExtent - 100;
-  }
-}

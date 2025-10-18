@@ -1,5 +1,6 @@
 // lib/main.dart
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -11,12 +12,14 @@ import 'services/notification_service.dart';
 import 'models/subscription_model.dart';
 import 'provider/simplified_subscription_provider.dart';
 import 'provider/simplified_gamification.dart';
+import 'provider/user_profile_provider.dart';  // ✅ NEW: Income tracking
 
 final NotificationService notificationService = NotificationService();
 
 Future<void> main() async {
   // --- Standard Initializations ---
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
 
   // Load theme preference BEFORE anything else
   final prefs = await SharedPreferences.getInstance();
@@ -47,12 +50,16 @@ Future<void> main() async {
 
   final gamificationProvider = SimplifiedGamification();
 
+  // ✅ NEW: Initialize user profile provider (loads income data automatically)
+  final userProfileProvider = UserProfileProvider();
+
   // --- Run the App ---
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: subscriptionProvider),
         ChangeNotifierProvider.value(value: gamificationProvider),
+        ChangeNotifierProvider.value(value: userProfileProvider),  // ✅ NEW
       ],
       child: MyApp(initialThemeIndex: savedThemeIndex),
     ),

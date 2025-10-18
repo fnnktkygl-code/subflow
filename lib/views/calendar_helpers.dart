@@ -68,6 +68,7 @@ class CalendarHelpers {
         );
 
       default:
+      // Return a distant future date for unknown cycles
         return DateTime.now().add(const Duration(days: 365 * 10));
     }
   }
@@ -83,6 +84,7 @@ class CalendarHelpers {
     for (final sub in subs) {
       DateTime current = sub.startDate;
       while (current.isBefore(limit)) {
+        // Include if it's today or in the future
         if (!current.isBefore(now) || DateUtils.isSameDay(current, now)) {
           occurrences.add(SubscriptionOccurrence(sub, current));
         }
@@ -97,102 +99,44 @@ class CalendarHelpers {
     return occurrences;
   }
 
-  /// Calculate total amount for a specific month
-  static double calculateMonthlyTotal(
-      Map<DateTime, List<Subscription>> subsByDate,
-      DateTime currentMonth,
-      ) {
-    double total = 0.0;
-    subsByDate.forEach((date, subscriptions) {
-      if (date.month == currentMonth.month && date.year == currentMonth.year) {
-        total += subscriptions.fold(0.0, (sum, sub) => sum + sub.amount);
-      }
-    });
-    return total;
-  }
-
   // =====================================================================
-  // AMOUNT FORMATTING
+  // AMOUNT FORMATTING & COLOR
   // =====================================================================
 
-  /// Format an amount with optional blur effect
+  /// Format an amount with optional blur effect and currency symbol from locale.
   static String formatAmount(double amount, bool isBlurred, BuildContext context) {
     if (isBlurred) return '••••';
 
-    // ✅ CHANGED: Use NumberFormat for locale-aware currency formatting
     final format = NumberFormat.simpleCurrency(
       locale: Localizations.localeOf(context).toString(),
-      name: 'EUR', // Or get this from your subscription model if available
+      name: 'EUR', // You can change this or make it dynamic
     );
 
     if (amount == 0) return format.format(0);
 
-    // ✅ CHANGED: Add a '+' sign for positive numbers
     final formatted = format.format(amount.abs());
     return amount < 0 ? '-$formatted' : '+$formatted';
   }
 
-
-  // =====================================================================
-  // COLOR HELPERS
-  // =====================================================================
-
-  /// ✅ REFACTORED: Get the revenue/income color directly from the theme's tertiary color.
-  static Color getRevenueColor(ColorScheme colorScheme) {
-    // Using tertiary for income gives a nice, distinct color that fits the theme.
-    return colorScheme.tertiary;
-  }
-
-  /// ✅ REFACTORED: Get the appropriate color for an amount display using the theme.
+  /// Get the appropriate color for an amount display using the theme.
   static Color getAmountColor(double amount, ColorScheme colorScheme) {
     if (amount == 0) {
       return colorScheme.onSurface.withOpacity(0.6);
     } else if (amount < 0) {
       return colorScheme.error; // Expenses use the theme's error color.
     } else {
-      return getRevenueColor(colorScheme); // Income uses the theme's revenue color.
+      return colorScheme.tertiary; // Income uses a distinct theme color.
     }
   }
 
-  /// ✅ REFACTORED: Calculate heatmap opacity. The logic is fine, just ensuring it's used consistently.
+  /// Calculate heatmap opacity based on the absolute amount.
   static double getHeatmapOpacity(double amount) {
     const double maxAmountForOpacity = 200.0; // The amount that gives max opacity.
     const double minOpacity = 0.12;
-    const double maxOpacity = 0.8; // Increased for better visibility.
-    if (amount == 0) return 0;
-    // Clamp the amount to a 0-1 ratio based on the max amount.
+    const double maxOpacity = 0.8;
+    if (amount == 0) return 0.0;
+
     final ratio = (amount.abs() / maxAmountForOpacity).clamp(0.0, 1.0);
-    // Interpolate between min and max opacity.
     return minOpacity + (ratio * (maxOpacity - minOpacity));
-  }
-
-
-  // =====================================================================
-  // GROUPING LOGIC
-  // =====================================================================
-
-  /// Group occurrences by time period for display
-  static Map<String, List<SubscriptionOccurrence>> groupOccurrences(
-      List<SubscriptionOccurrence> occurrences,
-      ) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final endOfWeek = today.add(Duration(days: 7 - today.weekday));
-    final map = <String, List<SubscriptionOccurrence>>{};
-
-    for (var occ in occurrences) {
-      String key;
-      if (DateUtils.isSameDay(occ.date, today)) {
-        key = 'Due Today';
-      } else if (!occ.date.isAfter(endOfWeek)) {
-        key = 'Due this Week';
-      } else if (occ.date.month == today.month) {
-        key = 'Later this Month';
-      } else {
-        key = DateFormat('MMMM yyyy').format(occ.date);
-      }
-      map.putIfAbsent(key, () => []).add(occ);
-    }
-    return map;
   }
 }

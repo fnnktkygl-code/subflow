@@ -1,9 +1,16 @@
+// lib/pages/subscriptions_page.dart
+
+import 'package:aada_app/widgets/shared/page_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../models/subscription_model.dart';
 import '../provider/simplified_subscription_provider.dart';
 import '../widgets/shared/subscription_card_wrapper.dart';
-import '../views/calendar_helpers.dart'; // Import the centralized helpers
+import '../utils/subscription_utils.dart';
+import '../widgets/home/empty_state.dart';
+import '../theme/design_system.dart';
+import 'dart:math';
 
 class Subscriptions extends StatefulWidget {
   const Subscriptions({
@@ -29,104 +36,93 @@ class Subscriptions extends StatefulWidget {
   State<Subscriptions> createState() => _SubscriptionsState();
 }
 
-class _SubscriptionsState extends State<Subscriptions>
-    with TickerProviderStateMixin {
-  late final AnimationController _fadeController;
-
-  @override
-  void initState() {
-    super.initState();
-    _fadeController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    )..forward();
-  }
-
-  @override
-  void dispose() {
-    _fadeController.dispose();
-    super.dispose();
-  }
-
+class _SubscriptionsState extends State<Subscriptions> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<SimplifiedSubscriptionProvider>();
-    final colorScheme = Theme.of(context).colorScheme;
 
     if (provider.subscriptions.isEmpty) {
-      return _buildEmptyState(colorScheme);
+      return const Scaffold(body: EmptyState());
     }
 
-    // Use the single source of truth for data logic
     final occurrences =
-    CalendarHelpers.getUpcomingOccurrences(provider.subscriptions);
-    final grouped = CalendarHelpers.groupOccurrences(occurrences);
+    SubscriptionUtils.getRelevantOccurrences(provider.subscriptions);
+    final grouped = SubscriptionUtils.groupOccurrences(occurrences);
 
-    return FadeTransition(
-      opacity: CurvedAnimation(
-        parent: _fadeController,
-        curve: Curves.easeInOut,
-      ),
-      child: Column(
-        children: [
-          // The stats header now lives on this page
-          _EnhancedStatsHeader(
-            isSelectionMode: widget.isSelectionMode,
-            snoozedIds: widget.snoozedIds,
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 8,
-                bottom: widget.isSelectionMode ? 120 : 16,
-              ),
-              itemCount: grouped.length,
-              itemBuilder: (context, index) {
-                final entry = grouped.entries.elementAt(index);
-                return _AnimatedSection(
-                  title: entry.key,
-                  occurrences: entry.value,
-                  provider: provider,
-                  parent: this,
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    final sectionOrder = [
+      'Paid Earlier This Month',
+      'Due Today',
+      'Due this Week',
+      'Later this Month',
+    ];
 
-  Widget _buildEmptyState(ColorScheme colorScheme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.subscriptions_outlined,
-                size: 90, color: colorScheme.primary.withOpacity(0.35)),
-            const SizedBox(height: 28),
-            Text(
-              "No subscriptions yet",
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              "Tap the '+' button to add your first one!",
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurface.withOpacity(0.6),
+    final orderedKeys = sectionOrder.where((key) => grouped.containsKey(key)).toList();
+
+    final remainingKeys = grouped.keys
+        .where((key) => !sectionOrder.contains(key))
+        .toList()
+      ..sort((a, b) {
+        try {
+          final dateA = DateFormat('MMMM yyyy').parse(a);
+          final dateB = DateFormat('MMMM yyyy').parse(b);
+          return dateA.compareTo(dateB);
+        } catch (_) {
+          return a.compareTo(b);
+        }
+      });
+
+    final finalSectionKeys = orderedKeys + remainingKeys;
+
+    // ✅ DEFINITIVE FIX: Define heights for both states.
+    const double whatIfBarAreaHeight = 260.0; // For "What If" mode bar
+    const double navBarAreaHeight = 120.0;   // For the standard bottom nav bar
+
+    return PageLayout(
+      onRefresh: () async {
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
+      slivers: [
+        SliverPersistentHeader(
+          pinned: true,
+          delegate: _StickyHeaderDelegate(
+            minHeight: 115.0,
+            maxHeight: 115.0,
+            child: Container(
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: _EnhancedStatsHeader(
+                isSelectionMode: widget.isSelectionMode,
+                snoozedIds: widget.snoozedIds,
               ),
             ),
-          ],
+          ),
         ),
-      ),
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+                (context, index) {
+              final sectionKey = finalSectionKeys[index];
+              final sectionOccurrences = grouped[sectionKey]!;
+              return _SubscriptionSection(
+                title: sectionKey,
+                occurrences: sectionOccurrences,
+                widget: widget,
+                provider: provider,
+                showDeleteConfirmation: _showDeleteConfirmation,
+              );
+            },
+            childCount: finalSectionKeys.length,
+          ),
+        ),
+
+        // ✅ DEFINITIVE FIX: Add a single, adaptive spacer at the end.
+        // This sliver's height changes depending on the mode. It adds
+        // just enough scrollable space to see the last item above EITHER
+        // the "What If" bar OR the regular bottom navigation bar.
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: widget.isSelectionMode ? whatIfBarAreaHeight : navBarAreaHeight,
+          ),
+        ),
+      ],
     );
   }
 
@@ -167,7 +163,7 @@ class _SubscriptionsState extends State<Subscriptions>
   }
 }
 
-// --- WIDGETS USED ON THIS PAGE ---
+// --- WIDGETS ---
 
 class _EnhancedStatsHeader extends StatelessWidget {
   final bool isSelectionMode;
@@ -184,103 +180,62 @@ class _EnhancedStatsHeader extends StatelessWidget {
 
     return Consumer<SimplifiedSubscriptionProvider>(
       builder: (context, provider, _) {
-        final total = isSelectionMode
-            ? provider.getActiveSubscriptions(snoozedIds).length
-            : provider.subscriptions.length;
-        final monthly = isSelectionMode
-            ? provider.getFilteredTotalMonthlyCost(snoozedIds)
-            : provider.totalMonthlyCost;
-        final yearly = monthly * 12;
+        int displaySubsCount;
+        double displayMonthly;
 
-        return Container(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+        if (isSelectionMode) {
+          displaySubsCount = provider.subscriptions.length - snoozedIds.length;
+          displayMonthly = provider.getFilteredTotalMonthlyCost(snoozedIds);
+        } else {
+          displaySubsCount = provider.subscriptions.length;
+          displayMonthly = provider.totalMonthlyCost;
+        }
+
+        final displayYearly = displayMonthly * 12;
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(
+              DesignSystem.spacing8,
+              DesignSystem.spacing4,
+              DesignSystem.spacing8,
+              DesignSystem.spacing8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'Overview', // Title updated
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w800,
-                      color: colorScheme.onSurface,
-                      letterSpacing: -0.8,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          colorScheme.primaryContainer,
-                          colorScheme.secondaryContainer,
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: colorScheme.primary.withOpacity(0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      '$total',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(
+                    vertical: DesignSystem.spacing6,
+                    horizontal: DesignSystem.spacing8),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colorScheme.primaryContainer.withOpacity(0.6),
-                      colorScheme.secondaryContainer.withOpacity(0.4),
-                      colorScheme.tertiaryContainer.withOpacity(0.5),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: colorScheme.primary.withOpacity(0.15),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colorScheme.primary.withOpacity(0.08),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
+                  border: Border.all(color: colorScheme.outlineVariant),
                 ),
                 child: Row(
                   children: [
                     Expanded(
                       child: _StatCard(
-                        label: 'Monthly',
-                        value: '€${monthly.toStringAsFixed(0)}',
-                        suffix: '/mo',
+                        label: isSelectionMode ? 'Remaining' : 'Total Subs',
+                        value: displaySubsCount.toString(),
+                        icon: Icons.list_alt_rounded,
+                        color: colorScheme.secondary,
+                      ),
+                    ),
+                    const SizedBox(width: DesignSystem.spacing4),
+                    Expanded(
+                      child: _StatCard(
+                        label: 'Monthly Cost',
+                        value: '€${displayMonthly.toStringAsFixed(0)}',
                         icon: Icons.calendar_today_rounded,
                         color: colorScheme.primary,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: DesignSystem.spacing4),
                     Expanded(
                       child: _StatCard(
-                        label: 'Yearly',
-                        value: '€${yearly.toStringAsFixed(0)}',
-                        suffix: '/yr',
+                        label: 'Yearly Cost',
+                        value: '€${displayYearly.toStringAsFixed(0)}',
                         icon: Icons.trending_up_rounded,
                         color: colorScheme.tertiary,
                       ),
@@ -299,213 +254,170 @@ class _EnhancedStatsHeader extends StatelessWidget {
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
-  final String suffix;
   final IconData icon;
   final Color color;
 
   const _StatCard({
     required this.label,
     required this.value,
-    required this.suffix,
     required this.icon,
     required this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: color.withOpacity(0.25),
-          width: 1.5,
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, color: color, size: DesignSystem.iconMedium),
+        const SizedBox(height: DesignSystem.spacing2),
+        Text(
+          value,
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: color,
+            height: 1.0,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      color.withOpacity(0.2),
-                      color.withOpacity(0.1),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: color, size: 18),
-              ),
-              const Spacer(),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurfaceVariant,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
+        Text(
+          label,
+          style: textTheme.labelSmall?.copyWith(
+            color: colorScheme.onSurfaceVariant.withOpacity(0.8),
+            fontWeight: FontWeight.w500,
+            height: 1.2,
           ),
-          const SizedBox(height: 12),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: color,
-                  letterSpacing: -0.8,
-                  height: 1,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 1),
-                child: Text(
-                  suffix,
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: color.withOpacity(0.6),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
     );
   }
 }
 
-class _AnimatedSection extends StatelessWidget {
+class _SubscriptionSection extends StatelessWidget {
   final String title;
   final List<SubscriptionOccurrence> occurrences;
+  final Subscriptions widget;
   final SimplifiedSubscriptionProvider provider;
-  final _SubscriptionsState parent;
+  final Function({
+  required BuildContext context,
+  required Subscription subscription,
+  required SimplifiedSubscriptionProvider provider,
+  }) showDeleteConfirmation;
 
-  const _AnimatedSection({
+  const _SubscriptionSection({
     required this.title,
     required this.occurrences,
+    required this.widget,
     required this.provider,
-    required this.parent,
+    required this.showDeleteConfirmation,
   });
 
   @override
   Widget build(BuildContext context) {
-    final headerAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.1),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: parent._fadeController,
-      curve: const Interval(0.1, 0.6, curve: Curves.easeOut),
-    ));
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SlideTransition(
-          position: headerAnimation,
-          child: _buildSectionHeader(context, title, occurrences.length),
-        ),
-        ...occurrences.map((occ) {
-          return SubscriptionCardWrapper(
-            subscription: occ.subscription,
-            displayDate: occ.date,
-            isAmountBlurred: false,
-            isSelectionMode: parent.widget.isSelectionMode,
-            isSnoozed: parent.widget.isSubscriptionSnoozed(occ.subscription.id),
-            onEdit: (updatedSub) => provider.updateSubscription(updatedSub),
-            onDelete: (sub) => parent._showDeleteConfirmation(
-              context: context,
-              subscription: sub,
-              provider: provider,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: DesignSystem.spacing8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing8),
+            child: _buildSectionHeader(context, title),
+          ),
+          SizedBox(height: DesignSystem.spacing6),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing8),
+            child: Column(
+              children: occurrences.map((occ) {
+                return SubscriptionCardWrapper(
+                  subscription: occ.subscription,
+                  displayDate: occ.date,
+                  isAmountBlurred: false,
+                  isSelectionMode: widget.isSelectionMode,
+                  isSnoozed: widget.isSubscriptionSnoozed(occ.subscription.id),
+                  onEdit: (sub) => widget.onEdit(sub),
+                  onDelete: (sub) => showDeleteConfirmation(
+                    context: context,
+                    subscription: sub,
+                    provider: provider,
+                  ),
+                  onLongPress: () =>
+                      widget.enterSelectionMode(occ.subscription.id),
+                  onTap: widget.isSelectionMode
+                      ? () => widget.toggleSnooze(occ.subscription.id)
+                      : null,
+                  onSnoozeChanged: (_) {
+                    if (widget.isSelectionMode) {
+                      widget.toggleSnooze(occ.subscription.id);
+                    }
+                  },
+                  interactionsEnabled: true, onSnoozChanged: (_) {  },
+                );
+              }).toList(),
             ),
-            onLongPress: () =>
-                parent.widget.enterSelectionMode(occ.subscription.id),
-            onTap: parent.widget.isSelectionMode
-                ? () => parent.widget.toggleSnooze(occ.subscription.id)
-                : null,
-            onSnoozeChanged: (value) =>
-                parent.widget.toggleSnooze(occ.subscription.id),
-          );
-        }),
-        const SizedBox(height: 8),
-      ],
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, int count) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
+    final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
-    // ✅ CHANGÉ : On utilise toujours la couleur primaire du thème pour une cohérence parfaite.
-    final Color headerColor = colorScheme.primary;
+    IconData iconData;
+    Color headerColor = colorScheme.primary;
 
-    return Container(
-      margin: const EdgeInsets.only(top: 16, bottom: 12),
-      // ✅ CHANGÉ : Le fond est maintenant un dégradé très subtil de la couleur primaire.
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [
-            headerColor.withOpacity(0.1), // Plus doux
-            headerColor.withOpacity(0.0), // Fondu vers transparent
-          ],
-          stops: const [0.0, 1.0],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        // ✅ CHANGÉ : Une bordure subtile qui correspond au thème.
-        border: Border.all(color: headerColor.withOpacity(0.2), width: 1),
+    switch (title) {
+      case 'Paid Earlier This Month':
+        iconData = Icons.history_rounded;
+        break;
+      case 'Due Today':
+        iconData = Icons.notification_important_rounded;
+        headerColor = colorScheme.error;
+        break;
+      case 'Due this Week':
+        iconData = Icons.calendar_view_week_rounded;
+        headerColor = colorScheme.secondary;
+        break;
+      default:
+        iconData = Icons.calendar_month_rounded;
+        headerColor = colorScheme.primary;
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(
+        top: DesignSystem.spacing12,
+        bottom: DesignSystem.spacing6,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          // ✅ CHANGÉ : L'icône est maintenant toujours l'icône "calendrier".
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: EdgeInsets.all(DesignSystem.spacing6),
             decoration: BoxDecoration(
-              color: headerColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(Icons.calendar_month_rounded, size: 18, color: headerColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title.toUpperCase(),
-              style: TextStyle(
-                color: headerColor,
-                fontWeight: FontWeight.w800,
-                fontSize: 13,
-                letterSpacing: 1.2,
+              color: headerColor.withOpacity(
+                Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.1,
               ),
+              borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+            ),
+            child: Icon(
+              iconData,
+              size: DesignSystem.iconLarge,
+              color: headerColor,
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              // ✅ CHANGÉ : Le fond de la pastille est plus doux.
-              color: headerColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              '$count',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                color: headerColor,
-              ),
+          SizedBox(width: DesignSystem.spacing8),
+          Text(
+            title,
+            style: textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+              letterSpacing: -0.3,
             ),
           ),
         ],
@@ -513,3 +425,34 @@ class _AnimatedSection extends StatelessWidget {
     );
   }
 }
+
+class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double minHeight;
+  final double maxHeight;
+  final Widget child;
+
+  _StickyHeaderDelegate({
+    required this.minHeight,
+    required this.maxHeight,
+    required this.child,
+  });
+
+  @override
+  double get minExtent => minHeight;
+  @override
+  double get maxExtent => max(maxHeight, minHeight);
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return SizedBox.expand(child: child);
+  }
+
+  @override
+  bool shouldRebuild(_StickyHeaderDelegate oldDelegate) {
+    return maxHeight != oldDelegate.maxHeight ||
+        minHeight != oldDelegate.minHeight ||
+        child != oldDelegate.child;
+  }
+}
+

@@ -35,6 +35,9 @@ dependencies:
   flutter_animate: ^4.5.2        # For easy animations
   percent_indicator: ^4.2.2     # For the circular progress bar
   timezone: ^0.10.1 # Add this line
+  webview_flutter: ^4.7.0
+  flutter_dotenv: ^6.0.0
+  flutter_secure_storage: ^9.0.0
 
 
 
@@ -55,6 +58,7 @@ flutter_icons:
 flutter:
   uses-material-design: true
   assets:
+    - .env
     - assets/images/
     - assets/icons/barbie.png
 

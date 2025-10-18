@@ -1,8 +1,19 @@
-# Flutter/Dart build outputs and cache
-/build/
-/.dart_tool/
+# Flutter/Dart
+.dart_tool/
+.packages
+build/
+*.a
+*.so
+*.jar
+*.class
+*.log
+.flutter-plugins
+.flutter-plugins-dependencies
 
-# IDE and editor files
-.metadata
+# Secrets
+/.env
 
-# Downloaded archives
+# IDE files
+.idea/
+.vscode/
+*.iml
