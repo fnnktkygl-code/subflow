@@ -1,12 +1,6 @@
-# Tr'Hack 💰
-
 <div align="center">
 
-<img src="assets/logo/app_logo_text.png" alt="Tr'Hack Logo" width="400"/>
-
-<br/>
-
-<img src="assets/logo/app_logo.png" alt="Tr'Hack Icon" width="150"/>
+<img src="assets/logo/app_logo_text.png" alt="Tr'Hack Logo" width="500"/>
 
 <br/><br/>
 
