@@ -1,4 +1,7 @@
-# Tr'Hack <img src="assets/logo/app_logo.png" alt="Tr'Hack Logo" width="50"/>
+# Tr'Hack
+    <svg class="trhack-removebg-preview">
+        <use xlink:href="#trhack-removebg-preview" xmlns:xlink="http://www.w3.org/1999/xlink"></use>
+    </svg>
 
 <div align="center">
 
