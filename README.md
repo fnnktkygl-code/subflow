@@ -36,11 +36,6 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 - **Interactive Calendar**: Visualize all payments with monthly cash flow summaries
 - **Real-time Insights**: Track spending against your budget
 
-### 🎮 **Gamification**
-- XP and level system
-- Achievements for financial milestones
-- Progress tracking for goals
-
 ### 💡 **"What If" Mode**
 - Temporarily exclude subscriptions
 - See instant impact on monthly/yearly savings
@@ -68,12 +63,19 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 ### Core Features
 
 <img src="assets/screenshots/home.png" width="250" alt="Home Screen - Personalized greeting & overview"/> <img src="assets/screenshots/calendar.png" width="250" alt="Calendar View - Visualize payment dates"/> <img src="assets/screenshots/insights.png" width="250" alt="Financial Insights - Track spending vs budget"/>
-Add Subscription Flow
-<img src="assets/screenshots/add_subscription.png" width="700" alt="Add Subscription - Beautiful multi-step UI"/>
-Smart Insights & Unique Features
+
+###  Subscription Flow
+
+<img src="assets/screenshots/add_subscription.png" width="100%" alt="Add Subscription - Beautiful multi-step UI with smooth transitions"/>
+
+### Smart Insights
+
 <img src="assets/screenshots/whatif.png" width="250" alt="What If Mode - Calculate potential savings"/> <img src="assets/screenshots/bank_connection.png" width="250" alt="Bank Connection - TrueLayer integration"/> <img src="assets/screenshots/income_health.png" width="250" alt="Income Health - Track subscription vs income ratio"/>
-Customization & Details
-<img src="assets/screenshots/income_health.png" width="250" alt="Income Health - Track subscription vs income ratio"/> <img src="assets/screenshots/subscription_detail.png" width="250" alt="Subscription Details - Payment history & notes"/> <img src="assets/screenshots/themes.png" width="250" alt="Multiple Themes - Light, Dark & Barbie"/>
+
+### Multiple themes
+
+<img src="assets/screenshots/themes.png" width="100%" alt="Multiple Themes - Light, Dark & Barbie"/>
+
 </div>
 
 ## 🚀 Getting Started
@@ -170,7 +172,7 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 ## 👥 Authors
 
-**Your Name**
+**Njm**
 - Email: contact.aadatech@gmail.com
 
 ## 🙏 Acknowledgments
