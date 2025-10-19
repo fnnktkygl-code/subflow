@@ -82,7 +82,7 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 
 <br/><br/>
 
-<img src="assets/logo/app_logo_text.png" alt="Tr'Hack Logo" width="150"/>
+<img src="assets/logo/app_logo.png" alt="Tr'Hack Logo" width="500"/>
 
 ## 🚀 Getting Started
 
