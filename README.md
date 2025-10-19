@@ -67,11 +67,14 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 
 ### Core Features
 
-<img src="assets/screenshots/home.png" width="250" alt="Home Screen - All subscriptions at a glance"/> <img src="assets/screenshots/add_subscription.png" width="250" alt="Add Subscription - Beautiful multi-step UI"/> <img src="assets/screenshots/calendar.png" width="250" alt="Calendar View - Visualize payment dates"/>
-
-### Smart Insights & Unique Features
-
-<img src="assets/screenshots/insights.png" width="250" alt="Financial Insights - Track spending vs budget"/> <img src="assets/screenshots/whatif.png" width="250" alt="What If Mode - Calculate potential savings"/> <img src="assets/screenshots/bank_connection.png" width="250" alt="Bank Connection - TrueLayer integration"/>
+<img src="assets/screenshots/home.png" width="250" alt="Home Screen - Personalized greeting & overview"/> <img src="assets/screenshots/calendar.png" width="250" alt="Calendar View - Visualize payment dates"/> <img src="assets/screenshots/insights.png" width="250" alt="Financial Insights - Track spending vs budget"/>
+Add Subscription Flow
+<img src="assets/screenshots/add_subscription.png" width="700" alt="Add Subscription - Beautiful multi-step UI"/>
+Smart Insights & Unique Features
+<img src="assets/screenshots/whatif.png" width="250" alt="What If Mode - Calculate potential savings"/> <img src="assets/screenshots/bank_connection.png" width="250" alt="Bank Connection - TrueLayer integration"/> <img src="assets/screenshots/income_health.png" width="250" alt="Income Health - Track subscription vs income ratio"/>
+Customization & Details
+<img src="assets/screenshots/income_health.png" width="250" alt="Income Health - Track subscription vs income ratio"/> <img src="assets/screenshots/subscription_detail.png" width="250" alt="Subscription Details - Payment history & notes"/> <img src="assets/screenshots/themes.png" width="250" alt="Multiple Themes - Light, Dark & Barbie"/>
+</div>
 
 ## 🚀 Getting Started
 
