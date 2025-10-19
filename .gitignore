@@ -16,4 +16,5 @@ build/
 # IDE files
 .idea/
 .vscode/
-*.iml
+*.imlcommit_message.txt
+commit_message.txt
