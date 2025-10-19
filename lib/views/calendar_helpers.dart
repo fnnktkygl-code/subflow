@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';
 import '../models/subscription_model.dart';
+import '../theme/custom_colors.dart';
 
 // ======================================================================
 // Subscription Occurrence - Data class linking subscription to date
@@ -118,14 +119,19 @@ class CalendarHelpers {
     return amount < 0 ? '-$formatted' : '+$formatted';
   }
 
-  /// Get the appropriate color for an amount display using the theme.
-  static Color getAmountColor(double amount, ColorScheme colorScheme) {
+  /// Get appropriate color for amount display using theme extension
+  static Color getAmountColor(double amount, BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final customColors = Theme.of(context).extension<CustomColors>();
+
     if (amount == 0) {
-      return colorScheme.onSurface.withOpacity(0.6);
+      return colorScheme.onSurface.withOpacity(0.4);
     } else if (amount < 0) {
-      return colorScheme.error; // Expenses use the theme's error color.
+      // Use the theme-aware color, with a fallback to the error color
+      return customColors?.heatmapExpense ?? colorScheme.error;
     } else {
-      return colorScheme.tertiary; // Income uses a distinct theme color.
+      // Use the theme-aware color, with a fallback to the tertiary color
+      return customColors?.heatmapIncome ?? colorScheme.tertiary;
     }
   }
 

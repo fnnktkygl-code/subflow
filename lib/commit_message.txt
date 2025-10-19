@@ -1,0 +1,54 @@
+
+feat(app): Implement onboarding, major UI overhaul, and add new features
+
+This major update introduces a complete user onboarding flow, significantly refactors the UI across the entire application for a more modern and consistent user experience, and adds several key features and bug fixes.
+
+✨ New Features
+
+User Onboarding Flow: A new, multi-page onboarding screen is now shown to first-time users to introduce key app features and improve initial engagement.
+
+Calendar Navigation: The schedule page now includes modern previous/next month buttons and a smart "Go to Today" button that appears when navigating away from the current month.
+
+Optional End Date: Subscriptions can now have an optional "End Date," allowing for better tracking of services with a fixed term.
+
+Reset Financials: Users can now easily reset their income and spending goal data from both the Settings page and a new option in the Spending Card's menu.
+
+Gen Z Greetings: The homepage greetings are now more dynamic, engaging, and use modern, "Gen Z-friendly" language and emojis.
+
+🎨 UI/UX Refactor
+
+Centralized Layout: Created a PageLayout widget to centralize page structure, top padding for the floating app bar, and pull-to-refresh logic. This has been applied to all main pages (Home, Schedule, Subs, Settings).
+
+Modernized Pages: Completely redesigned the Settings, CountrySelectionPage, ProviderSelectionPage, and DebugApiPage to match the app's modern, card-based UI, using SliverAppBar and components from the DesignSystem.
+
+Improved Empty States: Enhanced the "no subscriptions today" view on the calendar and the "no accounts found" view on the debug page with better graphics and clearer messaging.
+
+CTA Placement: Moved the "View All Subscriptions" CTA on the homepage to the section header for better visibility and a cleaner layout.
+
+Theme-Aware UI:
+
+The calendar heatmap now uses ThemeExtension to adapt its colors to the current theme (e.g., Barbie theme).
+
+Replaced the static "Barbie" theme image asset with a theme-aware SVG icon for a more polished look.
+
+Dynamic Subtitles: The homepage subtitle now randomly selects from a list of motivating messages for each time of day.
+
+Nullable Spending Goal: Refactored the SpendingCard and UserProfileProvider to handle a null spending goal by default, prompting users to set one instead of defaulting to a fixed value.
+
+🐛 Bug Fixes
+
+Calendar Add Subscription: Fixed a critical bug where adding a subscription from the calendar would fail due to an invalid BuildContext.
+
+Layout Overflows: Resolved multiple layout overflow issues caused by the floating app bar and redesigned StatCard widgets.
+
+State Management: Fixed a bug where income set via the GoalDialog was not being persisted correctly.
+
+Widget Errors: Corrected several "argument_type_not_assignable" and "missing_required_argument" errors that arose during refactoring.
+
+CTA Visibility: Fixed an issue where the "View All Subscriptions" CTA would not appear by refactoring the UpcomingPayments widget to be self-sufficient.
+
+Navigation: Fixed the CTA button action by correctly assigning the GlobalKey to the BottomNavBar.
+
+Debug Page State: Corrected the state logic on the DebugApiPage to provide clear feedback when an API call returns zero results.
+
+Duplicate Parameter: Resolved a widespread compile error by removing a duplicated onSnoozeChanged parameter in SubscriptionCardWrapper.

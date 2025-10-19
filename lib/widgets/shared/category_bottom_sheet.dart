@@ -242,18 +242,22 @@ class CategoryBottomSheet {
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
                   final sub = subscriptions[index];
-                  return SubscriptionCardWrapper(
-                    subscription: sub,
-                    displayDate: sub.startDate,
-                    onEdit: onEdit,
-                    onDelete: onDelete,
-                    isAmountBlurred: false,
-                    isSelectionMode: false,
-                    isSnoozed: false,
-                    interactionsEnabled: false, onSnoozChanged: (_) {  }, // ✅ ADDED: This disables swipe/long-press
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    // ✅ Use the Wrapper here
+                    child: SubscriptionCardWrapper(
+                      subscription: sub,
+                      displayDate: sub.startDate,
+                      onEdit: onEdit,
+                      onDelete: onDelete,
+                      isAmountBlurred: false,
+                      isSelectionMode: false,
+                      isSnoozed: false,
+                      interactionsEnabled: false,
+                      onSnoozeChanged: (_) {},
+                    ),
                   );
-                },
-              ),
+                },              ),
             ),
 
             const SizedBox(height: 20),

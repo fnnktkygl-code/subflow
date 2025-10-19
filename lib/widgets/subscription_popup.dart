@@ -140,13 +140,13 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
         child: Padding(
-          padding: EdgeInsets.all(DesignSystem.spacing12),
+          padding: const EdgeInsets.all(DesignSystem.spacing12),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildStepIndicator(),
-                SizedBox(height: DesignSystem.spacing16),
+                const SizedBox(height: DesignSystem.spacing16),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   transitionBuilder: (child, animation) {
@@ -161,7 +161,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
                     ][_currentStep],
                   ),
                 ),
-                SizedBox(height: DesignSystem.spacing16),
+                const SizedBox(height: DesignSystem.spacing16),
                 _buildNavigationButtons(context),
               ],
             ),
@@ -174,7 +174,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
   Widget _buildStepIndicator() {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: EdgeInsets.all(DesignSystem.spacing10),
+      padding: const EdgeInsets.all(DesignSystem.spacing10),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainer.withOpacity(0.5),
         borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
@@ -187,7 +187,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
           final isCompleted = index < _currentStep;
 
           return Padding(
-            padding: EdgeInsets.symmetric(horizontal: DesignSystem.spacing4),
+            padding: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing4),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -233,7 +233,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
   Widget _buildSectionHeader(String title, {IconData? icon}) {
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: EdgeInsets.only(
+      padding: const EdgeInsets.only(
         top: DesignSystem.spacing12,
         bottom: DesignSystem.spacing10,
       ),
@@ -241,7 +241,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
         children: [
           if (icon != null) ...[
             Container(
-              padding: EdgeInsets.all(DesignSystem.spacing6),
+              padding: const EdgeInsets.all(DesignSystem.spacing6),
               decoration: BoxDecoration(
                 color: colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
@@ -252,7 +252,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
                 color: colorScheme.primary,
               ),
             ),
-            SizedBox(width: DesignSystem.spacing8),
+            const SizedBox(width: DesignSystem.spacing8),
           ],
           Text(
             title,
@@ -280,7 +280,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
             onPressed: _goToPreviousStep,
             style: TextButton.styleFrom(
               foregroundColor: colorScheme.onSurfaceVariant,
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: DesignSystem.spacing12,
                 vertical: DesignSystem.spacing8,
               ),
@@ -292,7 +292,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
           style: FilledButton.styleFrom(
             backgroundColor: colorScheme.primary,
             foregroundColor: colorScheme.onPrimary,
-            padding: EdgeInsets.symmetric(
+            padding: const EdgeInsets.symmetric(
               horizontal: DesignSystem.spacing16,
               vertical: DesignSystem.spacing10,
             ),
@@ -322,7 +322,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
             "Subscription Details",
             icon: Icons.subscriptions_rounded,
           ),
-          SizedBox(height: DesignSystem.spacing10),
+          const SizedBox(height: DesignSystem.spacing10),
           Center(
             child: Stack(
               clipBehavior: Clip.none,
@@ -381,10 +381,10 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
                     },
                     style: FilledButton.styleFrom(
                       shape: const CircleBorder(),
-                      padding: EdgeInsets.all(DesignSystem.spacing6),
+                      padding: const EdgeInsets.all(DesignSystem.spacing6),
                       backgroundColor: colorScheme.primary,
                     ),
-                    icon: Icon(
+                    icon: const Icon(
                       Icons.edit,
                       size: DesignSystem.iconSmall,
                     ),
@@ -394,12 +394,12 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
               ],
             ),
           ),
-          SizedBox(height: DesignSystem.spacing16),
+          const SizedBox(height: DesignSystem.spacing16),
           TextFormField(
             controller: _nameController,
             decoration: InputDecoration(
               labelText: "Subscription Name",
-              prefixIcon: Icon(
+              prefixIcon: const Icon(
                 Icons.label_rounded,
                 size: DesignSystem.iconMedium,
               ),
@@ -418,16 +418,12 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
               });
             },
           ),
-          SizedBox(height: DesignSystem.spacing12),
+          const SizedBox(height: DesignSystem.spacing12),
           TextFormField(
             controller: _amountController,
             decoration: InputDecoration(
               labelText: "Amount",
-              prefixText: "€ ",
-              prefixIcon: Icon(
-                Icons.euro_rounded,
-                size: DesignSystem.iconMedium,
-              ),
+              suffixText: "€",
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
               ),
@@ -455,9 +451,9 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
             "Transaction Type",
             icon: Icons.account_balance_rounded,
           ),
-          SizedBox(height: DesignSystem.spacing10),
+          const SizedBox(height: DesignSystem.spacing10),
           Container(
-            padding: EdgeInsets.all(DesignSystem.spacing8),
+            padding: const EdgeInsets.all(DesignSystem.spacing8),
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainer.withOpacity(0.5),
               borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
@@ -465,16 +461,16 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
             child: SizedBox(
               width: double.infinity,
               child: SegmentedButton<String>(
-                segments: [
+                segments: const [
                   ButtonSegment(
                     value: 'Expense',
-                    label: const Text('Expense'),
-                    icon: const Icon(Icons.remove_rounded),
+                    label: Text('Expense'),
+                    icon: Icon(Icons.remove_rounded),
                   ),
                   ButtonSegment(
                     value: 'Revenue',
-                    label: const Text('Revenue'),
-                    icon: const Icon(Icons.add_rounded),
+                    label: Text('Revenue'),
+                    icon: Icon(Icons.add_rounded),
                   ),
                 ],
                 selected: _revenueExpenseSelection,
@@ -488,7 +484,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
             "Category",
             icon: Icons.category_rounded,
           ),
-          SizedBox(height: DesignSystem.spacing10),
+          const SizedBox(height: DesignSystem.spacing10),
           Wrap(
             spacing: DesignSystem.spacing6,
             runSpacing: DesignSystem.spacing6,
@@ -522,7 +518,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
                     ),
                   ),
                   backgroundColor: colorScheme.surface,
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: DesignSystem.spacing8,
                     vertical: DesignSystem.spacing6,
                   ),
@@ -547,7 +543,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
             "Billing & Reminders",
             icon: Icons.schedule_rounded,
           ),
-          SizedBox(height: DesignSystem.spacing10),
+          const SizedBox(height: DesignSystem.spacing10),
           GestureDetector(
             onTap: () => _showAgendaPopup(_selectedStartDate, (date) {
               setState(() => _selectedStartDate = date);
@@ -555,7 +551,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
             child: InputDecorator(
               decoration: InputDecoration(
                 labelText: "Start Date",
-                prefixIcon: Icon(
+                prefixIcon: const Icon(
                   Icons.calendar_today_outlined,
                   size: DesignSystem.iconMedium,
                 ),
@@ -569,11 +565,50 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
               ),
             ),
           ),
-          SizedBox(height: DesignSystem.spacing12),
+          const SizedBox(height: DesignSystem.spacing12),
+          GestureDetector(
+            onTap: () => _showAgendaPopup(_selectedEndDate ?? _selectedStartDate, (date) {
+              setState(() => _selectedEndDate = date);
+            }),
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: "End Date (Optional)",
+                prefixIcon: const Icon(
+                  Icons.event_busy_outlined,
+                  size: DesignSystem.iconMedium,
+                ),
+                suffixIcon: _selectedEndDate != null
+                    ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    setState(() {
+                      _selectedEndDate = null;
+                    });
+                  },
+                )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+                ),
+              ),
+              child: Text(
+                _selectedEndDate != null
+                    ? DateFormat('d MMMM yyyy').format(_selectedEndDate!)
+                    : "Ongoing",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: _selectedEndDate == null
+                      ? colorScheme.onSurfaceVariant.withOpacity(0.7)
+                      : colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: DesignSystem.spacing12),
           DropdownButtonFormField<String>(
             decoration: InputDecoration(
               labelText: "Billing Cycle",
-              prefixIcon: Icon(
+              prefixIcon: const Icon(
                 Icons.repeat_rounded,
                 size: DesignSystem.iconMedium,
               ),
@@ -587,8 +622,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
                 .toList(),
             onChanged: (v) => setState(() => _selectedCycle = v!),
           ),
-          SizedBox(height: DesignSystem.spacing12),
-          // Reminder Section with improved styling
+          const SizedBox(height: DesignSystem.spacing12),
           Container(
             decoration: BoxDecoration(
               color: colorScheme.surfaceContainer.withOpacity(0.5),
@@ -611,13 +645,13 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
                     : Icons.notifications_off_outlined,
                 color: colorScheme.primary,
               ),
-              contentPadding: EdgeInsets.symmetric(
+              contentPadding: const EdgeInsets.symmetric(
                 horizontal: DesignSystem.spacing12,
                 vertical: DesignSystem.spacing4,
               ),
             ),
           ),
-          SizedBox(height: DesignSystem.spacing10),
+          const SizedBox(height: DesignSystem.spacing10),
           AnimatedSize(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
@@ -625,7 +659,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
                 ? DropdownButtonFormField<int>(
               decoration: InputDecoration(
                 labelText: "Remind me before",
-                prefixIcon: Icon(
+                prefixIcon: const Icon(
                   Icons.alarm_rounded,
                   size: DesignSystem.iconMedium,
                 ),
@@ -673,12 +707,12 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
               ),
               backgroundColor: colorScheme.surfaceContainerLow,
               child: Padding(
-                padding: EdgeInsets.all(DesignSystem.spacing12),
+                padding: const EdgeInsets.all(DesignSystem.spacing12),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: EdgeInsets.all(DesignSystem.spacing8),
+                      padding: const EdgeInsets.all(DesignSystem.spacing8),
                       decoration: BoxDecoration(
                         color: colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
@@ -692,7 +726,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
                         ),
                       ),
                     ),
-                    SizedBox(height: DesignSystem.spacing12),
+                    const SizedBox(height: DesignSystem.spacing12),
                     TableCalendar(
                       firstDay: DateTime.utc(2020, 1, 1),
                       lastDay: DateTime.utc(2030, 12, 31),
@@ -745,7 +779,7 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
                         ),
                       ),
                     ),
-                    SizedBox(height: DesignSystem.spacing10),
+                    const SizedBox(height: DesignSystem.spacing10),
                   ],
                 ),
               ),

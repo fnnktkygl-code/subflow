@@ -22,7 +22,7 @@ class ModernCalendarView extends StatefulWidget {
   final bool Function(String) isSubscriptionSnoozed;
   final void Function(String) onLongPress;
   final void Function(String) onTap;
-  final void Function(String) onSnoozChanged;
+  final void Function(String) onSnoozeChanged;
   final Set<String> snoozedIds;
 
   const ModernCalendarView({
@@ -33,9 +33,8 @@ class ModernCalendarView extends StatefulWidget {
     required this.isSubscriptionSnoozed,
     required this.onLongPress,
     required this.onTap,
-    required this.onSnoozChanged,
+    required this.onSnoozeChanged,
     required this.snoozedIds,
-    required void Function(dynamic subId) onSnoozeChanged,
   });
 
   @override
@@ -50,64 +49,40 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
   bool _isAmountBlurred = false;
   int _swipeDirection = 0;
 
-  late ScrollController _monthScrollController;
-
-  static const double _itemWidth = 80.0;
-  static const double _itemMargin = 4.0;
-  double get _itemSlotWidth => _itemWidth + (_itemMargin * 2);
-  final int _centerIndex = 12;
-  List<DateTime> _months = [];
-
   @override
   void initState() {
     super.initState();
     _currentMonth = DateTime(_today.year, _today.month, 1);
     _selectedDay = _today;
-    _initializeMonths(_currentMonth);
-    _monthScrollController = ScrollController();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToSelectedMonth(_centerIndex);
-    });
   }
 
-  @override
-  void dispose() {
-    _monthScrollController.dispose();
-    super.dispose();
-  }
-
-  void _initializeMonths(DateTime centerMonth) {
-    _months = List.generate(25, (index) {
-      return DateTime(centerMonth.year, centerMonth.month - 12 + index, 1);
-    });
-  }
-
-  void _scrollToSelectedMonth(int index) {
-    if (!mounted || !_monthScrollController.hasClients) return;
-
-    final screenWidth = MediaQuery.of(context).size.width;
-    final targetOffset =
-        (index * _itemSlotWidth) - (screenWidth / 2) + (_itemSlotWidth / 2);
-
-    _monthScrollController.animateTo(
-      targetOffset.clamp(0.0, _monthScrollController.position.maxScrollExtent),
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _changeMonth(int index) {
+  void _changeMonth(int direction) {
     HapticFeedback.lightImpact();
-    final newSelectedMonth = _months[index];
     setState(() {
-      _swipeDirection = index > _centerIndex ? 1 : (index < _centerIndex ? -1 : 0);
-      _currentMonth = newSelectedMonth;
+      _swipeDirection = direction;
+      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + direction, 1);
       _selectedDay = null;
-      _initializeMonths(_currentMonth);
     });
-    _scrollToSelectedMonth(_centerIndex);
   }
+
+  void _jumpToToday() {
+    HapticFeedback.mediumImpact();
+    final now = DateTime.now();
+    final todayMonth = DateTime(now.year, now.month, 1);
+
+    setState(() {
+      if (_currentMonth.isBefore(todayMonth)) {
+        _swipeDirection = 1;
+      } else if (_currentMonth.isAfter(todayMonth)) {
+        _swipeDirection = -1;
+      } else {
+        _swipeDirection = 0;
+      }
+      _currentMonth = todayMonth;
+      _selectedDay = now;
+    });
+  }
+
 
   void _selectDay(DateTime date) {
     HapticFeedback.lightImpact();
@@ -124,19 +99,6 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
     final provider = context.watch<SimplifiedSubscriptionProvider>();
     final groupedSubs = provider.groupByDate();
 
-    // ✅ FIXED: Replaced the nested SingleChildScrollView with a Column.
-    //
-    // PREVIOUS ISSUE:
-    // This widget had its own scroll view, which conflicted with the main
-    // page's scroll view (`CustomScrollView` in PageLayout). The inner scroll
-    // view would "trap" the scroll gestures, preventing the main page from
-    // scrolling far enough to see content hidden by the "What If" bar.
-    //
-    // THE SOLUTION:
-    // By using a simple Column, this widget no longer scrolls independently.
-    // It becomes part of the main page's content, and the PageLayout's
-    // CustomScrollView becomes the one and only scroll controller. This allows
-    // the conditional padding in `schedule_page.dart` to work correctly.
     return Column(
       children: [
         _buildModernMonthSelector(),
@@ -155,27 +117,91 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
   }
 
   Widget _buildModernMonthSelector() {
-    return SizedBox(
-      height: 90,
-      child: ListView.builder(
-        controller: _monthScrollController,
-        scrollDirection: Axis.horizontal,
-        padding: EdgeInsets.symmetric(horizontal: DesignSystem.spacing8),
-        itemCount: _months.length,
-        itemBuilder: (context, index) {
-          final monthDate = _months[index];
-          return _MonthSelectorItemWidget(
-            monthDate: monthDate,
-            isSelected: DateUtils.isSameMonth(monthDate, _currentMonth),
-            isTodayMonth: DateUtils.isSameMonth(monthDate, _today),
-            itemWidth: _itemWidth,
-            itemMargin: _itemMargin,
-            onTap: () => _changeMonth(index),
-          );
-        },
-      ),
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final bool isCurrentMonth = DateUtils.isSameMonth(_currentMonth, _today);
+
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            DesignSystem.spacing4,
+            DesignSystem.spacing10,
+            DesignSystem.spacing4,
+            DesignSystem.spacing4,
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.chevron_left_rounded),
+                iconSize: DesignSystem.iconXLarge,
+                onPressed: () => _changeMonth(-1),
+                tooltip: 'Previous Month',
+              ),
+              Expanded(
+                child: Center(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: Offset(_swipeDirection.toDouble() * 0.3, 0),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: Text(
+                      DateFormat('MMMM yyyy').format(_currentMonth),
+                      key: ValueKey(_currentMonth),
+                      style: textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right_rounded),
+                iconSize: DesignSystem.iconXLarge,
+                onPressed: () => _changeMonth(1),
+                tooltip: 'Next Month',
+              ),
+            ],
+          ),
+        ),
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          height: isCurrentMonth ? 0 : 40,
+          curve: Curves.easeInOut,
+          child: isCurrentMonth
+              ? const SizedBox.shrink()
+              : OverflowBox(
+            maxHeight: 40,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: TextButton.icon(
+                onPressed: _jumpToToday,
+                icon: const Icon(Icons.today_rounded, size: DesignSystem.iconMedium),
+                label: const Text('Go to Today'),
+                style: TextButton.styleFrom(
+                  foregroundColor: colorScheme.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
+
 
   Widget _buildMonthPages(Map<DateTime, List<Subscription>> groupedSubs) {
     return RawGestureDetector(
@@ -187,9 +213,9 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
             instance.onEnd = (details) {
               if (details.primaryVelocity == null) return;
               if (details.primaryVelocity! < -200) {
-                _changeMonth(_centerIndex + 1);
+                _changeMonth(1);
               } else if (details.primaryVelocity! > 200) {
-                _changeMonth(_centerIndex - 1);
+                _changeMonth(-1);
               }
             };
           },
@@ -212,7 +238,7 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
         child: Container(
           key: ValueKey<DateTime>(_currentMonth),
           height: 330,
-          margin: EdgeInsets.symmetric(horizontal: DesignSystem.spacing8),
+          margin: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing8),
           child: _buildCalendarGrid(groupedSubs),
         ),
       ),
@@ -224,7 +250,7 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
     final firstDayOffset = (DateTime(_currentMonth.year, _currentMonth.month, 1).weekday + 6) % 7;
 
     return GridView.builder(
-      padding: EdgeInsets.all(DesignSystem.spacing8),
+      padding: const EdgeInsets.all(DesignSystem.spacing8),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 7,
         mainAxisSpacing: 8,
@@ -254,16 +280,17 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
   Widget _buildMonthlyTotal(SimplifiedSubscriptionProvider provider) {
     final colorScheme = Theme.of(context).colorScheme;
     final monthlyTotal = provider.calculateCashFlowForMonth(widget.snoozedIds, _currentMonth);
-    final amountColor = CalendarHelpers.getAmountColor(monthlyTotal, colorScheme);
+    // ✅ FIX 1: Pass the full context, not the colorScheme
+    final amountColor = CalendarHelpers.getAmountColor(monthlyTotal, context);
 
     return Container(
-      margin: EdgeInsets.fromLTRB(
+      margin: const EdgeInsets.fromLTRB(
         DesignSystem.spacing12,
         DesignSystem.spacing12,
         DesignSystem.spacing12,
         DesignSystem.spacing12,
       ),
-      padding: EdgeInsets.all(DesignSystem.spacing12),
+      padding: const EdgeInsets.all(DesignSystem.spacing12),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainer.withOpacity(0.8),
         borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
@@ -290,14 +317,14 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
               letterSpacing: 1.2,
             ),
           ),
-          SizedBox(height: DesignSystem.spacing6),
+          const SizedBox(height: DesignSystem.spacing6),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               GestureDetector(
                 onTap: _toggleBlur,
                 child: Container(
-                  padding: EdgeInsets.all(DesignSystem.spacing6),
+                  padding: const EdgeInsets.all(DesignSystem.spacing6),
                   decoration: BoxDecoration(
                     color: colorScheme.surfaceContainerHighest,
                     shape: BoxShape.circle,
@@ -311,7 +338,7 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
                   ),
                 ),
               ),
-              SizedBox(width: DesignSystem.spacing10),
+              const SizedBox(width: DesignSystem.spacing10),
               GestureDetector(
                 onTap: _toggleBlur,
                 child: AnimatedSwitcher(
@@ -340,21 +367,34 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
 
   Widget _buildSelectedDayDetails(List<Subscription> subs) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (subs.isEmpty) {
       return Container(
-        margin: EdgeInsets.fromLTRB(
+        margin: const EdgeInsets.fromLTRB(
           DesignSystem.spacing12,
           0,
           DesignSystem.spacing12,
           DesignSystem.spacing12,
         ),
-        padding: EdgeInsets.all(DesignSystem.spacing20),
+        padding: const EdgeInsets.all(DesignSystem.spacing20),
         decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+          gradient: LinearGradient(
+            colors: isDark
+                ? [
+              colorScheme.surfaceContainer.withOpacity(0.5),
+              colorScheme.surfaceContainerLow.withOpacity(0.3)
+            ]
+                : [
+              colorScheme.surfaceContainer,
+              colorScheme.surfaceContainerLow,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
           border: Border.all(
-            color: colorScheme.outline.withOpacity(0.1),
+            color: colorScheme.outlineVariant.withOpacity(0.5),
             width: 1,
           ),
         ),
@@ -362,14 +402,30 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.event_busy_rounded,
-                size: 40,
-                color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.event_available_rounded,
+                  size: 40,
+                  color: colorScheme.primary,
+                ),
               ),
-              SizedBox(height: DesignSystem.spacing12),
+              const SizedBox(height: DesignSystem.spacing12),
               Text(
-                'No subscriptions today',
+                'All clear!',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.3,
+                  color: colorScheme.primary,
+                ),
+              ),
+              const SizedBox(height: DesignSystem.spacing4),
+              Text(
+                'No payments due on this day.',
                 style: TextStyle(
                   color: colorScheme.onSurfaceVariant,
                   fontSize: 14,
@@ -386,7 +442,7 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(
+          padding: const EdgeInsets.fromLTRB(
             DesignSystem.spacing16,
             DesignSystem.spacing8,
             DesignSystem.spacing16,
@@ -395,7 +451,7 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
           child: Row(
             children: [
               Container(
-                padding: EdgeInsets.all(DesignSystem.spacing6),
+                padding: const EdgeInsets.all(DesignSystem.spacing6),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
@@ -406,7 +462,7 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ),
-              SizedBox(width: DesignSystem.spacing8),
+              const SizedBox(width: DesignSystem.spacing8),
               Text(
                 '${subs.length} ${subs.length == 1 ? 'subscription' : 'subscriptions'}',
                 style: TextStyle(
@@ -422,7 +478,7 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(
+          padding: const EdgeInsets.fromLTRB(
             DesignSystem.spacing12,
             0,
             DesignSystem.spacing12,
@@ -441,8 +497,8 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
               isSnoozed: widget.isSubscriptionSnoozed(sub.id),
               onLongPress: () => widget.onLongPress(sub.id),
               onTap: () => widget.onTap(sub.id),
-              onSnoozeChanged: (_) => widget.onSnoozChanged(sub.id),
-              interactionsEnabled: true, onSnoozChanged: (_) {  },
+              onSnoozeChanged: (_) => widget.onSnoozeChanged(sub.id),
+              interactionsEnabled: true,
             );
           },
         ),
@@ -451,9 +507,11 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
   }
 
   void _showActionsBottomSheet(DateTime date, List<Subscription> subscriptionsForDay) {
+    final BuildContext viewContext = context;
+
     HapticFeedback.mediumImpact();
     showModalBottomSheet(
-      context: context,
+      context: viewContext,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (bottomSheetContext) => DraggableScrollableSheet(
@@ -464,25 +522,26 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
           date: date,
           subscriptionsForDay: subscriptionsForDay,
           scrollController: scrollController,
+          viewContext: viewContext,
           onAdd: (startDate) {
             showAddSubscriptionPopup(
-              context,
+              viewContext,
                   (newSub) =>
-                  context.read<SimplifiedSubscriptionProvider>().addSubscription(newSub),
+                  viewContext.read<SimplifiedSubscriptionProvider>().addSubscription(newSub),
               defaultStartDate: startDate,
             );
           },
           onEdit: (subToEdit) {
             showAddSubscriptionPopup(
-              context,
-                  (updatedSub) => context
+              viewContext,
+                  (updatedSub) => viewContext
                   .read<SimplifiedSubscriptionProvider>()
                   .updateSubscription(updatedSub),
               subscriptionToEdit: subToEdit,
             );
           },
           onDelete: (subToDelete) {
-            _showDeleteConfirmation(context: context, subscription: subToDelete);
+            _showDeleteConfirmation(context: viewContext, subscription: subToDelete);
           },
         ),
       ),
@@ -544,13 +603,12 @@ class _WeekdayHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // Use MediaQuery to make sure it scales well on all screens
     final daysOfWeek = List.generate(7, (index) {
-      final weekday = DateFormat.E().format(DateTime(2023, 1, 2 + index)); // Mon → Sun
+      final weekday = DateFormat.E().format(DateTime(2023, 1, 2 + index));
       return Expanded(
         child: Center(
           child: Text(
-            weekday.characters.first.toUpperCase(), // capitalized single letter
+            weekday.characters.first.toUpperCase(),
             style: TextStyle(
               color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w700,
@@ -563,126 +621,13 @@ class _WeekdayHeaderWidget extends StatelessWidget {
     });
 
     return Padding(
-      padding: EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: DesignSystem.spacing10,
         vertical: DesignSystem.spacing12,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: daysOfWeek,
-      ),
-    );
-  }
-
-}
-
-// --- Month Selector Item ---
-// --- Month Selector Item ---
-class _MonthSelectorItemWidget extends StatelessWidget {
-  final DateTime monthDate;
-  final bool isSelected;
-  final bool isTodayMonth;
-  final double itemWidth;
-  final double itemMargin;
-  final VoidCallback onTap;
-
-  const _MonthSelectorItemWidget({
-    required this.monthDate,
-    required this.isSelected,
-    required this.isTodayMonth,
-    required this.itemWidth,
-    required this.itemMargin,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    // These values are chosen to fit inside the 90.0px parent
-    // (2 * 10.0) + (2 * 8.0) = 36.0px of chrome.
-    // 90.0 - 36.0 = 54.0px left for the Column, which is > 39px.
-    const double verticalMargin = 10.0;  // CHANGED: Was DesignSystem.spacing10
-    const double verticalPadding = 8.0; // CHANGED: Was DesignSystem.spacing4
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeInOutCubic,
-        width: itemWidth,
-        margin: EdgeInsets.symmetric(
-          horizontal: itemMargin,
-          vertical: verticalMargin, // Use new value
-        ),
-        padding: EdgeInsets.symmetric(
-          horizontal: DesignSystem.spacing8,
-          vertical: verticalPadding, // Use new value
-        ),
-        decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(
-            colors: [colorScheme.primary, colorScheme.secondary],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          )
-              : null,
-          color: !isSelected && isTodayMonth
-              ? colorScheme.primaryContainer.withOpacity(0.4)
-              : !isSelected
-              ? colorScheme.surfaceContainerHighest.withOpacity(0.5)
-              : null,
-          borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
-          border: Border.all(
-            color: isSelected
-                ? Colors.transparent
-                : isTodayMonth
-                ? colorScheme.primary.withOpacity(0.6)
-                : colorScheme.outline.withOpacity(0.2),
-            width: isSelected || isTodayMonth ? 2 : 1,
-          ),
-          boxShadow: isSelected
-              ? [
-            BoxShadow(
-              color: colorScheme.primary.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ]
-              : null,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                DateFormat.MMM().format(monthDate).toUpperCase(),
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: isSelected
-                      ? colorScheme.onPrimary
-                      : isTodayMonth
-                      ? colorScheme.primary
-                      : colorScheme.onSurface.withOpacity(0.8),
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ),
-            SizedBox(height: DesignSystem.spacing2),
-            Text(
-              '${monthDate.year}',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isSelected
-                    ? colorScheme.onPrimary.withOpacity(0.9)
-                    : colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -711,7 +656,8 @@ class _CalendarDayWidget extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final dailyTotal = subscriptions.fold(0.0, (sum, sub) => sum + sub.amount);
     final heatmapOpacity = CalendarHelpers.getHeatmapOpacity(dailyTotal);
-    final baseHeatmapColor = CalendarHelpers.getAmountColor(dailyTotal, colorScheme);
+    // ✅ FIX 2: Pass the full context here as well
+    final baseHeatmapColor = CalendarHelpers.getAmountColor(dailyTotal, context);
     final heatmapColor = baseHeatmapColor.withOpacity(heatmapOpacity);
 
     return GestureDetector(
@@ -901,6 +847,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
   final Function(DateTime) onAdd;
   final Function(Subscription) onEdit;
   final Function(Subscription) onDelete;
+  final BuildContext viewContext;
 
   const _CalendarActionsBottomSheet({
     required this.date,
@@ -909,6 +856,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
     required this.onAdd,
     required this.onEdit,
     required this.onDelete,
+    required this.viewContext,
   });
 
   @override
@@ -926,26 +874,24 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
       ),
       child: ListView(
         controller: scrollController,
-        padding: EdgeInsets.fromLTRB(
+        padding: const EdgeInsets.fromLTRB(
           DesignSystem.spacing12,
           DesignSystem.spacing6,
           DesignSystem.spacing12,
           DesignSystem.spacing12,
         ),
         children: [
-          // Handle bar
           Center(
             child: Container(
               width: 50,
               height: 5,
-              margin: EdgeInsets.only(bottom: DesignSystem.spacing8),
+              margin: const EdgeInsets.only(bottom: DesignSystem.spacing8),
               decoration: BoxDecoration(
                 color: colorScheme.onSurfaceVariant.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
           ),
-          // Date Title
           Text(
             DateFormat('EEEE, MMMM d').format(date),
             textAlign: TextAlign.center,
@@ -955,8 +901,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
               color: colorScheme.primary,
             ),
           ),
-          SizedBox(height: DesignSystem.spacing2),
-          // Subs count
+          const SizedBox(height: DesignSystem.spacing2),
           Text(
             hasSubscriptions
                 ? '${subscriptionsForDay.length} subscription${subscriptionsForDay.length > 1 ? 's' : ''}'
@@ -967,8 +912,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
               color: colorScheme.onSurfaceVariant,
             ),
           ),
-          SizedBox(height: DesignSystem.spacing10),
-          // Action Tiles
+          const SizedBox(height: DesignSystem.spacing10),
           _buildActionTile(
             context,
             Icons.add_circle_outline,
@@ -981,7 +925,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
             },
           ),
           if (hasSubscriptions) ...[
-            SizedBox(height: DesignSystem.spacing6),
+            const SizedBox(height: DesignSystem.spacing6),
             _buildActionTile(
               context,
               Icons.edit_outlined,
@@ -990,7 +934,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
               colorScheme.onSecondaryContainer,
                   () => _handleEdit(context),
             ),
-            SizedBox(height: DesignSystem.spacing6),
+            const SizedBox(height: DesignSystem.spacing6),
             _buildActionTile(
               context,
               Icons.delete_outline,
@@ -1023,7 +967,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
         splashColor: textColor.withOpacity(0.1),
         highlightColor: textColor.withOpacity(0.05),
         child: Container(
-          padding: EdgeInsets.all(DesignSystem.spacing10),
+          padding: const EdgeInsets.all(DesignSystem.spacing10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
             boxShadow: [
@@ -1041,7 +985,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
           child: Row(
             children: [
               Icon(icon, size: DesignSystem.iconLarge, color: textColor),
-              SizedBox(width: DesignSystem.spacing10),
+              const SizedBox(width: DesignSystem.spacing10),
               Text(
                 title,
                 style: TextStyle(
@@ -1063,7 +1007,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
       onEdit(subscriptionsForDay.first);
     } else {
       _showSelectionDialog(
-        context: context,
+        context: viewContext,
         subscriptions: subscriptionsForDay,
         title: 'Which subscription to edit?',
         onSelected: onEdit,
@@ -1077,7 +1021,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
       onDelete(subscriptionsForDay.first);
     } else {
       _showSelectionDialog(
-        context: context,
+        context: viewContext,
         subscriptions: subscriptionsForDay,
         title: 'Which subscription to delete?',
         onSelected: onDelete,
@@ -1121,7 +1065,8 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
               ),
               itemBuilder: (_, index) {
                 final sub = subscriptions[index];
-                final amountColor = CalendarHelpers.getAmountColor(sub.amount, colorScheme);
+                // ✅ FIX 3: Pass the correct context (dialogContext)
+                final amountColor = CalendarHelpers.getAmountColor(sub.amount, dialogContext);
                 return Material(
                   color: Colors.transparent,
                   child: InkWell(
@@ -1133,7 +1078,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
                     splashColor: colorScheme.primary.withOpacity(0.1),
                     highlightColor: colorScheme.primary.withOpacity(0.05),
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: DesignSystem.spacing8),
+                      padding: const EdgeInsets.symmetric(vertical: DesignSystem.spacing8),
                       child: Row(
                         children: [
                           CircleAvatar(
@@ -1150,7 +1095,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
                             )
                                 : null,
                           ),
-                          SizedBox(width: DesignSystem.spacing10),
+                          const SizedBox(width: DesignSystem.spacing10),
                           Expanded(
                             child: Text(
                               sub.name,
@@ -1161,7 +1106,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
                               ),
                             ),
                           ),
-                          SizedBox(width: DesignSystem.spacing6),
+                          const SizedBox(width: DesignSystem.spacing6),
                           Text(
                             CalendarHelpers.formatAmount(
                               sub.amount,
@@ -1196,3 +1141,4 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
     );
   }
 }
+

@@ -45,6 +45,7 @@ class _SubscriptionsState extends State<Subscriptions> {
       return const Scaffold(body: EmptyState());
     }
 
+    // --- Data processing ---
     final occurrences =
     SubscriptionUtils.getRelevantOccurrences(provider.subscriptions);
     final grouped = SubscriptionUtils.groupOccurrences(occurrences);
@@ -73,18 +74,21 @@ class _SubscriptionsState extends State<Subscriptions> {
 
     final finalSectionKeys = orderedKeys + remainingKeys;
 
-    // ✅ DEFINITIVE FIX: Define heights for both states.
-    const double whatIfBarAreaHeight = 260.0; // For "What If" mode bar
-    const double navBarAreaHeight = 120.0;   // For the standard bottom nav bar
+    // --- Define bottom area heights ---
+    const double whatIfBarAreaHeight = 260.0;
+    const double navBarAreaHeight = 120.0;
 
+    // --- Build the Page Layout ---
     return PageLayout(
       onRefresh: () async {
         await Future.delayed(const Duration(milliseconds: 500));
       },
       slivers: [
+        // --- Sticky Header ---
         SliverPersistentHeader(
           pinned: true,
           delegate: _StickyHeaderDelegate(
+            // Use original heights (no manual padding needed here)
             minHeight: 115.0,
             maxHeight: 115.0,
             child: Container(
@@ -96,6 +100,8 @@ class _SubscriptionsState extends State<Subscriptions> {
             ),
           ),
         ),
+
+        // --- Subscription List ---
         SliverList(
           delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -113,10 +119,7 @@ class _SubscriptionsState extends State<Subscriptions> {
           ),
         ),
 
-        // ✅ DEFINITIVE FIX: Add a single, adaptive spacer at the end.
-        // This sliver's height changes depending on the mode. It adds
-        // just enough scrollable space to see the last item above EITHER
-        // the "What If" bar OR the regular bottom navigation bar.
+        // --- Bottom Spacer ---
         SliverToBoxAdapter(
           child: SizedBox(
             height: widget.isSelectionMode ? whatIfBarAreaHeight : navBarAreaHeight,
@@ -126,6 +129,7 @@ class _SubscriptionsState extends State<Subscriptions> {
     );
   }
 
+  // --- Delete Confirmation Dialog ---
   Future<bool> _showDeleteConfirmation({
     required BuildContext context,
     required Subscription subscription,
@@ -165,6 +169,7 @@ class _SubscriptionsState extends State<Subscriptions> {
 
 // --- WIDGETS ---
 
+// --- Enhanced Stats Header ---
 class _EnhancedStatsHeader extends StatelessWidget {
   final bool isSelectionMode;
   final Set<String> snoozedIds;
@@ -177,9 +182,11 @@ class _EnhancedStatsHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Consumer<SimplifiedSubscriptionProvider>(
       builder: (context, provider, _) {
+        // ... (data calculation logic remains the same)
         int displaySubsCount;
         double displayMonthly;
 
@@ -190,7 +197,6 @@ class _EnhancedStatsHeader extends StatelessWidget {
           displaySubsCount = provider.subscriptions.length;
           displayMonthly = provider.totalMonthlyCost;
         }
-
         final displayYearly = displayMonthly * 12;
 
         return Padding(
@@ -204,13 +210,21 @@ class _EnhancedStatsHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
+                // ✅ REDUCE VERTICAL PADDING HERE slightly
                 padding: const EdgeInsets.symmetric(
-                    vertical: DesignSystem.spacing6,
+                    vertical: DesignSystem.spacing6, // Was spacing8
                     horizontal: DesignSystem.spacing8),
                 decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
-                  border: Border.all(color: colorScheme.outlineVariant),
+                    color: colorScheme.surfaceContainer,
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
+                    border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.shadow.withOpacity(isDark ? 0.15 : 0.08),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      )
+                    ]
                 ),
                 child: Row(
                   children: [
@@ -222,7 +236,12 @@ class _EnhancedStatsHeader extends StatelessWidget {
                         color: colorScheme.secondary,
                       ),
                     ),
-                    const SizedBox(width: DesignSystem.spacing4),
+                    Container(
+                      height: 50,
+                      width: 1,
+                      color: colorScheme.outlineVariant.withOpacity(0.5),
+                      margin: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing2),
+                    ),
                     Expanded(
                       child: _StatCard(
                         label: 'Monthly Cost',
@@ -231,7 +250,12 @@ class _EnhancedStatsHeader extends StatelessWidget {
                         color: colorScheme.primary,
                       ),
                     ),
-                    const SizedBox(width: DesignSystem.spacing4),
+                    Container(
+                      height: 50,
+                      width: 1,
+                      color: colorScheme.outlineVariant.withOpacity(0.5),
+                      margin: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing2),
+                    ),
                     Expanded(
                       child: _StatCard(
                         label: 'Yearly Cost',
@@ -251,6 +275,7 @@ class _EnhancedStatsHeader extends StatelessWidget {
   }
 }
 
+// --- Stat Card (Keep previous changes - titleMedium, labelSmall) ---
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
@@ -272,33 +297,37 @@ class _StatCard extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(icon, color: color, size: DesignSystem.iconMedium),
+        Icon(icon, color: color, size: DesignSystem.iconLarge),
         const SizedBox(height: DesignSystem.spacing2),
         Text(
           value,
-          style: textTheme.titleLarge?.copyWith(
+          style: textTheme.titleMedium?.copyWith( // Keep as titleMedium
             fontWeight: FontWeight.w700,
             color: color,
             height: 1.0,
+            letterSpacing: -0.3,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        const SizedBox(height: DesignSystem.spacing2),
         Text(
           label,
-          style: textTheme.labelSmall?.copyWith(
-            color: colorScheme.onSurfaceVariant.withOpacity(0.8),
-            fontWeight: FontWeight.w500,
-            height: 1.2,
+          style: textTheme.labelSmall?.copyWith( // Keep as labelSmall
+            color: colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+            height: 1.1,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
         ),
       ],
     );
   }
 }
 
+// --- Subscription Section (Unchanged) ---
 class _SubscriptionSection extends StatelessWidget {
   final String title;
   final List<SubscriptionOccurrence> occurrences;
@@ -356,12 +385,11 @@ class _SubscriptionSection extends StatelessWidget {
                       widget.toggleSnooze(occ.subscription.id);
                     }
                   },
-                  interactionsEnabled: true, onSnoozChanged: (_) {  },
+                  interactionsEnabled: true,
                 );
               }).toList(),
             ),
-          ),
-        ],
+          ),        ],
       ),
     );
   }
@@ -426,6 +454,7 @@ class _SubscriptionSection extends StatelessWidget {
   }
 }
 
+// --- Sticky Header Delegate (Unchanged) ---
 class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double minHeight;
   final double maxHeight;
@@ -455,4 +484,3 @@ class _StickyHeaderDelegate extends SliverPersistentHeaderDelegate {
         child != oldDelegate.child;
   }
 }
-

@@ -1,10 +1,12 @@
 // lib/pages/home_page.dart
 
+import 'package:aada_app/widgets/shared/page_layout.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import for HapticFeedback
 import 'package:provider/provider.dart';
 import '../provider/simplified_subscription_provider.dart';
 import '../provider/user_profile_provider.dart';
-import '../views/upcoming_list_widget.dart';
+import '../widgets/home/upcoming_payments.dart';
 import '../widgets/shared/category_bottom_sheet.dart';
 import '../widgets/home/spending_card.dart';
 import '../widgets/home/category_chart.dart';
@@ -19,6 +21,7 @@ import '../widgets/home/greeting_header.dart';
 import '../models/subscription_model.dart';
 import '../widgets/subscription_popup.dart';
 import '../theme/design_system.dart';
+import '../widgets/bottom_nav_bar.dart'; // Import for the global key
 
 class Home extends StatefulWidget {
   final bool isSelectionMode;
@@ -41,19 +44,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-
-    // Page load animation
     _pageLoadController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     )..forward();
-
-    // Stagger animation for list items
     _staggerController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     )..forward();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         context.read<SimplifiedGamification>().checkDailyActivity();
@@ -72,7 +70,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final subProvider = context.watch<SimplifiedSubscriptionProvider>();
     final profileProvider = context.watch<UserProfileProvider>();
-    final colorScheme = Theme.of(context).colorScheme;
 
     if (subProvider.subscriptions.isEmpty) {
       return Scaffold(
@@ -83,155 +80,125 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     final monthlyCost = widget.isSelectionMode
         ? subProvider.getFilteredTotalMonthlyCost(widget.snoozedIds)
         : subProvider.totalMonthlyCost;
-
     final hasCategories = subProvider.categorySpending.isNotEmpty;
-
     final shouldShowIncomePrompt = profileProvider.shouldShowIncomePrompt(
       subProvider.subscriptions.length,
     );
-
     final incomeInsight = profileProvider.getIncomeInsight(monthlyCost);
     final incomeStatus = profileProvider.getHealthStatus(monthlyCost);
 
     final List<Widget> homeWidgets = [];
 
-    // 0. GREETING HEADER - with animation
     homeWidgets.add(
-      _buildAnimatedWidget(
-        0,
-        const GreetingHeader(),
+      SpendingCard(
+        monthlyCost: monthlyCost,
+        goal: profileProvider.spendingGoal,
+        monthlyIncome: profileProvider.monthlyIncome,
+        onEditGoal: () => _showGoalDialog(context, monthlyCost, profileProvider),
+        onEditIncome: () => _showIncomeDialog(context, profileProvider),
+        profileProvider: profileProvider,
       ),
     );
-    homeWidgets.add(SizedBox(height: DesignSystem.spacing8));
+    homeWidgets.add(const SizedBox(height: DesignSystem.spacing8));
 
-    // 1. SPENDING CARD - hero with animation
-    homeWidgets.add(
-      _buildAnimatedWidget(
-        1,
-        SpendingCard(
-          monthlyCost: monthlyCost,
-          goal: profileProvider.spendingGoal,
-          monthlyIncome: profileProvider.monthlyIncome,
-          onEditGoal: () => _showGoalDialog(context, monthlyCost, profileProvider),
-          onEditIncome: () => _showIncomeDialog(context, profileProvider),
-        ),
-      ),
-    );
-    homeWidgets.add(SizedBox(height: DesignSystem.spacing8));
-
-    // 2. INCOME PROMPT
     if (shouldShowIncomePrompt) {
       homeWidgets.add(
-        _buildAnimatedWidget(
-          2,
-          IncomePromptCard(
-            onAddIncome: () => _showIncomeDialog(context, profileProvider),
-            onDismiss: () async {
-              await profileProvider.dismissIncomePrompt();
-            },
-          ),
+        IncomePromptCard(
+          onAddIncome: () => _showIncomeDialog(context, profileProvider),
+          onDismiss: () async {
+            await profileProvider.dismissIncomePrompt();
+          },
         ),
       );
-      homeWidgets.add(SizedBox(height: DesignSystem.spacing8));
+      homeWidgets.add(const SizedBox(height: DesignSystem.spacing8));
     }
 
-    // 3. INCOME HEALTH SECTION
     if (incomeInsight != null && incomeStatus != IncomeHealthStatus.unknown) {
       homeWidgets.add(
-        _buildAnimatedWidget(
-          3,
-          _buildSectionWithHeader(
-            'Your Income Health',
-            Icons.health_and_safety_rounded,
-            IncomeInsightBanner(
-              message: incomeInsight,
-              status: incomeStatus,
-            ),
+        _buildSectionWithHeader(
+          'Your Income Health',
+          Icons.health_and_safety_rounded,
+          IncomeInsightBanner(
+            message: incomeInsight,
+            status: incomeStatus,
           ),
         ),
       );
-      homeWidgets.add(SizedBox(height: DesignSystem.spacing8));
+      homeWidgets.add(const SizedBox(height: DesignSystem.spacing8));
     }
 
-    // 4. UPCOMING PAYMENTS
     homeWidgets.add(
-      _buildAnimatedWidget(
-        4,
-        _buildSectionWithHeader(
-          'Upcoming Payments',
-          Icons.calendar_today_rounded,
-          UpcomingPayments(
-            subscriptions: subProvider.subscriptions.take(3).toList(),
-            onViewAll: () {},
-          ),
+      _buildSectionWithHeader(
+        'Upcoming Payments',
+        Icons.calendar_today_rounded,
+        const UpcomingPayments(), // No longer needs onViewAll here
+        trailing: TextButton(
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            bottomNavBarKey.currentState?.onNavItemTapped(2);
+          },
+          child: const Text('View All'),
         ),
       ),
     );
+    homeWidgets.add(const SizedBox(height: DesignSystem.spacing8));
 
-    // 5. CATEGORY CHART
     if (hasCategories) {
-      homeWidgets.add(SizedBox(height: DesignSystem.spacing8));
       homeWidgets.add(
-        _buildAnimatedWidget(
-          5,
-          _buildSectionWithHeader(
-            'Spending Breakdown',
-            Icons.pie_chart_rounded,
-            CategoryChart(
-              spending: widget.isSelectionMode
-                  ? subProvider.getFilteredCategorySpending(widget.snoozedIds)
-                  : subProvider.categorySpending,
-              onCategoryTap: (category) =>
-                  _showCategoryDetail(context, category, subProvider, profileProvider),
-            ),
+        _buildSectionWithHeader(
+          'Spending Breakdown',
+          Icons.pie_chart_rounded,
+          CategoryChart(
+            spending: widget.isSelectionMode
+                ? subProvider.getFilteredCategorySpending(widget.snoozedIds)
+                : subProvider.categorySpending,
+            onCategoryTap: (category) =>
+                _showCategoryDetail(context, category, subProvider, profileProvider),
           ),
         ),
       );
     }
 
-    // 6. BOTTOM PADDING - dynamic
-    homeWidgets.add(SizedBox(height: _getBottomPadding(context)));
-
-    return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: RefreshIndicator(
-        color: colorScheme.primary,
-        backgroundColor: colorScheme.surface,
-        onRefresh: () async {
-          // 1. Get the provider *before* the async gap
-          final gamification = context.read<SimplifiedGamification>();
-
-          // 2. The async gap
-          await Future.delayed(const Duration(milliseconds: 800));
-
-          // 3. Now use the variable. The 'mounted' check is still good practice.
-          if (mounted) {
-            gamification.checkDailyActivity();
-          }
-        },
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverPadding(
-              padding: EdgeInsets.all(DesignSystem.spacing8),
-              sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (BuildContext context, int index) {
-                    return homeWidgets[index];
-                  },
-                  childCount: homeWidgets.length,
-                ),
-              ),
-            ),
-          ],
+    return PageLayout(
+      onRefresh: () async {
+        final gamification = context.read<SimplifiedGamification>();
+        await Future.delayed(const Duration(milliseconds: 800));
+        if (mounted) {
+          gamification.checkDailyActivity();
+        }
+      },
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+            DesignSystem.spacing8,
+            DesignSystem.spacing12,
+            DesignSystem.spacing8,
+            DesignSystem.spacing12,
+          ),
+          sliver: SliverToBoxAdapter(
+            child: _buildAnimatedWidget(0, const GreetingHeader()),
+          ),
         ),
-      ),
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing8),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                return _buildAnimatedWidget(index + 1, homeWidgets[index]);
+              },
+              childCount: homeWidgets.length,
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(height: _getBottomPadding(context)),
+        ),
+      ],
     );
   }
 
-  // HELPER: Build staggered animated widget
   Widget _buildAnimatedWidget(int index, Widget child) {
-    final begin = Offset(0, 0.3);
+    final begin = const Offset(0, 0.3);
     final end = Offset.zero;
     final curve = Curves.easeOut;
 
@@ -239,8 +206,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       CurveTween(curve: curve),
     );
 
-    // Stagger delay based on index
-    final delay = index * 0.1; // 100ms between each item
+    final delay = index * 0.1;
 
     return FutureBuilder(
       future: Future.delayed(Duration(milliseconds: (delay * 1000).toInt())),
@@ -256,25 +222,22 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             ),
           );
         }
-        return SizedBox(
-          height: child is SizedBox ? 0 : null,
-          child: child,
-        );
+        return const SizedBox.shrink();
       },
     );
   }
 
-  // HELPER: Build section with improved header
   Widget _buildSectionWithHeader(
       String label,
       IconData icon,
-      Widget child,
-      ) {
+      Widget child, {
+        Widget? trailing,
+      }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildEnhancedSectionHeader(label, icon),
-        SizedBox(height: DesignSystem.spacing6),
+        _buildEnhancedSectionHeader(label, icon, trailing: trailing),
+        const SizedBox(height: DesignSystem.spacing6),
         SectionWrapper(
           child: child,
         ),
@@ -282,8 +245,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     );
   }
 
-  // HELPER: Enhanced section header with better styling
-  Widget _buildEnhancedSectionHeader(String label, IconData icon) {
+  Widget _buildEnhancedSectionHeader(String label, IconData icon,
+      {Widget? trailing}) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -291,7 +254,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     return Row(
       children: [
         Container(
-          padding: EdgeInsets.all(DesignSystem.spacing6),
+          padding: const EdgeInsets.all(DesignSystem.spacing6),
           decoration: BoxDecoration(
             color: colorScheme.primary.withOpacity(isDark ? 0.15 : 0.1),
             borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
@@ -302,31 +265,28 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             color: colorScheme.primary,
           ),
         ),
-        SizedBox(width: DesignSystem.spacing8),
-        Text(
-          label,
-          style: textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurface,
-            letterSpacing: -0.3,
+        const SizedBox(width: DesignSystem.spacing8),
+        Expanded(
+          child: Text(
+            label,
+            style: textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+              letterSpacing: -0.3,
+            ),
           ),
         ),
+        if (trailing != null) trailing,
       ],
     );
   }
 
-  // HELPER: Dynamic bottom padding
   double _getBottomPadding(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final bottomViewInset = mediaQuery.viewInsets.bottom;
-
-    // Ensure minimum padding plus safe area
-    final minPadding = DesignSystem.spacing20 + (bottomViewInset > 0 ? 0 : DesignSystem.spacing12);
-
-    return minPadding;
+    return 120.0 + (bottomViewInset > 0 ? 0 : DesignSystem.spacing12);
   }
 
-  // HELPER: Empty state with animation
   Widget _buildEmptyStateWithAnimation() {
     return FadeTransition(
       opacity: _pageLoadController.drive(
@@ -345,9 +305,10 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   void _showGoalDialog(BuildContext context, double currentCost, UserProfileProvider profileProvider) {
     GoalDialog.show(
       context,
-      currentGoal: profileProvider.spendingGoal,
+      currentGoal: profileProvider.spendingGoal ?? 0.0,
       currentCost: currentCost,
       monthlyIncome: profileProvider.monthlyIncome,
+      profileProvider: profileProvider,
       onGoalSet: (newGoal) {
         profileProvider.updateSpendingGoal(newGoal);
       },
@@ -442,3 +403,4 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     return result ?? false;
   }
 }
+

@@ -2,7 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'income_setup_dialog.dart'; // Ensure this is imported
+import '../../provider/user_profile_provider.dart'; // Import UserProfileProvider
+import 'income_setup_dialog.dart';
 
 class GoalDialog {
   // Static show method remains the entry point
@@ -11,8 +12,9 @@ class GoalDialog {
         required double currentGoal,
         required double currentCost,
         required double? monthlyIncome,
+        required UserProfileProvider profileProvider, // ✅ ADD: Pass the provider
         required Function(double) onGoalSet,
-        required VoidCallback onAddIncome, // The callback to trigger opening IncomeSetupDialog
+        required VoidCallback onAddIncome,
       }) {
     HapticFeedback.mediumImpact();
 
@@ -21,9 +23,9 @@ class GoalDialog {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => _GoalDialogContent(
-        // Pass initial values and callbacks to the StatefulWidget
         initialGoal: currentGoal,
         initialIncome: monthlyIncome,
+        profileProvider: profileProvider, // ✅ PASS: Pass it to the stateful widget
         onGoalSet: onGoalSet,
         onAddIncome: onAddIncome,
       ),
@@ -32,7 +34,7 @@ class GoalDialog {
 
 // --- Helper methods remain static ---
 
-  // Widget for the interactive slider when income is set
+  // ... (no changes to _buildEnabledSlider or _buildDisabledSlider)
   static Widget _buildEnabledSlider({
     required BuildContext context,
     required double percentage,
@@ -73,7 +75,6 @@ class GoalDialog {
     );
   }
 
-  // Widget to display when income is NOT set
   static Widget _buildDisabledSlider({
     required BuildContext context,
     required VoidCallback onUnlock,
@@ -132,12 +133,14 @@ class GoalDialog {
 class _GoalDialogContent extends StatefulWidget {
   final double initialGoal;
   final double? initialIncome;
+  final UserProfileProvider profileProvider; // ✅ ADD: Receive the provider
   final Function(double) onGoalSet;
   final VoidCallback onAddIncome;
 
   const _GoalDialogContent({
     required this.initialGoal,
     this.initialIncome,
+    required this.profileProvider, // ✅ ADD
     required this.onGoalSet,
     required this.onAddIncome,
   });
@@ -149,20 +152,20 @@ class _GoalDialogContent extends StatefulWidget {
 class _GoalDialogContentState extends State<_GoalDialogContent> {
   late TextEditingController _controller;
   late ValueNotifier<double?> _currentIncomeNotifier;
-  double _percentage = 15.0; // Default
+  double _percentage = 15.0;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: widget.initialGoal.toStringAsFixed(0));
     _currentIncomeNotifier = ValueNotifier(widget.initialIncome);
-    _recalculatePercentage(); // Initial calculation
-    _controller.addListener(_updatePercentageFromAmount); // Add listener
+    _recalculatePercentage();
+    _controller.addListener(_updatePercentageFromAmount);
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_updatePercentageFromAmount); // Remove listener
+    _controller.removeListener(_updatePercentageFromAmount);
     _controller.dispose();
     _currentIncomeNotifier.dispose();
     super.dispose();
@@ -172,10 +175,9 @@ class _GoalDialogContentState extends State<_GoalDialogContent> {
     final income = _currentIncomeNotifier.value;
     final goalAmount = double.tryParse(_controller.text) ?? widget.initialGoal;
     if (income != null && income > 0) {
-      // ✅ Explicitly ensure result is double and clamp with doubles
       _percentage = (goalAmount / income * 100.0).clamp(0.0, 100.0);
     } else {
-      _percentage = 15.0; // Reset to default if no income
+      _percentage = 15.0;
     }
   }
 
@@ -183,10 +185,8 @@ class _GoalDialogContentState extends State<_GoalDialogContent> {
     final income = _currentIncomeNotifier.value;
     if (income != null && income > 0) {
       final amount = double.tryParse(_controller.text) ?? 0.0;
-      // ✅ Explicitly ensure result is double and clamp with doubles
       final newPercentage = (amount / income * 100.0).clamp(0.0, 100.0);
-      // Only update state if percentage actually changed to avoid excessive rebuilds
-      if ((newPercentage - _percentage).abs() > 0.01) { // Use a small epsilon
+      if ((newPercentage - _percentage).abs() > 0.01) {
         setState(() {
           _percentage = newPercentage;
         });
@@ -194,13 +194,15 @@ class _GoalDialogContentState extends State<_GoalDialogContent> {
     }
   }
 
-
+  // ✅ FIX: Update the provider AND the local state
   void _handleIncomeUpdate(double? newIncome) {
-    _currentIncomeNotifier.value = newIncome; // Update notifier
-    // No need for setState here, ValueListenableBuilder handles it
-    _recalculatePercentage(); // Recalculate based on new income
-    // Force a rebuild if needed, though ValueListenableBuilder should handle it
-    if(mounted) setState(() {});
+    // 1. Persist the change to the rest of the app
+    widget.profileProvider.updateIncome(newIncome);
+
+    // 2. Update the local state for immediate UI feedback in this dialog
+    _currentIncomeNotifier.value = newIncome;
+    _recalculatePercentage();
+    if (mounted) setState(() {});
   }
 
   @override
@@ -213,18 +215,15 @@ class _GoalDialogContentState extends State<_GoalDialogContent> {
         builder: (context, currentIncome, child) {
           bool hasIncome = currentIncome != null && currentIncome > 0;
 
-          // Recalculate percentage inside the builder to ensure it's up-to-date
-          double currentPercentage = 15.0; // Default
-          if(hasIncome) {
+          double currentPercentage = 15.0;
+          if (hasIncome) {
             double goalValue = double.tryParse(_controller.text) ?? widget.initialGoal;
             if (currentIncome > 0) {
-              // ✅ Explicitly ensure result is double and clamp with doubles
               currentPercentage = (goalValue / currentIncome * 100.0).clamp(0.0, 100.0);
             }
           } else {
-            currentPercentage = 15.0; // Reset if income removed
+            currentPercentage = 15.0;
           }
-
 
           return Padding(
             padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
@@ -238,7 +237,6 @@ class _GoalDialogContentState extends State<_GoalDialogContent> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // --- Header ---
                   Center(
                     child: Container(
                       width: 40, height: 4,
@@ -259,10 +257,8 @@ class _GoalDialogContentState extends State<_GoalDialogContent> {
                     style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
                   ),
                   const SizedBox(height: 32),
-
-                  // --- Amount Input ---
                   TextField(
-                    controller: _controller, // Use the state's controller
+                    controller: _controller,
                     autofocus: true,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
                     textAlign: TextAlign.center,
@@ -279,21 +275,17 @@ class _GoalDialogContentState extends State<_GoalDialogContent> {
                       focusedBorder: InputBorder.none,
                       enabledBorder: InputBorder.none,
                     ),
-                    // Listener handles updates
                   ),
-
-                  // --- Conditional Percentage UI ---
                   const SizedBox(height: 24),
                   hasIncome
                       ? GoalDialog._buildEnabledSlider(
                     context: context,
-                    percentage: currentPercentage, // Use calculated percentage
-                    monthlyIncome: currentIncome, // Use current income
+                    percentage: currentPercentage,
+                    monthlyIncome: currentIncome,
                     onChanged: (newPercentage) {
-                      // Update text field when slider changes
-                      final newGoal = currentIncome * (newPercentage / 100.0); // Ensure double division
+                      final newGoal = currentIncome * (newPercentage / 100.0);
                       setState(() {
-                        _percentage = newPercentage; // Update internal state for immediate slider feedback
+                        _percentage = newPercentage;
                         _controller.text = newGoal.toStringAsFixed(0);
                       });
                     },
@@ -301,18 +293,15 @@ class _GoalDialogContentState extends State<_GoalDialogContent> {
                       : GoalDialog._buildDisabledSlider(
                     context: context,
                     onUnlock: () {
-                      // Show the IncomeSetupDialog, passing our internal update function.
                       IncomeSetupDialog.show(
                         context,
-                        currentIncome: currentIncome, // Pass current session income
-                        onIncomeSaved: _handleIncomeUpdate, // Link update function
+                        currentIncome: currentIncome,
+                        onIncomeSaved: _handleIncomeUpdate, // This now updates the provider
                         allowSkip: true,
                       );
                     },
                   ),
                   const SizedBox(height: 32),
-
-                  // --- Set Limit Button ---
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -325,10 +314,9 @@ class _GoalDialogContentState extends State<_GoalDialogContent> {
                       onPressed: () {
                         final newGoal = double.tryParse(_controller.text);
                         if (newGoal != null && newGoal >= 0) {
-                          widget.onGoalSet(newGoal); // Call original callback
-                          HapticFeedback.lightImpact();
+                          widget.onGoalSet(newGoal);
                         }
-                        Navigator.pop(context); // Close GoalDialog
+                        Navigator.pop(context);
                       },
                       child: Text(
                         'Set Limit',

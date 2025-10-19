@@ -38,7 +38,7 @@ class SubscriptionCardWrapper extends StatelessWidget {
     this.isSelectionMode = false,
     this.isSnoozed = false,
     this.onSnoozeChanged,
-    this.interactionsEnabled = true, required void Function(dynamic _) onSnoozChanged, // ✅ Default to true
+    this.interactionsEnabled = true,
   });
 
   @override

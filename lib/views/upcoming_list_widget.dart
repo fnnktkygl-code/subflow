@@ -89,7 +89,6 @@ class _UpcomingPaymentsState extends State<UpcomingPayments>
                         isSelectionMode: false,
                         isSnoozed: false,
                         interactionsEnabled: false,
-                        onSnoozChanged: (_) {},
                       ),
                     ),
                   )

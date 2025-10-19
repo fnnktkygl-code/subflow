@@ -1,38 +1,117 @@
-// lib/utils/home_helpers.dart
+// lib/utils/home_helpers.dart (Enhanced greeting section)
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 /// Utility class for home screen operations
 class HomeHelpers {
-  // Private constructor to prevent instantiation
   HomeHelpers._();
 
+  static final _random = Random();
+
   // =======================================================================
-  // GREETINGS & MOTIVATION
+  // ENHANCED GREETINGS & MOTIVATION
   // =======================================================================
 
+  /// Returns a time-appropriate greeting with context
   static String getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) return "gm ☀️";
-    if (hour >= 12 && hour < 17) return "hey there 👋";
-    if (hour >= 17 && hour < 22) return "good vibes 🌙";
+    final now = DateTime.now();
+    final hour = now.hour;
+    final dayOfWeek = now.weekday;
+
+    // Weekend vibes (Saturday = 6, Sunday = 7)
+    if (dayOfWeek >= 6) {
+      final isSaturday = dayOfWeek == 6;
+      final isSunday = dayOfWeek == 7;
+
+      if (hour >= 5 && hour < 12) return "weekend mode 🌅";
+      if (hour >= 12 && hour < 17) {
+        return isSaturday ? "chill saturday vibes ✨" : "sunday funday ✨";
+      }
+      if (hour >= 17 && hour < 22) return "weekend nights 🌙";
+      return "late night thoughts 💭";
+    }
+
+    // Weekday greetings
+    if (hour >= 5 && hour < 12) {
+      final morningGreets = ["rise & grind 🔥", "morning energy ☀️", "fresh start 🌱"];
+      return morningGreets[_random.nextInt(morningGreets.length)];
+    }
+    if (hour >= 12 && hour < 17) {
+      final afternoonGreets = ["main character energy ✨", "afternoon hustle 💪", "halfway there 🎯"];
+      return afternoonGreets[_random.nextInt(afternoonGreets.length)];
+    }
+    if (hour >= 17 && hour < 22) {
+      final eveningGreets = ["vibe check 🌙", "evening wind-down 🌆", "reflect & relax 🧘"];
+      return eveningGreets[_random.nextInt(eveningGreets.length)];
+    }
     return "night owl 🦉";
   }
 
-  static String getSubtitle() {
+  /// Returns contextual subtitle based on user's spending behavior
+  static String getSubtitle({
+    double? spendingRatio, // spending/income ratio
+    int? daysUntilNextPayment,
+    bool? isOverBudget,
+  }) {
     final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 12) return "let's save some money today";
-    if (hour >= 12 && hour < 17) return "crushing your goals";
-    if (hour >= 17 && hour < 22) return "you're doing great btw";
-    return "rest well, champ";
+
+    // Priority: Show contextual messages first
+    if (isOverBudget == true) {
+      return "maybe time to review your subs?";
+    }
+
+    if (spendingRatio != null && spendingRatio > 0.8) {
+      return "you're spending ${(spendingRatio * 100).toInt()}% of income 👀";
+    }
+
+    if (daysUntilNextPayment != null && daysUntilNextPayment <= 3) {
+      return "payment incoming in $daysUntilNextPayment days";
+    }
+
+    // Fallback to time-based messages
+    const morningMessages = [
+      "let's get this bread.",
+      "manifesting financial wins.",
+      "your budget is looking good.",
+      "starting strong today."
+    ];
+    const afternoonMessages = [
+      "pov: you're crushing your goals.",
+      "stay focused, no cap.",
+      "consistency is key 🔑",
+      "track, save, thrive."
+    ];
+    const eveningMessages = [
+      "you're doing great, btw.",
+      "today's spending? not bad.",
+      "planning tomorrow's wins.",
+      "reflect on today's choices."
+    ];
+    const nightMessages = [
+      "rest well, champ.",
+      "tomorrow's another chance.",
+      "your budget is safe.",
+      "goodnight, saver 😴"
+    ];
+
+    if (hour >= 5 && hour < 12) {
+      return morningMessages[_random.nextInt(morningMessages.length)];
+    }
+    if (hour >= 12 && hour < 17) {
+      return afternoonMessages[_random.nextInt(afternoonMessages.length)];
+    }
+    if (hour >= 17 && hour < 22) {
+      return eveningMessages[_random.nextInt(eveningMessages.length)];
+    }
+    return nightMessages[_random.nextInt(nightMessages.length)];
   }
 
   // =======================================================================
   // CATEGORY STYLING (MODERN)
   // =======================================================================
 
-  /// Defines the master map for all category styles.
   static Map<String, Map<String, dynamic>> getCategoryMap() {
     return {
       'Home': {'color': const Color(0xFFEC4899), 'icon': Icons.home_rounded},
@@ -50,14 +129,12 @@ class HomeHelpers {
     };
   }
 
-  /// Get color for a specific category from the modern palette.
   static Color getCategoryColor(String category) {
     return getCategoryMap()[category]?['color'] as Color? ?? const Color(0xFF78716C);
   }
 
-  /// Get icon for a specific category from the modern palette.
   static IconData getCategoryIcon(String category) {
-    final iconMap = getCategoryMap(); // No BuildContext needed
+    final iconMap = getCategoryMap();
     return iconMap[category]?['icon'] as IconData? ?? Icons.category_rounded;
   }
 
@@ -67,12 +144,12 @@ class HomeHelpers {
 
   static List<Color> generateChartColors(BuildContext context) {
     return [
-      const Color(0xFF10B981), // Emerald
-      const Color(0xFF06B6D4), // Cyan
-      const Color(0xFF3B82F6), // Blue
-      const Color(0xFFF59E0B), // Amber
-      const Color(0xFFEF4444), // Red
-      const Color(0xFF8B5CF6), // Violet
+      const Color(0xFF10B981),
+      const Color(0xFF06B6D4),
+      const Color(0xFF3B82F6),
+      const Color(0xFFF59E0B),
+      const Color(0xFFEF4444),
+      const Color(0xFF8B5CF6),
     ];
   }
 
@@ -91,8 +168,4 @@ class HomeHelpers {
     if (difference > 1) return 'In $difference days';
     return DateFormat('EEE, d MMM').format(date);
   }
-
-  // =======================================================================
-  // SMART TIPS & INSIGHTS
-  // =======================================================================
 }

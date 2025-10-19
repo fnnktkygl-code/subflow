@@ -15,7 +15,7 @@ class Schedule extends StatefulWidget {
   final bool Function(String) isSubscriptionSnoozed;
   final void Function(String) onLongPress;
   final void Function(String) onTap;
-  final void Function(String) onSnoozeChanged; // Check type
+  final void Function(String) onSnoozeChanged;
   final Set<String> snoozedIds;
 
   const Schedule({
@@ -26,7 +26,7 @@ class Schedule extends StatefulWidget {
     required this.isSubscriptionSnoozed,
     required this.onLongPress,
     required this.onTap,
-    required this.onSnoozeChanged, // Check type
+    required this.onSnoozeChanged,
     required this.snoozedIds,
   });
 
@@ -38,55 +38,45 @@ class _ScheduleState extends State<Schedule> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
     final provider = context.watch<SimplifiedSubscriptionProvider>();
 
     if (provider.subscriptions.isEmpty) {
       return _buildEmptyState(theme.colorScheme);
     }
 
-    // ✅ RECO: Define the height of the "What If" bar plus some extra padding
-    // This value is used to extend the scrollable area.
-    const double whatIfBarAreaHeight = 220.0 + 40.0; // 220 for the bar, 40 for comfort
+    // Define bottom area heights
+    const double whatIfBarAreaHeight = 220.0 + 40.0;
 
+    // Use PageLayout which now handles RefreshIndicator displacement
     return PageLayout(
       onRefresh: () async {
+        // You might want provider-specific refresh logic here
         await Future.delayed(const Duration(milliseconds: 500));
       },
       slivers: [
-        // ✅ RECO: It's crucial that the main content is in a SliverToBoxAdapter,
-        // NOT a SliverFillRemaining. This allows the content to scroll freely.
+        // ✅ Main content in SliverToBoxAdapter
+        // ❌ REMOVE the inner RefreshIndicator, PageLayout handles it now
         SliverToBoxAdapter(
-          child: RefreshIndicator(
-            color: colorScheme.primary,
-            backgroundColor: colorScheme.surface,
-            onRefresh: () async {
-              await Future.delayed(const Duration(milliseconds: 500));
-            },
-            child: ModernCalendarView(
-              onEdit: widget.onEdit,
-              onDelete: widget.onDelete,
-              isSelectionMode: widget.isSelectionMode,
-              isSubscriptionSnoozed: widget.isSubscriptionSnoozed,
-              onLongPress: widget.onLongPress,
-              onTap: widget.onTap,
-              onSnoozChanged: (subId) => widget.onSnoozeChanged(subId),
-              snoozedIds: widget.snoozedIds,
-              onSnoozeChanged: (_) {},
-            ),
+          child: ModernCalendarView(
+            onEdit: widget.onEdit,
+            onDelete: widget.onDelete,
+            isSelectionMode: widget.isSelectionMode,
+            isSubscriptionSnoozed: widget.isSubscriptionSnoozed,
+            onLongPress: widget.onLongPress,
+            onTap: widget.onTap,
+            onSnoozeChanged: widget.onSnoozeChanged, // Pass the correct callback
+            snoozedIds: widget.snoozedIds,
+            // REMOVE duplicate onSnoozeChanged: (_) {}, if it existed
           ),
         ),
 
-        // ✅ RECO: This is the core of the solution.
-        // We add a conditional spacer INSIDE the CustomScrollView. This sliver
-        // only exists when in selection mode, adding extra scrollable space
-        // at the bottom to push the content above the "What If" bar.
+        // --- Conditional Bottom Spacer for "What If" mode ---
         if (widget.isSelectionMode)
           const SliverToBoxAdapter(
             child: SizedBox(height: whatIfBarAreaHeight),
           ),
 
-        // This is the normal padding for when the nav bar is visible.
+        // --- Standard Bottom Spacer for Nav Bar ---
         SliverToBoxAdapter(
           child: SizedBox(height: _getBottomPadding(context)),
         ),
@@ -94,15 +84,16 @@ class _ScheduleState extends State<Schedule> {
     );
   }
 
+  // Helper to calculate bottom padding needed above the nav bar
   double _getBottomPadding(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    final bottomViewInset = mediaQuery.viewInsets.bottom;
-    // This padding ensures content is not hidden behind the regular nav bar.
+    final bottomViewInset = mediaQuery.viewInsets.bottom; // Padding for keyboard etc.
+    // Base padding (nav bar height) + extra space + keyboard inset adjustment
     return 120.0 + (bottomViewInset > 0 ? 0 : DesignSystem.spacing12);
   }
 
+  // --- Empty State Widget (Unchanged) ---
   Widget _buildEmptyState(ColorScheme colorScheme) {
-    // Empty state remains the same
     return Scaffold(
       body: Center(
         child: Padding(
@@ -157,4 +148,3 @@ class _ScheduleState extends State<Schedule> {
     );
   }
 }
-

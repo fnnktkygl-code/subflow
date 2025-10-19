@@ -1,98 +1,161 @@
-// lib/widgets/shared/category_bottom_sheet.dart
+// lib/widgets/home/upcoming_payments.dart
+
 import 'package:flutter/material.dart';
-// ✅ Import provider
-import '../../models/subscription_model.dart';
-import '../../utils/home_helpers.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../provider/simplified_subscription_provider.dart';
 import '../shared/subscription_card_wrapper.dart';
+import '../../views/calendar_helpers.dart';
+import '../../theme/design_system.dart';
 
-class CategoryBottomSheet {
-  static void show(
-      BuildContext context, {
-        required String category,
-        required List<Subscription> subscriptions,
-        String? categoryInsight,
-        VoidCallback? onFindAlternatives,
-        // ✅ Add callbacks for edit/delete
-        required Function(Subscription) onEdit,
-        required Future<bool> Function(Subscription) onDelete,
-      }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    HomeHelpers.getCategoryColor(category);
-    HomeHelpers.getCategoryIcon(category);
-    subscriptions.fold(0.0, (sum, sub) => sum + sub.monthlyCost);
-    // ✅ Get provider instance for callbacks if needed inside the sheet (though passing them is cleaner)
-    // final provider = Provider.of<SimplifiedSubscriptionProvider>(context, listen: false);
+class UpcomingPayments extends StatefulWidget {
+  // ✅ REMOVED: The 'subscriptions' parameter is no longer needed.
+  final VoidCallback? onViewAll;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        constraints: BoxConstraints(
-          maxHeight: MediaQuery.of(context).size.height * 0.85,
-        ),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(28),
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Handle bar
-            Container( /* ... (no changes) ... */ ),
+  const UpcomingPayments({
+    super.key,
+    this.onViewAll,
+  });
 
-            // Header
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  Row( /* ... (no changes) ... */ ),
-                  const SizedBox(height: 16),
-                  Container( /* ... Total amount card (no changes) ... */ ),
-                  if (categoryInsight != null) ...[ /* ... Category insight (no changes) ... */ ],
-                ],
-              ),
-            ),
+  @override
+  State<UpcomingPayments> createState() => _UpcomingPaymentsState();
+}
 
-            const SizedBox(height: 16),
-            const Divider(height: 1),
-            const SizedBox(height: 8),
+class _UpcomingPaymentsState extends State<UpcomingPayments>
+    with TickerProviderStateMixin {
+  late AnimationController _staggerController;
 
-            // Subscriptions list - ✅ Use SubscriptionCardWrapper
-            Flexible(
-              child: ListView.builder(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: subscriptions.length,
-                itemBuilder: (context, index) {
-                  final sub = subscriptions[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    // ✅ Use the Wrapper here
-                    child: SubscriptionCardWrapper(
-                      subscription: sub,
-                      // displayDate is less relevant here, use start date or a fixed date?
-                      // Using start date for consistency, though it won't show the date badge logic
-                      displayDate: sub.startDate,
-                      onEdit: onEdit,   // Pass the provided callback
-                      onDelete: onDelete, // Pass the provided callback
-                      isSelectionMode: false,
-                      isSnoozed: false, onSnoozChanged: (_) {  },
-                    ),
-                  );
-                },
-              ),
-            ),
-
-            const SizedBox(height: 16),
-          ],
-        ),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _staggerController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    )..forward();
   }
 
-// _getBillingText is no longer needed as the card handles formatting
-// static String _getBillingText(Subscription sub) { ... }
+  @override
+  void dispose() {
+    _staggerController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // ✅ GET PROVIDER: Fetch data directly from the provider.
+    final provider = context.watch<SimplifiedSubscriptionProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (provider.subscriptions.isEmpty) return const SizedBox.shrink();
+
+    // ✅ LOGIC MOVED INSIDE: The widget is now self-sufficient.
+    final allUpcoming =
+    CalendarHelpers.getUpcomingOccurrences(provider.subscriptions);
+    final upcomingToShow = allUpcoming.take(3).toList();
+    final bool hasMoreToShow = allUpcoming.length > 3;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (upcomingToShow.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(24),
+            alignment: Alignment.center,
+            child: Column(
+              children: [
+                Icon(
+                  Icons.celebration_rounded,
+                  size: 40,
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'No upcoming payments!',
+                  style: TextStyle(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ...List.generate(upcomingToShow.length, (index) {
+          final occurrence = upcomingToShow[index];
+          final begin = const Offset(0.2, 0);
+          final end = Offset.zero;
+          final curve = Curves.easeOut;
+          final tween =
+          Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+          final delay = index * 0.1;
+
+          return FutureBuilder(
+            future:
+            Future.delayed(Duration(milliseconds: (delay * 1000).toInt())),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return SlideTransition(
+                  position: _staggerController.drive(tween),
+                  child: FadeTransition(
+                    opacity: _staggerController.drive(
+                      Tween(begin: 0.0, end: 1.0)
+                          .chain(CurveTween(curve: curve)),
+                    ),
+                    child: Padding(
+                      padding:
+                      const EdgeInsets.only(bottom: DesignSystem.spacing6),
+                      child: SubscriptionCardWrapper(
+                        subscription: occurrence.subscription,
+                        displayDate: occurrence.date,
+                        onEdit: (sub) => provider.updateSubscription(sub),
+                        onDelete: (sub) async {
+                          provider.deleteSubscription(sub.id);
+                          return true;
+                        },
+                        isSelectionMode: false,
+                        isSnoozed: false,
+                        interactionsEnabled: false,
+                        onSnoozeChanged: (_) {},
+                      ),
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          );
+        }),
+        // ✅ CTA BUTTON: This logic now works correctly.
+        if (widget.onViewAll != null && hasMoreToShow) ...[
+          const SizedBox(height: DesignSystem.spacing4),
+          Padding(
+            padding:
+            const EdgeInsets.symmetric(horizontal: DesignSystem.spacing4),
+            child: SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  HapticFeedback.lightImpact();
+                  widget.onViewAll!();
+                },
+                icon: const Icon(Icons.read_more_rounded,
+                    size: DesignSystem.iconMedium),
+                label: const Text('View All Subscriptions'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: DesignSystem.spacing8),
+                  foregroundColor: colorScheme.primary,
+                  side:
+                  BorderSide(color: colorScheme.primary.withOpacity(0.3)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                    BorderRadius.circular(DesignSystem.radiusMedium),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ]
+      ],
+    );
+  }
 }

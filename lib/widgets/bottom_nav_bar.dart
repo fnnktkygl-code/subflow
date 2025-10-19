@@ -24,13 +24,14 @@ class BottomNavBar extends StatefulWidget {
   final VoidCallback onToggleTheme;
   final ValueChanged<Color> onChangeAccentColor;
   final VoidCallback onResetAccentColor;
+  final int currentThemeIndex;
 
   const BottomNavBar({
     super.key,
     required this.onToggleTheme,
     required this.onChangeAccentColor,
     required this.onResetAccentColor,
-    required int currentThemeIndex,
+    required this.currentThemeIndex,
   });
 
   @override
@@ -72,7 +73,8 @@ class BottomNavBarState extends State<BottomNavBar>
     super.dispose();
   }
 
-  void _onNavItemTapped(int index) {
+  // ✅ RENAMED from _onNavItemTapped to make it public
+  void onNavItemTapped(int index) {
     if (_currentIndex != index) {
       setState(() => _currentIndex = index);
       _pageController.animateToPage(
@@ -196,15 +198,12 @@ class BottomNavBarState extends State<BottomNavBar>
         return PopScope(
           canPop: _currentIndex == 0,
           onPopInvokedWithResult: (bool didPop, dynamic result) {
-            if (!didPop) _onNavItemTapped(0);
+            if (!didPop) onNavItemTapped(0);
           },
           child: Scaffold(
             backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             body: Stack(
               children: [
-                // ============================================================
-                // PAGE CONTENT
-                // ============================================================
                 Positioned.fill(
                   child: buildWithScrollBehavior(
                     child: PageView(
@@ -217,10 +216,6 @@ class BottomNavBarState extends State<BottomNavBar>
                     ),
                   ),
                 ),
-
-                // ============================================================
-                // APP BAR - Scroll aware at top
-                // ============================================================
                 Positioned(
                   top: 0,
                   left: 0,
@@ -236,10 +231,6 @@ class BottomNavBarState extends State<BottomNavBar>
                     ),
                   ),
                 ),
-
-                // ✅ DEFINITIVE FIX: Combine "What If" bar and Nav Bar into a single
-                // animated unit that slides up and down together. This implements
-                // the user's suggestion for a more dynamic and intuitive UI.
                 Positioned(
                   bottom: 0,
                   left: 0,
@@ -249,13 +240,11 @@ class BottomNavBarState extends State<BottomNavBar>
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // The "What If" bar is now part of this animated column
                         if (isSelectionMode)
                           buildWhatIfActionBar(
                             provider: provider,
                             colorScheme: colorScheme,
                           ),
-                        // The main nav bar follows below it
                         _buildModernNavBar(
                           context,
                           colorScheme,
@@ -280,6 +269,9 @@ class BottomNavBarState extends State<BottomNavBar>
       double topPadding,
       ColorScheme colorScheme,
       ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final double backgroundOpacity = isDark ? 0.75 : 0.85;
+
     return RepaintBoundary(
       child: ClipRRect(
         child: BackdropFilter(
@@ -292,7 +284,7 @@ class BottomNavBarState extends State<BottomNavBar>
               bottom: 12,
             ),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLow.withOpacity(0.85),
+              color: colorScheme.surfaceContainerLow.withOpacity(backgroundOpacity),
               border: Border(
                 bottom: BorderSide(
                   color: colorScheme.outlineVariant.withOpacity(0.1),
@@ -308,6 +300,7 @@ class BottomNavBarState extends State<BottomNavBar>
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.5,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 Material(
@@ -321,7 +314,7 @@ class BottomNavBarState extends State<BottomNavBar>
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer.withOpacity(0.3),
+                        color: colorScheme.surfaceContainer.withOpacity(0.6),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: themeIcon(context),
@@ -442,7 +435,7 @@ class BottomNavBarState extends State<BottomNavBar>
     final isSelected = _currentIndex == index;
 
     return GestureDetector(
-      onTap: () => _onNavItemTapped(index),
+      onTap: () => onNavItemTapped(index), // ✅ Use public method
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -536,4 +529,3 @@ class BottomNavBarState extends State<BottomNavBar>
     );
   }
 }
-

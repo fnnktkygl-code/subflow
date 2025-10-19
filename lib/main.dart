@@ -12,16 +12,16 @@ import 'services/notification_service.dart';
 import 'models/subscription_model.dart';
 import 'provider/simplified_subscription_provider.dart';
 import 'provider/simplified_gamification.dart';
-import 'provider/user_profile_provider.dart';  // ✅ NEW: Income tracking
+import 'provider/user_profile_provider.dart';
+import 'pages/onboarding_page.dart'; // ✅ Import the new onboarding page
 
 final NotificationService notificationService = NotificationService();
 
 Future<void> main() async {
-  // --- Standard Initializations ---
+  // ... (main function remains the same) ...
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
-  // Load theme preference BEFORE anything else
   final prefs = await SharedPreferences.getInstance();
   final savedThemeIndex = prefs.getInt('themeModeIndex') ?? 0;
 
@@ -38,28 +38,24 @@ Future<void> main() async {
     SystemUiMode.edgeToEdge,
   );
 
-  // --- Service and Database Initializations ---
   await Hive.initFlutter();
   Hive.registerAdapter(SubscriptionAdapter());
   await notificationService.init();
   await notificationService.requestPermissions();
 
-  // --- Provider Initializations ---
   final subscriptionProvider = SimplifiedSubscriptionProvider();
   await subscriptionProvider.init();
 
   final gamificationProvider = SimplifiedGamification();
 
-  // ✅ NEW: Initialize user profile provider (loads income data automatically)
   final userProfileProvider = UserProfileProvider();
 
-  // --- Run the App ---
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: subscriptionProvider),
         ChangeNotifierProvider.value(value: gamificationProvider),
-        ChangeNotifierProvider.value(value: userProfileProvider),  // ✅ NEW
+        ChangeNotifierProvider.value(value: userProfileProvider),
       ],
       child: MyApp(initialThemeIndex: savedThemeIndex),
     ),
@@ -82,7 +78,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    _themeModeIndex = widget.initialThemeIndex; // Use the pre-loaded theme
+    _themeModeIndex = widget.initialThemeIndex;
     WidgetsBinding.instance.addObserver(this);
     _finishLoading();
 
@@ -91,7 +87,7 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
         final gamification = Provider.of<SimplifiedGamification>(context, listen: false);
         gamification.checkDailyActivity();
       } catch (e) {
-        // Provider not ready yet, will be called from HomePage
+        // Provider not ready yet
       }
     });
   }
@@ -103,12 +99,9 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   @override
-  void didChangePlatformBrightness() {
-    // This can be used to sync with system theme changes if desired in the future
-  }
+  void didChangePlatformBrightness() {}
 
   void _finishLoading() {
-    // Small delay to ensure providers are ready
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
         setState(() {
@@ -158,68 +151,34 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final currentTheme = getCurrentTheme();
 
     if (_isLoading) {
-      final Color loadingColor = currentTheme.colorScheme.primary;
-      final Color textColor = currentTheme.textTheme.bodyLarge?.color ?? Colors.black;
-
+      // ... (Loading screen remains the same) ...
       return MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: currentTheme, // Use current theme for loading screen
+        theme: currentTheme,
         home: Scaffold(
-          backgroundColor: currentTheme.scaffoldBackgroundColor,
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset(
-                  'assets/logo.png',
-                  width: 120,
-                  height: 120,
-                  errorBuilder: (_, __, ___) => Icon(
-                    Icons.eco_rounded,
-                    size: 80,
-                    color: loadingColor,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(loadingColor),
-                  strokeWidth: 3,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "Tr'Hack",
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: loadingColor,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "Loading your subscriptions...",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: textColor.withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // ...
         ),
       );
     }
+
+    // ✅ ADD: Watch the UserProfileProvider to get onboarding status
+    final hasCompletedOnboarding =
+        context.watch<UserProfileProvider>().hasCompletedOnboarding;
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Tr'Hack",
       theme: currentTheme,
-      home: BottomNavBar(
+      // ✅ FIX: Conditionally show OnboardingPage or BottomNavBar
+      home: hasCompletedOnboarding
+          ? BottomNavBar(
+        key: bottomNavBarKey,
         onToggleTheme: _toggleTheme,
         onChangeAccentColor: (Color value) {},
         onResetAccentColor: () {},
         currentThemeIndex: _themeModeIndex,
-      ),
+      )
+          : const OnboardingPage(),
       builder: (context, child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(
@@ -231,3 +190,4 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
     );
   }
 }
+

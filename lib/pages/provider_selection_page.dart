@@ -1,5 +1,6 @@
 // lib/pages/provider_selection_page.dart
 
+import 'package:aada_app/widgets/shared/page_layout.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/truelayer_provider.dart';
@@ -40,45 +41,39 @@ class _ProviderSelectionPageState extends State<ProviderSelectionPage> {
   void _filterProviders() {
     final query = _searchController.text.toLowerCase();
     setState(() {
-      if (query.isEmpty) {
-        _filteredProviders = _providers;
-      } else {
-        _filteredProviders = _providers
-            .where((p) => p.name.toLowerCase().contains(query))
-            .toList();
-      }
+      _filteredProviders = query.isEmpty
+          ? _providers
+          : _providers
+          .where((p) => p.name.toLowerCase().contains(query))
+          .toList();
     });
   }
 
   Future<void> _loadProviders() async {
-    if (kDebugMode) {
-      print("=== LOADING PROVIDERS FOR: ${widget.countryCode} ===");
-    }
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
     try {
       final providers = await _truelayerService.getProviders(widget.countryCode);
-      if (kDebugMode) {
-        print("=== RECEIVED ${providers.length} PROVIDERS ===");
-      }
-
       if (mounted) {
         setState(() {
           _providers = providers;
           _filteredProviders = providers;
-          _isLoading = false;
           if (providers.isEmpty) {
-            _error = 'No banks are currently available for this country in the live environment.';
+            _error = 'No banks are currently available for this country.';
           }
         });
       }
     } catch (e) {
-      if (kDebugMode) {
-        print("=== ERROR LOADING PROVIDERS: $e ===");
-      }
       if (mounted) {
         setState(() {
-          _error = 'Failed to load banks. Please check your connection and try again.';
-          _isLoading = false;
+          _error = 'Failed to load banks. Please check your connection.';
         });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -97,116 +92,141 @@ class _ProviderSelectionPageState extends State<ProviderSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Banks in ${widget.countryCode}'),
-        bottom: _isLoading || _error != null
-            ? null
-            : PreferredSize(
-          preferredSize: const Size.fromHeight(70),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search for your bank...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () => _searchController.clear(),
-                )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: DesignSystem.spacing12,
-                  vertical: DesignSystem.spacing10,
-                ),
-              ),
+      body: PageLayout(
+        addTopPadding: false,
+        onRefresh: _loadProviders,
+        slivers: [
+          SliverAppBar(
+            title: Text('Select Bank in ${widget.countryCode}'),
+            pinned: true,
+            floating: true,
+            bottom: _isLoading
+                ? const PreferredSize(
+              preferredSize: Size.fromHeight(4.0),
+              child: LinearProgressIndicator(),
+            )
+                : PreferredSize(
+              preferredSize: const Size.fromHeight(70),
+              child: _buildSearchField(),
             ),
           ),
+          _buildBody(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      child: TextField(
+        controller: _searchController,
+        decoration: InputDecoration(
+          hintText: 'Search for your bank...',
+          prefixIcon: const Icon(Icons.search_rounded),
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+            icon: const Icon(Icons.clear_rounded),
+            onPressed: () => _searchController.clear(),
+          )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
       ),
-      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      // The SliverAppBar shows a LinearProgressIndicator
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
     }
-
     if (_error != null) {
-      return _buildErrorView();
+      return SliverFillRemaining(child: _buildErrorView());
     }
-
     if (_providers.isEmpty) {
-      return _buildEmptyView();
+      return SliverFillRemaining(child: _buildEmptyView());
     }
-
-    if (_filteredProviders.isEmpty && _searchController.text.isNotEmpty) {
-      return Center(
-        child: Text('No banks found for "${_searchController.text}"'),
+    if (_filteredProviders.isEmpty) {
+      return SliverFillRemaining(
+        child: Center(
+          child: Text('No banks found for "${_searchController.text}"'),
+        ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _filteredProviders.length,
-      itemBuilder: (context, index) {
-        final provider = _filteredProviders[index];
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
-            side: BorderSide(
-              color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.3),
-              width: 1,
-            ),
+    return SliverPadding(
+      padding: const EdgeInsets.all(DesignSystem.spacing8),
+      sliver: SliverList(
+        delegate: SliverChildBuilderDelegate(
+              (context, index) {
+            final provider = _filteredProviders[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: DesignSystem.spacing6),
+              child: _buildProviderCard(provider),
+            );
+          },
+          childCount: _filteredProviders.length,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProviderCard(TruelayerProvider provider) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withOpacity(0.5),
+          width: 1,
+        ),
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: DesignSystem.spacing10,
+          vertical: DesignSystem.spacing6,
+        ),
+        leading: Container(
+          width: 48,
+          height: 48,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+            border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
           ),
-          elevation: 0,
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: DesignSystem.spacing10,
-              vertical: DesignSystem.spacing8,
-            ),
-            leading: provider.logoUrl.isNotEmpty
-                ? ClipRRect(
-              borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-              child: Image.network(
-                provider.logoUrl,
-                width: 40,
-                height: 40,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(
-                  Icons.account_balance,
-                  size: 40,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(DesignSystem.radiusSmall - 2),
+            child: provider.logoUrl.isNotEmpty
+                ? Image.network(
+              provider.logoUrl,
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Icon(
+                Icons.account_balance,
+                color: colorScheme.primary,
               ),
             )
-                : Icon(
-              Icons.account_balance,
-              size: 40,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-            title: Text(
-              provider.name,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            trailing: Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            onTap: () => _selectProvider(provider),
+                : Icon(Icons.account_balance, color: colorScheme.primary),
           ),
-        );
-      },
+        ),
+        title: Text(
+          provider.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          size: 16,
+          color: colorScheme.onSurfaceVariant,
+        ),
+        onTap: () => _selectProvider(provider),
+      ),
     );
   }
 
@@ -217,7 +237,7 @@ class _ProviderSelectionPageState extends State<ProviderSelectionPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const Icon(Icons.error_outline_rounded, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(
               _error!,
@@ -225,15 +245,10 @@ class _ProviderSelectionPageState extends State<ProviderSelectionPage> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _isLoading = true;
-                  _error = null;
-                });
-                _loadProviders();
-              },
-              child: const Text('Retry'),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.refresh_rounded),
+              onPressed: _loadProviders,
+              label: const Text('Retry'),
             ),
           ],
         ),
@@ -248,18 +263,17 @@ class _ProviderSelectionPageState extends State<ProviderSelectionPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.search_off, size: 64, color: Colors.grey),
+            const Icon(Icons.search_off_rounded, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             Text(
-              'No banks are available for this country at the moment.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+              'No banks available',
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
             Text(
-              'This can happen if you are in Live mode and the banks for this region are in Private Beta.',
+              _error ?? 'There are no banks available for this country at the moment.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
           ],
         ),

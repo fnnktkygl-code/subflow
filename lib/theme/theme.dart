@@ -295,7 +295,7 @@ final ThemeData darkThemeData = ThemeData(
     CustomColors(
       successGradient: [Color(0xFF34D399), Color(0xFF10B981)],
       errorGradient: [Color(0xFFF87171), Color(0xFFFBBF24)],
-      heatmapExpense: Color(0xFFF87171), // Red-400
+      heatmapExpense: Color(0xFFF87171), // Red-400 (often looks good on dark too)
       heatmapIncome: Color(0xFF34D399), // Emerald-400
       categoryColors: {},
     ),

@@ -1,5 +1,6 @@
 // lib/pages/truelayer_connect_page.dart
 
+import 'package:aada_app/widgets/shared/page_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -32,7 +33,6 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
   List<Subscription> _foundSubscriptions = [];
   String? _errorMessage;
 
-  // ✅ NEW: State to manage user selections
   final Set<String> _selectedSubscriptionIds = {};
 
   @override
@@ -87,7 +87,6 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
       if (mounted) {
         setState(() {
           _foundSubscriptions = subscriptions;
-          // ✅ NEW: Select all found subscriptions by default
           _selectedSubscriptionIds.addAll(subscriptions.map((s) => s.id));
           _isLoading = false;
           _connectionFinished = true;
@@ -104,7 +103,6 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
     }
   }
 
-  // ✅ NEW: Toggle selection for a single subscription
   void _toggleSubscriptionSelection(String subId) {
     setState(() {
       if (_selectedSubscriptionIds.contains(subId)) {
@@ -115,18 +113,16 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
     });
   }
 
-  // ✅ NEW: Toggle selection for all subscriptions
   void _toggleSelectAll() {
     setState(() {
       if (_selectedSubscriptionIds.length == _foundSubscriptions.length) {
-        _selectedSubscriptionIds.clear(); // Deselect all
+        _selectedSubscriptionIds.clear();
       } else {
-        _selectedSubscriptionIds.addAll(_foundSubscriptions.map((s) => s.id)); // Select all
+        _selectedSubscriptionIds.addAll(_foundSubscriptions.map((s) => s.id));
       }
     });
   }
 
-  // ✅ NEW: Handle editing a subscription *before* it's added
   void _editSubscription(Subscription subToEdit) {
     showAddSubscriptionPopup(
       context,
@@ -142,251 +138,251 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
     );
   }
 
-  // ✅ UPDATED: Only add the selected subscriptions
   void _addSelectedSubscriptions() {
     final provider = Provider.of<SimplifiedSubscriptionProvider>(context, listen: false);
     for (final subId in _selectedSubscriptionIds) {
       final subToAdd = _foundSubscriptions.firstWhere((s) => s.id == subId);
       provider.addSubscription(subToAdd);
     }
-    // Pop twice to go back to the original screen
-    Navigator.of(context).pop();
-    Navigator.of(context).pop();
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
-
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Connect to Bank'),
-        automaticallyImplyLeading: _connectionFinished,
-      ),
-      body: _buildBody(),
-    );
-  }
-
-  Widget _buildBody() {
     if (_connectionFinished) {
       if (_errorMessage != null) {
-        return _buildErrorView();
+        return _buildErrorScaffold();
       } else if (_foundSubscriptions.isNotEmpty) {
         return _buildResultsView();
       } else {
-        return _buildNoResultsView();
+        return _buildNoResultsScaffold();
       }
     }
 
-    return Stack(
-      children: [
-        WebViewWidget(controller: _webViewController),
-        if (_isLoading)
-          Container(
-            color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8),
-            child: const Center(child: CircularProgressIndicator()),
-          ),
-      ],
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Connecting to Bank...'),
+      ),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _webViewController),
+          if (_isLoading)
+            Container(
+              color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8),
+              child: const Center(child: CircularProgressIndicator()),
+            ),
+        ],
+      ),
     );
   }
 
-  // ✅ --- MAJOR UI OVERHAUL FOR THE RESULTS VIEW ---
+  Scaffold _buildErrorScaffold() {
+    return Scaffold(
+        appBar: AppBar(title: const Text('Connection Failed')),
+        body: _buildErrorView());
+  }
+
+  Scaffold _buildNoResultsScaffold() {
+    return Scaffold(
+        appBar: AppBar(title: const Text('Connection Complete')),
+        body: _buildNoResultsView());
+  }
+
   Widget _buildResultsView() {
     final bool allSelected = _selectedSubscriptionIds.length == _foundSubscriptions.length;
+
+    return Scaffold(
+      bottomNavigationBar: _buildBottomActionBar(),
+      body: PageLayout(
+        addTopPadding: false,
+        onRefresh: () async {},
+        slivers: [
+          SliverAppBar(
+            title: const Text('Review Subscriptions'),
+            pinned: true,
+            floating: true,
+            actions: [
+              TextButton.icon(
+                onPressed: _toggleSelectAll,
+                icon: Icon(allSelected ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded),
+                label: Text(allSelected ? 'Deselect All' : 'Select All'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.all(DesignSystem.spacing12),
+              margin: const EdgeInsets.all(DesignSystem.spacing8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
+                borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'We found ${_foundSubscriptions.length} recurring payments.',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Select the subscriptions you want to track and edit any details if needed.',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing8),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                  final sub = _foundSubscriptions[index];
+                  final isSelected = _selectedSubscriptionIds.contains(sub.id);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: DesignSystem.spacing6),
+                    child: _buildSelectableSubscriptionCard(sub, isSelected),
+                  );
+                },
+                childCount: _foundSubscriptions.length,
+              ),
+            ),
+          ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomActionBar() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(DesignSystem.spacing10).copyWith(bottom: DesignSystem.spacing10 + MediaQuery.of(context).padding.bottom),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5), width: 1)),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 50,
+        child: FilledButton.icon(
+          icon: const Icon(Icons.add_task_rounded),
+          onPressed: _selectedSubscriptionIds.isNotEmpty ? _addSelectedSubscriptions : null,
+          style: FilledButton.styleFrom(
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            disabledBackgroundColor: colorScheme.surfaceContainerHighest,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+            ),
+          ),
+          label: Text(
+            _selectedSubscriptionIds.isNotEmpty
+                ? 'Add Selected (${_selectedSubscriptionIds.length})'
+                : 'Select Subscriptions to Add',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSelectableSubscriptionCard(Subscription sub, bool isSelected) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(DesignSystem.spacing12),
-          margin: EdgeInsets.all(DesignSystem.spacing8),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: isDark
-                  ? [
-                colorScheme.primaryContainer.withOpacity(0.2),
-                colorScheme.primaryContainer.withOpacity(0.1),
-              ]
-                  : [
-                colorScheme.primaryContainer.withOpacity(0.1),
-                colorScheme.primaryContainer.withOpacity(0.05),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            border: Border.all(
-              color: colorScheme.primary.withOpacity(0.2),
-              width: 1.5,
-            ),
-            borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Review Your Subscriptions',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'We found ${_foundSubscriptions.length} recurring payments. Select which ones you\'d like to add.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  height: 1.5,
-                ),
-              ),
-            ],
-          ),
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+        side: BorderSide(
+          color: isSelected ? colorScheme.primary : colorScheme.outlineVariant.withOpacity(0.5),
+          width: isSelected ? 1.5 : 1,
         ),
-        // "Select All" button
-        Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: DesignSystem.spacing8,
-            vertical: DesignSystem.spacing6,
-          ),
-          child: OutlinedButton.icon(
-            icon: Icon(
-              allSelected ? Icons.check_box : Icons.check_box_outline_blank,
-            ),
-            label: Text(allSelected ? 'Deselect All' : 'Select All'),
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(
-                horizontal: DesignSystem.spacing12,
-                vertical: DesignSystem.spacing8,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
-              ),
-              side: BorderSide(
-                color: colorScheme.outline.withOpacity(0.5),
-                width: 1,
-              ),
-            ),
-            onPressed: _toggleSelectAll,
-          ),
+      ),
+      color: isSelected ? colorScheme.primary.withOpacity(isDark ? 0.15 : 0.08) : colorScheme.surface,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: DesignSystem.spacing10,
+          vertical: DesignSystem.spacing4,
         ),
-        const SizedBox(height: DesignSystem.spacing6),
-        // List of selectable subscriptions
-        Expanded(
-          child: ListView.separated(
-            padding: EdgeInsets.symmetric(horizontal: DesignSystem.spacing8),
-            itemCount: _foundSubscriptions.length,
-            separatorBuilder: (_, __) => SizedBox(height: DesignSystem.spacing6),
-            itemBuilder: (context, index) {
-              final sub = _foundSubscriptions[index];
-              final isSelected = _selectedSubscriptionIds.contains(sub.id);
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
-                  border: Border.all(
-                    color: isSelected
-                        ? colorScheme.primary
-                        : colorScheme.outlineVariant.withOpacity(0.3),
-                    width: isSelected ? 2 : 1,
-                  ),
-                  color: isSelected
-                      ? colorScheme.primary.withOpacity(isDark ? 0.12 : 0.08)
-                      : colorScheme.surface,
-                  boxShadow: isSelected
-                      ? [
-                    BoxShadow(
-                      color: colorScheme.primary.withOpacity(0.15),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                      : null,
-                ),
-                child: ListTile(
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: DesignSystem.spacing10,
-                    vertical: DesignSystem.spacing4,
-                  ),
-                  leading: Checkbox(
-                    value: isSelected,
-                    onChanged: (_) => _toggleSubscriptionSelection(sub.id),
-                    activeColor: colorScheme.primary,
-                  ),
-                  title: Text(
-                    sub.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    '${sub.amount.abs().toStringAsFixed(2)}€ / ${sub.cycle}',
-                    style: TextStyle(
-                      color: colorScheme.onSurfaceVariant,
-                      fontSize: 12,
-                    ),
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(
-                      Icons.edit_outlined,
-                      color: colorScheme.primary,
-                      size: DesignSystem.iconMedium,
-                    ),
-                    onPressed: () => _editSubscription(sub),
-                  ),
-                  onTap: () => _toggleSubscriptionSelection(sub.id),
-                ),
-              );
-            },
-          ),
+        leading: Checkbox(
+          value: isSelected,
+          onChanged: (_) => _toggleSubscriptionSelection(sub.id),
+          activeColor: colorScheme.primary,
         ),
-        // Bottom "Add Selected" button
-        Container(
-          padding: EdgeInsets.all(DesignSystem.spacing10),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            boxShadow: [
-              BoxShadow(
-                color: colorScheme.shadow.withOpacity(0.1),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            child: SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: FilledButton(
-                onPressed: _selectedSubscriptionIds.isNotEmpty
-                    ? _addSelectedSubscriptions
-                    : null,
-                style: FilledButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
-                  disabledBackgroundColor:
-                  colorScheme.surfaceContainerHighest,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(
-                      DesignSystem.radiusMedium,
-                    ),
-                  ),
-                ),
-                child: Text(
-                  _selectedSubscriptionIds.isNotEmpty
-                      ? 'Add Selected (${_selectedSubscriptionIds.length})'
-                      : 'Select a Subscription',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          ),
+        title: Text(sub.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(
+          '${sub.amount.abs().toStringAsFixed(2)}€ / ${sub.cycle}',
+          style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 13),
         ),
-      ],
+        trailing: IconButton(
+          icon: Icon(Icons.edit_outlined, color: colorScheme.primary, size: DesignSystem.iconMedium),
+          onPressed: () => _editSubscription(sub),
+        ),
+        onTap: () => _toggleSubscriptionSelection(sub.id),
+      ),
     );
   }
 
-  // --- Other build methods remain the same ---
-  Widget _buildErrorView() { /* ... */ return Container(); }
-  Widget _buildNoResultsView() { /* ... */ return Container(); }
-}
+  Widget _buildErrorView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.cloud_off_rounded, size: 64, color: Colors.redAccent),
+            const SizedBox(height: 16),
+            Text('Connection Failed', style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 8),
+            Text(_errorMessage ?? 'An unknown error occurred.', textAlign: TextAlign.center),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_back_rounded),
+              onPressed: () => Navigator.of(context).pop(),
+              label: const Text('Go Back'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
+  Widget _buildNoResultsView() {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off_rounded, size: 64, color: colorScheme.onSurfaceVariant),
+            const SizedBox(height: 16),
+            Text('No Subscriptions Found', style: Theme.of(context).textTheme.headlineSmall),
+            const SizedBox(height: 8),
+            Text(
+              'We couldn\'t detect any recurring payments in your accounts. You can still add them manually.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.arrow_back_rounded),
+              onPressed: () => Navigator.of(context).pop(),
+              label: const Text('Go Back'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

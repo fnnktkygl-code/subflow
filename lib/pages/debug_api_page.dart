@@ -15,19 +15,26 @@ class DebugApiPage extends StatefulWidget {
 
 class _DebugApiPageState extends State<DebugApiPage> {
   final _truelayerService = TruelayerService();
-  bool _isLoading = false;
+  // ✅ START in a loading state.
+  bool _isLoading = true;
   String? _error;
 
   // Data containers
-  List<Map<String, dynamic>> _accounts = []; // This one stays non-final
+  List<Map<String, dynamic>> _accounts = [];
   final Map<String, List<dynamic>> _directDebitsByAccount = {};
   final Map<String, List<dynamic>> _standingOrdersByAccount = {};
   final Map<String, List<dynamic>> _transactionsByAccount = {};
   final Map<String, DateTime?> _oldestTransactionByAccount = {};
   final Map<String, DateTime?> _newestTransactionByAccount = {};
-
   List<Subscription> _detectedSubscriptions = [];
   List<String> _detectionLogs = [];
+
+  // ✅ ADD: Fetch data immediately when the page loads.
+  @override
+  void initState() {
+    super.initState();
+    _fetchAllData();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +50,13 @@ class _DebugApiPageState extends State<DebugApiPage> {
             ),
         ],
       ),
+      // ✅ UPDATE: The body logic is now simpler and more robust.
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? _buildErrorView()
           : _accounts.isEmpty
-          ? _buildEmptyView()
+          ? _buildEmptyView() // This now correctly means "0 accounts found"
           : _buildDataView(),
     );
   }
@@ -74,6 +82,7 @@ class _DebugApiPageState extends State<DebugApiPage> {
     );
   }
 
+  // ✅ UPDATE: The "empty" view now has a more accurate message.
   Widget _buildEmptyView() {
     return Center(
       child: Padding(
@@ -81,21 +90,21 @@ class _DebugApiPageState extends State<DebugApiPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.account_balance, size: 64, color: Colors.grey),
+            const Icon(Icons.search_off_rounded, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
             const Text(
-              'No bank account connected',
+              'No Accounts Found',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
-              'Connect a bank account first to see API limits and data',
+              'The API call succeeded, but no accounts were returned. This can happen if none were shared during authentication.',
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _fetchAllData,
-              child: const Text('Try to Load Data'),
+              child: const Text('Try Reloading'),
             ),
           ],
         ),
@@ -140,14 +149,14 @@ class _DebugApiPageState extends State<DebugApiPage> {
       ),
       elevation: 0,
       child: Padding(
-        padding: EdgeInsets.all(DesignSystem.spacing12),
+        padding: const EdgeInsets.all(DesignSystem.spacing12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding: EdgeInsets.all(DesignSystem.spacing8),
+                  padding: const EdgeInsets.all(DesignSystem.spacing8),
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
@@ -158,7 +167,7 @@ class _DebugApiPageState extends State<DebugApiPage> {
                     size: DesignSystem.iconLarge,
                   ),
                 ),
-                SizedBox(width: DesignSystem.spacing10),
+                const SizedBox(width: DesignSystem.spacing10),
                 Text(
                   'API Summary',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
@@ -186,7 +195,7 @@ class _DebugApiPageState extends State<DebugApiPage> {
               '$totalTransactions',
             ),
             Padding(
-              padding: EdgeInsets.only(top: DesignSystem.spacing8),
+              padding: const EdgeInsets.only(top: DesignSystem.spacing8),
               child: _buildInfoRow(
                 'Subscriptions Detected',
                 '${_detectedSubscriptions.length}',
@@ -198,18 +207,21 @@ class _DebugApiPageState extends State<DebugApiPage> {
       ),
     );
   }
+
   Widget _buildApiLimitsCard() {
     DateTime? oldestOverall;
     DateTime? newestOverall;
 
     for (var oldest in _oldestTransactionByAccount.values) {
-      if (oldest != null && (oldestOverall == null || oldest.isBefore(oldestOverall))) {
+      if (oldest != null &&
+          (oldestOverall == null || oldest.isBefore(oldestOverall))) {
         oldestOverall = oldest;
       }
     }
 
     for (var newest in _newestTransactionByAccount.values) {
-      if (newest != null && (newestOverall == null || newest.isAfter(newestOverall))) {
+      if (newest != null &&
+          (newestOverall == null || newest.isAfter(newestOverall))) {
         newestOverall = newest;
       }
     }
@@ -229,24 +241,34 @@ class _DebugApiPageState extends State<DebugApiPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.access_time, color: Theme.of(context).colorScheme.primary),
+                Icon(Icons.access_time,
+                    color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Transaction History Limits',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const Divider(height: 24),
             if (oldestOverall != null && newestOverall != null) ...[
-              _buildInfoRow('Oldest Transaction', dateFormat.format(oldestOverall)),
-              _buildInfoRow('Newest Transaction', dateFormat.format(newestOverall)),
-              _buildInfoRow('Days of History', '${daysCovered ?? 0} days', isHighlight: true),
+              _buildInfoRow(
+                  'Oldest Transaction', dateFormat.format(oldestOverall)),
+              _buildInfoRow(
+                  'Newest Transaction', dateFormat.format(newestOverall)),
+              _buildInfoRow('Days of History', '${daysCovered ?? 0} days',
+                  isHighlight: true),
               const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.secondaryContainer.withOpacity(0.5),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .secondaryContainer
+                      .withOpacity(0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -280,31 +302,36 @@ class _DebugApiPageState extends State<DebugApiPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.account_balance_wallet, color: Theme.of(context).colorScheme.primary),
+                Icon(Icons.account_balance_wallet,
+                    color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Account Details',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const Divider(height: 24),
             ..._accounts.map((account) {
               final accountId = (account['account_id'] ?? '').toString();
-              final displayName = account['display_name']?.toString() ?? 'Unknown Account';
+              final displayName =
+                  account['display_name']?.toString() ?? 'Unknown Account';
               final accountType = account['account_type']?.toString() ?? 'N/A';
-
               final directDebits = _directDebitsByAccount[accountId] ?? [];
               final standingOrders = _standingOrdersByAccount[accountId] ?? [];
               final transactions = _transactionsByAccount[accountId] ?? [];
               final oldest = _oldestTransactionByAccount[accountId];
               final newest = _newestTransactionByAccount[accountId];
-
-              final shortId = accountId.length > 12 ? '${accountId.substring(0, 12)}...' : accountId;
+              final shortId =
+              accountId.length > 12 ? '${accountId.substring(0, 12)}...' : accountId;
 
               return ExpansionTile(
                 tilePadding: EdgeInsets.zero,
-                title: Text(displayName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(displayName,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text('Type: $accountType • ID: $shortId'),
                 children: [
                   Padding(
@@ -312,7 +339,8 @@ class _DebugApiPageState extends State<DebugApiPage> {
                     child: Column(
                       children: [
                         _buildInfoRow('Direct Debits', '${directDebits.length}'),
-                        _buildInfoRow('Standing Orders', '${standingOrders.length}'),
+                        _buildInfoRow(
+                            'Standing Orders', '${standingOrders.length}'),
                         _buildInfoRow('Transactions', '${transactions.length}'),
                         if (oldest != null && newest != null) ...[
                           const SizedBox(height: 8),
@@ -341,7 +369,6 @@ class _DebugApiPageState extends State<DebugApiPage> {
     if (_detectionLogs.isEmpty) {
       return const SizedBox.shrink();
     }
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -350,11 +377,15 @@ class _DebugApiPageState extends State<DebugApiPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.bug_report, color: Theme.of(context).colorScheme.primary),
+                Icon(Icons.bug_report,
+                    color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Detection Logs',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -367,7 +398,6 @@ class _DebugApiPageState extends State<DebugApiPage> {
                   children: _detectionLogs.map((log) {
                     Color? color;
                     IconData? icon;
-
                     if (log.contains('✓ ADDED') || log.contains('✅')) {
                       color = Colors.green;
                       icon = Icons.check_circle_outline;
@@ -378,7 +408,6 @@ class _DebugApiPageState extends State<DebugApiPage> {
                       color = Theme.of(context).colorScheme.primary;
                       icon = Icons.search;
                     }
-
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2.0),
                       child: Row(
@@ -414,7 +443,6 @@ class _DebugApiPageState extends State<DebugApiPage> {
     if (_detectedSubscriptions.isEmpty) {
       return const SizedBox.shrink();
     }
-
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -423,11 +451,15 @@ class _DebugApiPageState extends State<DebugApiPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.subscriptions, color: Theme.of(context).colorScheme.primary),
+                Icon(Icons.subscriptions,
+                    color: Theme.of(context).colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'Detected Subscriptions',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -435,17 +467,16 @@ class _DebugApiPageState extends State<DebugApiPage> {
             ..._detectedSubscriptions.map((sub) {
               final title = (sub.name.isNotEmpty) ? sub.name : 'Subscription';
               final firstLetter = (title.isNotEmpty) ? title[0].toUpperCase() : '?';
-              // ignore: unnecessary_null_comparison
-              final startDateStr = sub.startDate != null
-                  ? DateFormat('dd/MM/yyyy').format(sub.startDate)
-                  : 'N/A';
+              final startDateStr =
+              DateFormat('dd/MM/yyyy').format(sub.startDate);
 
               return ListTile(
                 contentPadding: EdgeInsets.zero,
                 leading: CircleAvatar(
                   child: Text(firstLetter),
                 ),
-                title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                title: Text(title,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 subtitle: Text(
                   '${sub.amount.abs().toStringAsFixed(2)}€ / ${sub.cycle}\n'
                       'Start: $startDateStr',
@@ -459,7 +490,6 @@ class _DebugApiPageState extends State<DebugApiPage> {
     );
   }
 
-
   Widget _buildInfoRow(
       String label,
       String value, {
@@ -468,7 +498,7 @@ class _DebugApiPageState extends State<DebugApiPage> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: DesignSystem.spacing4),
+      padding: const EdgeInsets.symmetric(vertical: DesignSystem.spacing4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -494,6 +524,7 @@ class _DebugApiPageState extends State<DebugApiPage> {
   }
 
   Future<void> _fetchAllData() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
       _error = null;
@@ -508,73 +539,71 @@ class _DebugApiPageState extends State<DebugApiPage> {
     });
 
     try {
-      // Fetch detected subscriptions first (service will fetch accounts internally)
       final detected = await _truelayerService.getSubscriptions();
-      _detectedSubscriptions = detected;
 
-      // Fetch raw data for additional debugging (needs the access token)
       final accessToken = await _truelayerService.getAccessToken();
       if (accessToken == null) {
-        throw Exception('Not authenticated');
+        throw Exception('Not authenticated. Please connect a bank account in Settings.');
       }
 
       final accountsResponse = await _truelayerService.fetchAccounts(accessToken);
-      // safely coerce to list of maps
-      _accounts = (accountsResponse as List<dynamic>?)
-          ?.map((e) => Map<String, dynamic>.from(e as Map<dynamic, dynamic>))
-          .toList() ??
-          [];
+
+      if (mounted) {
+        setState(() {
+          _detectedSubscriptions = detected;
+          _accounts = (accountsResponse).map((e) => e as Map<String, dynamic>).toList();
+        });
+      }
 
       for (var account in _accounts) {
         final accountId = (account['account_id'] ?? '').toString();
 
-        // Fetch direct debits
-        _directDebitsByAccount[accountId] =
-            await _truelayerService.fetchDirectDebitsRaw(accountId, accessToken);
-
-        // Fetch standing orders
-        _standingOrdersByAccount[accountId] =
-            await _truelayerService.fetchStandingOrdersRaw(accountId, accessToken);
-
-        // Fetch transactions
+        final debits = await _truelayerService.fetchDirectDebitsRaw(accountId, accessToken);
+        final orders = await _truelayerService.fetchStandingOrdersRaw(accountId, accessToken);
         final transactions = await _truelayerService.fetchTransactionsRaw(accountId, accessToken);
-        _transactionsByAccount[accountId] = transactions;
 
-        // Find oldest and newest transactions safely
-        if (transactions.isNotEmpty) {
-          final parsedDates = transactions
-              .map((t) => DateTime.tryParse(t['timestamp']?.toString() ?? ''))
-              .where((d) => d != null)
-              .cast<DateTime>()
-              .toList()
-            ..sort();
-          if (parsedDates.isNotEmpty) {
-            _oldestTransactionByAccount[accountId] = parsedDates.first;
-            _newestTransactionByAccount[accountId] = parsedDates.last;
-          }
+        if (mounted) {
+          setState(() {
+            _directDebitsByAccount[accountId] = debits;
+            _standingOrdersByAccount[accountId] = orders;
+            _transactionsByAccount[accountId] = transactions;
+            if (transactions.isNotEmpty) {
+              final parsedDates = transactions
+                  .map((t) => DateTime.tryParse(t['timestamp']?.toString() ?? ''))
+                  .whereType<DateTime>()
+                  .toList()..sort();
+              if (parsedDates.isNotEmpty) {
+                _oldestTransactionByAccount[accountId] = parsedDates.first;
+                _newestTransactionByAccount[accountId] = parsedDates.last;
+              }
+            }
+          });
         }
       }
 
-      // Build friendly logs (service prints will still appear in console)
-      _detectionLogs = [
-        '🔍 Starting subscription detection...',
-        '💳 Found ${_accounts.length} account(s)',
-        '📊 Processing ${_transactionsByAccount.values.fold(0, (sum, list) => sum + (list.length))} transactions',
-        '✅ Detected ${_detectedSubscriptions.length} subscription(s)',
-      ];
-
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _detectionLogs = [
+            '🔍 Starting subscription detection...',
+            '💳 Found ${_accounts.length} account(s)',
+            '📊 Processing ${_transactionsByAccount.values.fold(0, (sum, list) => sum + list.length)} transactions',
+            '✅ Detected ${_detectedSubscriptions.length} subscription(s)',
+          ];
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _error = e.toString();
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
           _isLoading = false;
         });
       }
     }
   }
 }
+

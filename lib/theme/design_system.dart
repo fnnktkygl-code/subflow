@@ -29,6 +29,8 @@ class DesignSystem {
   static const double radiusLarge = 20.0;  // Larger cards, banners
   static const double radiusXL = 24.0;     // Main container sections
   static const double radiusXXL = 28.0;    // Bottom sheets, main cards
+  static const double radiusFull = 9999.0;  // Fully rounded pills/badges
+
 
   // ═══════════════════════════════════════════════════════════════════════
   // ICON SIZES

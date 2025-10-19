@@ -8,14 +8,19 @@ class UserProfileProvider extends ChangeNotifier {
   bool _hasOptedInForIncomeTracking = false;
   bool _hasDismissedIncomePrompt = false;
   DateTime _firstUseDate = DateTime.now();
-  double _spendingGoal = 250.0; // ✅ ADD: Add default spending goal
+  // ✅ GOAL: Now nullable, with no default value.
+  double? _spendingGoal;
+  bool _hasCompletedOnboarding = false;
 
   // Getters
   double? get monthlyIncome => _monthlyIncome;
   DateTime? get incomeLastUpdated => _incomeLastUpdated;
   bool get hasOptedInForIncomeTracking => _hasOptedInForIncomeTracking;
   bool get hasDismissedIncomePrompt => _hasDismissedIncomePrompt;
-  double get spendingGoal => _spendingGoal; // ✅ ADD: Getter for the goal
+  // ✅ GETTER: Updated to return a nullable double.
+  double? get spendingGoal => _spendingGoal;
+  bool get hasCompletedOnboarding => _hasCompletedOnboarding;
+
 
   int get daysUsed {
     return DateTime.now().difference(_firstUseDate).inDays;
@@ -25,13 +30,28 @@ class UserProfileProvider extends ChangeNotifier {
     _loadProfile();
   }
 
-  // Calculate percentage of income spent
+  Future<void> completeOnboarding() async {
+    _hasCompletedOnboarding = true;
+    await _saveProfile();
+    notifyListeners();
+  }
+
+  Future<void> resetIncomeAndGoal() async {
+    _monthlyIncome = null;
+    _incomeLastUpdated = null;
+    _hasOptedInForIncomeTracking = false;
+    // ✅ RESET: Sets goal back to null.
+    _spendingGoal = null;
+    await _saveProfile();
+    notifyListeners();
+  }
+
+
   double? getSubscriptionPercentage(double totalMonthlyCost) {
     if (_monthlyIncome == null || _monthlyIncome! <= 0) return null;
     return (totalMonthlyCost / _monthlyIncome!) * 100;
   }
 
-  // Get health status
   IncomeHealthStatus getHealthStatus(double totalMonthlyCost) {
     final percentage = getSubscriptionPercentage(totalMonthlyCost);
     if (percentage == null) return IncomeHealthStatus.unknown;
@@ -41,7 +61,6 @@ class UserProfileProvider extends ChangeNotifier {
     return IncomeHealthStatus.danger;
   }
 
-  // Should show income prompt?
   bool shouldShowIncomePrompt(int subscriptionCount) {
     if (_hasOptedInForIncomeTracking || _hasDismissedIncomePrompt) {
       return false;
@@ -49,7 +68,6 @@ class UserProfileProvider extends ChangeNotifier {
     return subscriptionCount >= 3 && daysUsed >= 2;
   }
 
-  // Set monthly income
   Future<void> setMonthlyIncome(double income) async {
     _monthlyIncome = income;
     _incomeLastUpdated = DateTime.now();
@@ -58,14 +76,12 @@ class UserProfileProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Dismiss income prompt
   Future<void> dismissIncomePrompt() async {
     _hasDismissedIncomePrompt = true;
     await _saveProfile();
     notifyListeners();
   }
 
-  // Update income
   Future<void> updateIncome(double? newIncome) async {
     if (newIncome == null) {
       _monthlyIncome = null;
@@ -79,14 +95,13 @@ class UserProfileProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ✅ ADD: Method to update the spending goal
-  Future<void> updateSpendingGoal(double newGoal) async {
+  // ✅ UPDATE: The new goal can be null to remove it.
+  Future<void> updateSpendingGoal(double? newGoal) async {
     _spendingGoal = newGoal;
     await _saveProfile();
     notifyListeners();
   }
 
-  // Generate income insight
   String? getIncomeInsight(double totalMonthlyCost) {
     if (_monthlyIncome == null || _monthlyIncome! <= 0) return null;
 
@@ -107,7 +122,6 @@ class UserProfileProvider extends ChangeNotifier {
     return "⚠️ Subscriptions are ${percentage.toStringAsFixed(1)}% of your income. You're €${tooCostly.toStringAsFixed(0)}/month over the recommended 10% limit.";
   }
 
-  // Generate category insight
   String? getCategoryInsight(String category, double categoryAmount) {
     if (_monthlyIncome == null || _monthlyIncome! <= 0) return null;
 
@@ -120,7 +134,6 @@ class UserProfileProvider extends ChangeNotifier {
     return null;
   }
 
-  // Persistence
   Future<void> _saveProfile() async {
     final prefs = await SharedPreferences.getInstance();
     if (_monthlyIncome != null) {
@@ -131,12 +144,21 @@ class UserProfileProvider extends ChangeNotifier {
 
     if (_incomeLastUpdated != null) {
       await prefs.setInt('income_last_updated', _incomeLastUpdated!.millisecondsSinceEpoch);
+    } else {
+      await prefs.remove('income_last_updated');
     }
 
     await prefs.setBool('has_opted_in_income', _hasOptedInForIncomeTracking);
     await prefs.setBool('has_dismissed_income_prompt', _hasDismissedIncomePrompt);
     await prefs.setInt('first_use_date', _firstUseDate.millisecondsSinceEpoch);
-    await prefs.setDouble('spending_goal', _spendingGoal); // ✅ ADD: Save goal
+
+    // ✅ SAVE: Handle saving a null or double value.
+    if (_spendingGoal != null) {
+      await prefs.setDouble('spending_goal', _spendingGoal!);
+    } else {
+      await prefs.remove('spending_goal');
+    }
+    await prefs.setBool('has_completed_onboarding', _hasCompletedOnboarding);
   }
 
   Future<void> _loadProfile() async {
@@ -155,15 +177,18 @@ class UserProfileProvider extends ChangeNotifier {
     if (firstUseMs != null) {
       _firstUseDate = DateTime.fromMillisecondsSinceEpoch(firstUseMs);
     } else {
-      // First time user
       _firstUseDate = DateTime.now();
       await prefs.setInt('first_use_date', _firstUseDate.millisecondsSinceEpoch);
     }
 
-    _spendingGoal = prefs.getDouble('spending_goal') ?? 250.0; // ✅ ADD: Load goal
+    // ✅ LOAD: Load a nullable double, defaulting to null if not found.
+    _spendingGoal = prefs.getDouble('spending_goal');
+
+    _hasCompletedOnboarding = prefs.getBool('has_completed_onboarding') ?? false;
 
     notifyListeners();
   }
 }
 
 enum IncomeHealthStatus { healthy, warning, danger, unknown }
+
