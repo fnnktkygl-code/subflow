@@ -101,8 +101,8 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/aadatech/trhack-app.git
-   cd trhack-app
+   git clone https://github.com/aadatech/trhack_app.git
+   cd trhack_app
    ```
 
 2. **Set up environment variables**
