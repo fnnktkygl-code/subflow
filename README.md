@@ -163,11 +163,8 @@ Found a bug? Please open an issue with:
 
 ## 📋 Roadmap
 
-- [ ] Add support for cryptocurrency subscriptions
-- [ ] Implement subscription sharing with family members
-- [ ] Add export functionality (CSV, PDF)
 - [ ] Multi-currency support
-- [ ] Bill negotiation assistant
+- [ ] Multi-language support
 - [ ] Integration with more banking providers
 
 ## 📄 License
