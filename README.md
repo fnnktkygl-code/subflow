@@ -2,7 +2,13 @@
 
 <div align="center">
 
-<img src="assets/demo/app_logo.png" alt="Tr'Hack Logo" width="200"/>
+<img src="assets/logo/app_logo_text.png" alt="Tr'Hack Logo" width="400"/>
+
+<br/>
+
+<img src="assets/logo/app_logo.png" alt="Tr'Hack Icon" width="150"/>
+
+<br/><br/>
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white)
@@ -36,6 +42,11 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 - **Interactive Calendar**: Visualize all payments with monthly cash flow summaries
 - **Real-time Insights**: Track spending against your budget
 
+### 🎮 **Gamification**
+- XP and level system
+- Achievements for financial milestones
+- Progress tracking for goals
+
 ### 💡 **"What If" Mode**
 - Temporarily exclude subscriptions
 - See instant impact on monthly/yearly savings
@@ -64,17 +75,17 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 
 <img src="assets/screenshots/home.png" width="250" alt="Home Screen - Personalized greeting & overview"/> <img src="assets/screenshots/calendar.png" width="250" alt="Calendar View - Visualize payment dates"/> <img src="assets/screenshots/insights.png" width="250" alt="Financial Insights - Track spending vs budget"/>
 
-###  Subscription Flow
+### Beautiful Multi-Step Add Subscription Flow
 
 <img src="assets/screenshots/add_subscription.png" width="100%" alt="Add Subscription - Beautiful multi-step UI with smooth transitions"/>
 
-### Smart Insights
+### Smart Insights & Unique Features
 
 <img src="assets/screenshots/whatif.png" width="250" alt="What If Mode - Calculate potential savings"/> <img src="assets/screenshots/bank_connection.png" width="250" alt="Bank Connection - TrueLayer integration"/> <img src="assets/screenshots/income_health.png" width="250" alt="Income Health - Track subscription vs income ratio"/>
 
-### Multiple themes
+### Customization & Details
 
-<img src="assets/screenshots/themes.png" width="100%" alt="Multiple Themes - Light, Dark & Barbie"/>
+<img src="assets/screenshots/subscription_detail.png" width="250" alt="Subscription Details - Payment history & notes"/> <img src="assets/screenshots/themes.png" width="250" alt="Multiple Themes - Light, Dark & Barbie"/>
 
 </div>
 
@@ -172,7 +183,7 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 ## 👥 Authors
 
-**Njm**
+**AadaTech**
 - Email: contact.aadatech@gmail.com
 
 ## 🙏 Acknowledgments
