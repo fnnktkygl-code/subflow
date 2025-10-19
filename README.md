@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="assets/logo/app_logo_text.png" alt="Tr'Hack Logo" width="500"/> 
+<img src="assets/logo/app_logo_text.png" alt="Tr'Hack Logo" width="500"/>
 
 <br/><br/>
 
@@ -56,7 +56,7 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 
 <div align="center">
 
-<img src="assets/demo/app_demo.gif" alt="Tr'Hack Demo" width="150"/>
+<img src="assets/demo/app_demo.gif" alt="Tr'Hack Demo" width="300"/>
 
 *Watch Tr'Hack in action: Navigate subscriptions, toggle What If mode, and see instant savings calculations*
 
@@ -82,7 +82,7 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 
 <br/><br/>
 
-<img src="assets/logo/app_logo.png" alt="Tr'Hack Logo" width="500"/>
+<img src="assets/logo/app_logo.png" alt="Tr'Hack Logo" width="150"/>
 
 ## 🚀 Getting Started
 
