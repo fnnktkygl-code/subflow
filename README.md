@@ -1,5 +1,5 @@
 # Tr'Hack
-<img src="assets/log/logo_app.png" alt="Tr'Hack Logo" class="trhack-logo">
+<img src="assets/logo/logo_app.png" alt="Tr'Hack Logo" class="trhack-logo">
 
 <div align="center">
 
