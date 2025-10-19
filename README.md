@@ -1,6 +1,7 @@
 <div align="center">
 
-<img src="assets/logo/app_logo_text.png" alt="Tr'Hack Logo" width="500"/>
+<img src="assets/logo/app_logo_text.png" alt="Tr'Hack Logo" width="500"/> <img src="assets/demo/app_demo.gif" alt="Tr'Hack Demo" width="300"/>
+
 
 <br/><br/>
 
