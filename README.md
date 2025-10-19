@@ -10,7 +10,7 @@
 
 **A modern subscription management app that helps you take control of your recurring payments**
 
-[Features](#-features) • [Screenshots](#-screenshots) • [Getting Started](#-getting-started) • [Architecture](#-architecture) • [Contributing](#-contributing)
+[Features](#-features) • [Screenshots](#-screenshots) • [Getting Started](#-getting-started)
 
 </div>
 
@@ -73,12 +73,6 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 
 <img src="assets/screenshots/insights.png" width="250" alt="Financial Insights - Track spending vs budget"/> <img src="assets/screenshots/whatif.png" width="250" alt="What If Mode - Calculate potential savings"/> <img src="assets/screenshots/bank_connection.png" width="250" alt="Bank Connection - TrueLayer integration"/>
 
-### Gamification & Customization
-
-<img src="assets/screenshots/gamification.png" width="250" alt="Gamification - XP, levels & achievements"/> <img src="assets/screenshots/subscription_detail.png" width="250" alt="Subscription Details - Payment history & notes"/> <img src="assets/screenshots/themes.png" width="250" alt="Multiple Themes - Light, Dark & Barbie"/>
-
-</div>
-
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -112,34 +106,6 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
    ```bash
    flutter run
    ```
-
-## 🏗 Architecture
-
-Tr'Hack follows a feature-driven architecture with clean separation of concerns:
-
-<div align="center">
-<img src="assets/diagrams/architecture.png" alt="Architecture Diagram" width="700"/>
-</div>
-
-```
-lib/
-├── pages/              # Main application screens
-│   ├── home/
-│   ├── schedule/
-│   └── settings/
-├── widgets/            # Reusable UI components
-│   ├── home/           # Home page specific widgets
-│   └── shared/         # Shared across the app
-├── provider/           # State management (Provider pattern)
-├── services/           # External services & API clients
-│   ├── truelayer/      # Open Banking integration
-│   └── notifications/  # Push notification service
-├── models/             # Data models and entities
-├── theme/              # Theme configuration & design system
-├── utils/              # Helper functions and utilities
-├── mixins/             # Reusable widget logic
-└── main.dart           # Application entry point
-```
 
 ### Tech Stack
 
