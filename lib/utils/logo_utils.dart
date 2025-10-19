@@ -3,6 +3,6 @@ String fetchLogo(String subscriptionName) {
   final formattedName = subscriptionName.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
   final domainName = formattedName.contains('.') ? formattedName : "$formattedName.com";
 
-  // Generate the final URL for the logo
-  return 'https://img.logo.dev/$domainName?token=pk_QtDacf-LTiKOC0yHo15DDA';
+  // Generate the final URL for the demo
+  return 'https://img.demo.dev/$domainName?token=pk_QtDacf-LTiKOC0yHo15DDA';
 }

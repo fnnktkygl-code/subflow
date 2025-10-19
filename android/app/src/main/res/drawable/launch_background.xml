@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- This is a layer-list drawable that combines a background color and a logo. -->
+<!-- This is a layer-list drawable that combines a background color and a demo. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- 1. The Background Color Layer -->
     <!-- This item sets the solid background color for the launch screen.
@@ -7,9 +7,9 @@
     <item android:drawable="@color/launch_background" />
 
     <!-- 2. The Logo Layer -->
-    <!-- This item places your logo in the center of the screen.
+    <!-- This item places your demo in the center of the screen.
          You should replace "@drawable/your_logo_name" with the actual name
-         of your logo file (e.g., @drawable/logo). -->
+         of your demo file (e.g., @drawable/demo). -->
     <item>
         <bitmap
             android:gravity="center"

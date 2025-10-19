@@ -440,7 +440,7 @@ class TruelayerService {
       cleaned = tokens.join(' ');
     }
 
-    // Capitalize for logo API
+    // Capitalize for demo API
     cleaned = cleaned
         .split(' ')
         .where((w) => w.isNotEmpty)

@@ -2,6 +2,8 @@
 
 <div align="center">
 
+<img src="assets/demo/app_logo.png" alt="Tr'Hack Logo" width="200"/>
+
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -49,9 +51,33 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 - Push notifications for upcoming bills
 - Never miss a payment deadline
 
+## 🎥 Demo
+
+<div align="center">
+
+<img src="assets/demo/app_demo.gif" alt="Tr'Hack Demo" width="300"/>
+
+*Watch Tr'Hack in action: Navigate subscriptions, toggle What If mode, and see instant savings calculations*
+
+</div>
+
 ## 📱 Screenshots
 
-> Add screenshots of your app here to showcase the UI
+<div align="center">
+
+### Core Features
+
+<img src="assets/screenshots/home.png" width="250" alt="Home Screen - All subscriptions at a glance"/> <img src="assets/screenshots/add_subscription.png" width="250" alt="Add Subscription - Beautiful multi-step UI"/> <img src="assets/screenshots/calendar.png" width="250" alt="Calendar View - Visualize payment dates"/>
+
+### Smart Insights & Unique Features
+
+<img src="assets/screenshots/insights.png" width="250" alt="Financial Insights - Track spending vs budget"/> <img src="assets/screenshots/whatif.png" width="250" alt="What If Mode - Calculate potential savings"/> <img src="assets/screenshots/bank_connection.png" width="250" alt="Bank Connection - TrueLayer integration"/>
+
+### Gamification & Customization
+
+<img src="assets/screenshots/gamification.png" width="250" alt="Gamification - XP, levels & achievements"/> <img src="assets/screenshots/subscription_detail.png" width="250" alt="Subscription Details - Payment history & notes"/> <img src="assets/screenshots/themes.png" width="250" alt="Multiple Themes - Light, Dark & Barbie"/>
+
+</div>
 
 ## 🚀 Getting Started
 
@@ -65,7 +91,7 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/trhack-app.git
+   git clone https://github.com/aadatech/trhack-app.git
    cd trhack-app
    ```
 
@@ -90,6 +116,10 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 ## 🏗 Architecture
 
 Tr'Hack follows a feature-driven architecture with clean separation of concerns:
+
+<div align="center">
+<img src="assets/diagrams/architecture.png" alt="Architecture Diagram" width="700"/>
+</div>
 
 ```
 lib/
@@ -171,7 +201,8 @@ Distributed under the MIT License. See `LICENSE` file for more information.
 
 ## 👥 Authors
 
-**AadaTech**
+**Your Name**
+- Email: contact.aadatech@gmail.com
 
 ## 🙏 Acknowledgments
 

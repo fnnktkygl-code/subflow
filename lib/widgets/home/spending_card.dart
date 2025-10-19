@@ -7,7 +7,6 @@ import '../../theme/design_system.dart';
 
 class SpendingCard extends StatelessWidget {
   final double monthlyCost;
-  // ✅ FIX: The goal is now nullable.
   final double? goal;
   final double? monthlyIncome;
   final VoidCallback onEditGoal;
@@ -170,15 +169,15 @@ class SpendingCard extends StatelessWidget {
             height: 1,
             color: colorScheme.outlineVariant,
           ),
-          // ✅ FIX: Conditionally show the correct widget.
           Padding(
             padding: const EdgeInsets.all(DesignSystem.spacing10),
             child: goal != null
                 ? _GoalProgress(
               monthlyCost: monthlyCost,
-              goal: goal!, // We know it's not null here.
+              goal: goal!,
             )
                 : _PromptToSetGoal(
+              // ✅ FIX: Pass the onEditGoal callback here.
               onTap: onEditGoal,
             ),
           ),
@@ -194,11 +193,174 @@ class SpendingCard extends StatelessWidget {
   }
 
   void _showSettingsMenu(BuildContext context) {
-    // ... (Implementation remains the same)
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(DesignSystem.spacing10),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(DesignSystem.radiusXXL),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: DesignSystem.spacing10),
+                decoration: BoxDecoration(
+                  color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                  ),
+                  child: Icon(
+                    Icons.track_changes_rounded,
+                    color: colorScheme.onPrimaryContainer,
+                    size: DesignSystem.iconMedium,
+                  ),
+                ),
+                title: const Text(
+                  'Set Spend Limit',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  goal != null ? 'Currently €${goal!.toStringAsFixed(0)}/month' : 'Not set',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  onEditGoal();
+                },
+              ),
+              const SizedBox(height: DesignSystem.spacing4),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: colorScheme.secondaryContainer,
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                  ),
+                  child: Icon(
+                    Icons.account_balance_wallet_rounded,
+                    color: colorScheme.onSecondaryContainer,
+                    size: DesignSystem.iconMedium,
+                  ),
+                ),
+                title: Text(
+                  monthlyIncome != null ? 'Update Income' : 'Add Income',
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                subtitle: Text(
+                  monthlyIncome != null
+                      ? '€${monthlyIncome!.toStringAsFixed(0)}/month'
+                      : 'Get personalized insights',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  onEditIncome();
+                },
+              ),
+              const Divider(height: DesignSystem.spacing8),
+              ListTile(
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: colorScheme.errorContainer.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                  ),
+                  child: Icon(
+                    Icons.restart_alt_rounded,
+                    color: colorScheme.onErrorContainer,
+                    size: DesignSystem.iconMedium,
+                  ),
+                ),
+                title: Text(
+                  'Reset to Default',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onErrorContainer),
+                ),
+                subtitle: Text(
+                  'Removes income and resets spend limit',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: colorScheme.onErrorContainer.withOpacity(0.7),
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showResetConfirmationDialog(context);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showResetConfirmationDialog(BuildContext context) async {
-    // ... (Implementation remains the same)
+    final colorScheme = Theme.of(context).colorScheme;
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24)),
+        title: const Text('Reset Financials?'),
+        content: const Text(
+            'This will remove your monthly income and reset your spending goal to the default. Are you sure?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+                backgroundColor: colorScheme.error),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await profileProvider.resetIncomeAndGoal();
+      messenger.showSnackBar(
+        SnackBar(
+          content: const Text('Income and spending goal have been reset.'),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
   }
 }
 
