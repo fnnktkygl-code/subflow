@@ -1,8 +1,8 @@
 <div align="center">
 
 <img src="assets/logo/app_logo_text.png" alt="Tr'Hack Logo" width="500"/>
-<br/><br/>
-<img src="assets/demo/app_demo.gif" alt="Tr'Hack Demo" width="300"/>
+
+<img src="assets/logo/app_logo.png" alt="Tr'Hack Logo" width="500"/>
 
 <br/><br/>
 
@@ -81,7 +81,6 @@ Whether you're tracking Netflix, Spotify, or your gym membership, Tr'Hack helps 
 <img src="assets/screenshots/whatif.png" width="250" alt="What If Mode - Calculate potential savings"/> <img src="assets/screenshots/bank_connection.png" width="250" alt="Bank Connection - TrueLayer integration"/> <img src="assets/screenshots/income_health.png" width="250" alt="Income Health - Track subscription vs income ratio"/>
 
 </div>
-
 
 ## 🚀 Getting Started
 
