@@ -2,8 +2,6 @@
 
 <img src="assets/logo/app_logo_text.png" alt="Tr'Hack Logo" width="500"/>
 
-<br/><br/>
-
 <img src="assets/logo/app_logo.png" alt="Tr'Hack Logo" width="150"/>
 
 <br/><br/>
