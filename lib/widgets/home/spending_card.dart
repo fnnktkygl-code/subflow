@@ -27,12 +27,25 @@ class SpendingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    // ✅ FIX: Get custom colors from the theme
+    final customColors = Theme.of(context).extension<CustomColors>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final incomePercentage = monthlyIncome != null && monthlyIncome! > 0
         ? (monthlyCost / monthlyIncome!) * 100
         : null;
     final yearly = monthlyCost * 12;
+
+    // ✅ FIX: Helper method to get income color from customColors
+    Color getIncomeColor(double percentage) {
+      if (percentage < 10) {
+        return customColors?.healthy ?? const Color(0xFF10B981);
+      }
+      if (percentage < 15) {
+        return customColors?.warning ?? const Color(0xFFF59E0B);
+      }
+      return customColors?.danger ?? const Color(0xFFEF4444);
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -87,13 +100,15 @@ class SpendingCard extends StatelessWidget {
                                 vertical: DesignSystem.spacing2,
                               ),
                               decoration: BoxDecoration(
-                                color: _getIncomeColor(incomePercentage).withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                                color: getIncomeColor(incomePercentage)
+                                    .withOpacity(0.15),
+                                borderRadius:
+                                BorderRadius.circular(DesignSystem.radiusSmall),
                               ),
                               child: Text(
                                 '${incomePercentage.toStringAsFixed(1)}% of income',
                                 style: textTheme.labelMedium?.copyWith(
-                                  color: _getIncomeColor(incomePercentage),
+                                  color: getIncomeColor(incomePercentage),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -114,7 +129,8 @@ class SpendingCard extends StatelessWidget {
                             HapticFeedback.selectionClick();
                             onEditIncome();
                           },
-                          borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                          borderRadius:
+                          BorderRadius.circular(DesignSystem.radiusSmall),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: DesignSystem.spacing4,
@@ -156,10 +172,12 @@ class SpendingCard extends StatelessWidget {
                   style: IconButton.styleFrom(
                     backgroundColor: colorScheme.surfaceContainer,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                      borderRadius:
+                      BorderRadius.circular(DesignSystem.radiusSmall),
                     ),
                     padding: const EdgeInsets.all(DesignSystem.spacing4),
-                    minimumSize: const Size(DesignSystem.minTouchTarget, DesignSystem.minTouchTarget),
+                    minimumSize: const Size(
+                        DesignSystem.minTouchTarget, DesignSystem.minTouchTarget),
                   ),
                 ),
               ],
@@ -177,7 +195,6 @@ class SpendingCard extends StatelessWidget {
               goal: goal!,
             )
                 : _PromptToSetGoal(
-              // ✅ FIX: Pass the onEditGoal callback here.
               onTap: onEditGoal,
             ),
           ),
@@ -186,11 +203,8 @@ class SpendingCard extends StatelessWidget {
     );
   }
 
-  Color _getIncomeColor(double percentage) {
-    if (percentage < 10) return HealthColors.healthy;
-    if (percentage < 15) return HealthColors.warning;
-    return HealthColors.danger;
-  }
+  // ❌ REMOVED: _getIncomeColor method, as its logic is moved inline into build()
+  // to access `customColors` from the theme.
 
   void _showSettingsMenu(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -225,7 +239,8 @@ class SpendingCard extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     color: colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                    borderRadius:
+                    BorderRadius.circular(DesignSystem.radiusSmall),
                   ),
                   child: Icon(
                     Icons.track_changes_rounded,
@@ -238,7 +253,9 @@ class SpendingCard extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 subtitle: Text(
-                  goal != null ? 'Currently €${goal!.toStringAsFixed(0)}/month' : 'Not set',
+                  goal != null
+                      ? 'Currently €${goal!.toStringAsFixed(0)}/month'
+                      : 'Not set',
                   style: TextStyle(
                     fontSize: 13,
                     color: colorScheme.onSurfaceVariant,
@@ -256,7 +273,8 @@ class SpendingCard extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     color: colorScheme.secondaryContainer,
-                    borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                    borderRadius:
+                    BorderRadius.circular(DesignSystem.radiusSmall),
                   ),
                   child: Icon(
                     Icons.account_balance_wallet_rounded,
@@ -289,7 +307,8 @@ class SpendingCard extends StatelessWidget {
                   height: 40,
                   decoration: BoxDecoration(
                     color: colorScheme.errorContainer.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                    borderRadius:
+                    BorderRadius.circular(DesignSystem.radiusSmall),
                   ),
                   child: Icon(
                     Icons.restart_alt_rounded,
@@ -330,7 +349,7 @@ class SpendingCard extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24)),
+            borderRadius: BorderRadius.circular(DesignSystem.radiusXL)), // Updated
         title: const Text('Reset Financials?'),
         content: const Text(
             'This will remove your monthly income and reset your spending goal to the default. Are you sure?'),
@@ -354,17 +373,18 @@ class SpendingCard extends StatelessWidget {
       messenger.showSnackBar(
         SnackBar(
           content: const Text('Income and spending goal have been reset.'),
-          backgroundColor: Colors.green,
+          backgroundColor: Colors.green, // Consider using customColors.healthy
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(DesignSystem.radiusMedium)), // Updated
+          margin: const EdgeInsets.all(DesignSystem.spacing8), // Updated
         ),
       );
     }
   }
 }
 
-// ✅ NEW/UPDATED WIDGETS
+// ✅ UPDATED WIDGET
 
 /// Displays the progress towards a spending goal.
 class _GoalProgress extends StatelessWidget {
@@ -377,10 +397,12 @@ class _GoalProgress extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    // ✅ FIX: Get custom colors from the theme
     final customColors = Theme.of(context).extension<CustomColors>();
     final isUnderLimit = monthlyCost <= goal;
 
-    final double progressBarValue = goal > 0 ? (monthlyCost / goal).clamp(0.0, 1.0) : 0.0;
+    final double progressBarValue =
+    goal > 0 ? (monthlyCost / goal).clamp(0.0, 1.0) : 0.0;
     final String statusText;
     final IconData statusIcon;
     final List<Color> progressGradient;
@@ -389,13 +411,17 @@ class _GoalProgress extends StatelessWidget {
       final amountLeft = goal - monthlyCost;
       statusIcon = Icons.check_circle_rounded;
       statusText = '€${amountLeft.toStringAsFixed(0)} under limit';
-      progressGradient = customColors?.successGradient ?? [colorScheme.primary, colorScheme.secondary];
+      progressGradient = customColors?.successGradient ??
+          [colorScheme.primary, colorScheme.secondary];
     } else {
       final amountOver = monthlyCost - goal;
       final percentOver = goal > 0 ? (amountOver / goal * 100) : 100;
       statusIcon = Icons.warning_rounded;
-      statusText = '€${amountOver.toStringAsFixed(0)} over (+${percentOver.toStringAsFixed(0)}%)';
-      progressGradient = customColors?.errorGradient ?? [colorScheme.error, HealthColors.warning];
+      statusText =
+      '€${amountOver.toStringAsFixed(0)} over (+${percentOver.toStringAsFixed(0)}%)';
+      // ✅ FIX: Use theme-aware warning color
+      progressGradient = customColors?.errorGradient ??
+          [colorScheme.error, customColors?.warning ?? const Color(0xFFF59E0B)];
     }
 
     return Column(
@@ -418,7 +444,10 @@ class _GoalProgress extends StatelessWidget {
                 '.${(monthlyCost % 1 * 100).toStringAsFixed(0).padLeft(2, '0')}',
                 style: textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: (isUnderLimit ? colorScheme.primary : colorScheme.error).withOpacity(0.6),
+                  color: (isUnderLimit
+                      ? colorScheme.primary
+                      : colorScheme.error)
+                      .withOpacity(0.6),
                   height: 1,
                 ),
               ),
@@ -464,18 +493,27 @@ class _GoalProgress extends StatelessWidget {
             vertical: DesignSystem.spacing4,
           ),
           decoration: BoxDecoration(
-            color: (isUnderLimit ? colorScheme.primaryContainer : colorScheme.errorContainer).withOpacity(0.5),
+            color: (isUnderLimit
+                ? colorScheme.primaryContainer
+                : colorScheme.errorContainer)
+                .withOpacity(0.5),
             borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(statusIcon, size: DesignSystem.iconXSmall, color: isUnderLimit ? colorScheme.onPrimaryContainer : colorScheme.onErrorContainer),
+              Icon(statusIcon,
+                  size: DesignSystem.iconXSmall,
+                  color: isUnderLimit
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onErrorContainer),
               const SizedBox(width: DesignSystem.spacing2),
               Text(
                 statusText,
                 style: textTheme.labelMedium?.copyWith(
-                  color: isUnderLimit ? colorScheme.onPrimaryContainer : colorScheme.onErrorContainer,
+                  color: isUnderLimit
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onErrorContainer,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -537,4 +575,3 @@ class _PromptToSetGoal extends StatelessWidget {
     );
   }
 }
-

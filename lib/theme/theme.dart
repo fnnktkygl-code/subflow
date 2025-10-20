@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import '/theme/custom_colors.dart';
+import '/theme/design_system.dart'; // ✅ IMPORTED DESIGN SYSTEM
 
 // 耳 MODERN TYPOGRAPHY SYSTEM
 // Using Inter for body text (excellent readability) and SF Pro Display for headlines
@@ -142,12 +143,16 @@ final ThemeData lightThemeData = ThemeData(
 
   extensions: const <ThemeExtension<dynamic>>[
     CustomColors(
-      // Semantic colors remain the same
+      // Semantic colors
       successGradient: [Color(0xFF10B981), Color(0xFF059669)],
       errorGradient: [Color(0xFFEF4444), Color(0xFFF59E0B)],
       heatmapExpense: Color(0xFFF87171), // Red-400
       heatmapIncome: Color(0xFF34D399), // Emerald-400
       categoryColors: {},
+      // ✅ ADDED: Health colors for Light Theme
+      healthy: primaryGreen,
+      warning: warningAmber,
+      danger: errorRed,
     ),
   ],
 
@@ -200,12 +205,13 @@ final ThemeData lightThemeData = ThemeData(
   textTheme: appTextTheme,
 
   // Card theme - Elevated, modern
-  cardTheme: const CardTheme(
+  cardTheme: CardTheme(
     elevation: 0,
     shadowColor: Colors.transparent,
     surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(16)),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.radiusMedium)),
     ),
     clipBehavior: Clip.antiAlias,
     margin: EdgeInsets.zero,
@@ -217,7 +223,8 @@ final ThemeData lightThemeData = ThemeData(
       elevation: 0,
       shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        // ✅ UPDATED: Use DesignSystem
+        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       textStyle: const TextStyle(
@@ -234,25 +241,27 @@ final ThemeData lightThemeData = ThemeData(
     style: FilledButton.styleFrom(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        // ✅ UPDATED: Use DesignSystem
+        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     ),
   ),
 
   // Chip theme
-  chipTheme: const ChipThemeData(
-    backgroundColor: Color(0xFFE0E7FF), // ✅ Indigo-100
-    selectedColor: Color(0xFFC7D2FE), // ✅ Indigo-200
+  chipTheme: ChipThemeData(
+    backgroundColor: const Color(0xFFE0E7FF), // ✅ Indigo-100
+    selectedColor: const Color(0xFFC7D2FE), // ✅ Indigo-200
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.spacing4)),
     ),
-    labelStyle: TextStyle(
+    labelStyle: const TextStyle(
       fontFamily: 'Inter',
       fontSize: 13,
       fontWeight: FontWeight.w500,
     ),
-    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
 
   // Divider
@@ -267,19 +276,23 @@ final ThemeData lightThemeData = ThemeData(
     filled: true,
     fillColor: const Color(0xFFE0E7FF), // ✅ Indigo-100
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: BorderSide.none,
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: BorderSide.none,
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: const BorderSide(color: primaryPurple, width: 2),
     ),
     errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -295,9 +308,13 @@ final ThemeData darkThemeData = ThemeData(
     CustomColors(
       successGradient: [Color(0xFF34D399), Color(0xFF10B981)],
       errorGradient: [Color(0xFFF87171), Color(0xFFFBBF24)],
-      heatmapExpense: Color(0xFFF87171), // Red-400 (often looks good on dark too)
+      heatmapExpense: Color(0xFFF87171), // Red-400
       heatmapIncome: Color(0xFF34D399), // Emerald-400
       categoryColors: {},
+      // ✅ ADDED: Health colors for Dark Theme
+      healthy: Color(0xFF34D399), // Primary color
+      warning: Color(0xFFFBBF24), // Amber-400
+      danger: Color(0xFFF87171), // Error color
     ),
   ],
 
@@ -349,12 +366,13 @@ final ThemeData darkThemeData = ThemeData(
   scaffoldBackgroundColor: const Color(0xFF020617),
   textTheme: appTextTheme,
 
-  cardTheme: const CardTheme(
+  cardTheme: CardTheme(
     elevation: 0,
     shadowColor: Colors.transparent,
     surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(16)),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.radiusMedium)),
     ),
     clipBehavior: Clip.antiAlias,
     margin: EdgeInsets.zero,
@@ -365,7 +383,8 @@ final ThemeData darkThemeData = ThemeData(
       elevation: 0,
       shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        // ✅ UPDATED: Use DesignSystem
+        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       textStyle: const TextStyle(
@@ -381,24 +400,26 @@ final ThemeData darkThemeData = ThemeData(
     style: FilledButton.styleFrom(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        // ✅ UPDATED: Use DesignSystem
+        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     ),
   ),
 
-  chipTheme: const ChipThemeData(
-    backgroundColor: Color(0xFF1E293B),
-    selectedColor: Color(0xFF065F46),
+  chipTheme: ChipThemeData(
+    backgroundColor: const Color(0xFF1E293B),
+    selectedColor: const Color(0xFF065F46),
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.spacing4)),
     ),
-    labelStyle: TextStyle(
+    labelStyle: const TextStyle(
       fontFamily: 'Inter',
       fontSize: 13,
       fontWeight: FontWeight.w500,
     ),
-    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
 
   dividerTheme: const DividerThemeData(
@@ -411,19 +432,23 @@ final ThemeData darkThemeData = ThemeData(
     filled: true,
     fillColor: const Color(0xFF1E293B),
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: BorderSide.none,
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: BorderSide.none,
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: const BorderSide(color: Color(0xFF34D399), width: 2),
     ),
     errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: const BorderSide(color: Color(0xFFF87171), width: 2),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -442,6 +467,10 @@ final ThemeData barbieThemeData = ThemeData(
       heatmapExpense: Color(0xFFF472B6), // Pink-400
       heatmapIncome: Color(0xFFFBBF24), // Amber-400
       categoryColors: {},
+      // ✅ ADDED: Health colors for Barbie Theme
+      healthy: Color(0xFFEC4899), // Primary color
+      warning: Color(0xFFFBBF24), // Tertiary color
+      danger: Color(0xFFEF4444), // Error color
     ),
   ],
 
@@ -488,12 +517,13 @@ final ThemeData barbieThemeData = ThemeData(
   scaffoldBackgroundColor: const Color(0xFFFFFBFE), // Custom near-white base
   textTheme: appTextTheme,
 
-  cardTheme: const CardTheme(
+  cardTheme: CardTheme(
     elevation: 0,
     shadowColor: Colors.transparent,
     surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(16)),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.radiusMedium)),
     ),
     clipBehavior: Clip.antiAlias,
     margin: EdgeInsets.zero,
@@ -504,7 +534,8 @@ final ThemeData barbieThemeData = ThemeData(
       elevation: 0,
       shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        // ✅ UPDATED: Use DesignSystem
+        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       textStyle: const TextStyle(
@@ -520,24 +551,26 @@ final ThemeData barbieThemeData = ThemeData(
     style: FilledButton.styleFrom(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        // ✅ UPDATED: Use DesignSystem
+        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     ),
   ),
 
-  chipTheme: const ChipThemeData(
-    backgroundColor: Color(0xFFFFE4E6), // Rose-100
-    selectedColor: Color(0xFFFECDD3), // Rose-200
+  chipTheme: ChipThemeData(
+    backgroundColor: const Color(0xFFFFE4E6), // Rose-100
+    selectedColor: const Color(0xFFFECDD3), // Rose-200
     shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.all(Radius.circular(8)),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.spacing4)),
     ),
-    labelStyle: TextStyle(
+    labelStyle: const TextStyle(
       fontFamily: 'Inter',
       fontSize: 13,
       fontWeight: FontWeight.w500,
     ),
-    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
 
   dividerTheme: const DividerThemeData(
@@ -550,19 +583,23 @@ final ThemeData barbieThemeData = ThemeData(
     filled: true,
     fillColor: const Color(0xFFFFE4E6), // Rose-100
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: BorderSide.none,
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: BorderSide.none,
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: const BorderSide(color: Color(0xFFEC4899), width: 2),
     ),
     errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      // ✅ UPDATED: Use DesignSystem
+      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
       borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

@@ -13,7 +13,7 @@ class DesignSystem {
   static const double spacing1 = 2.0;   // Hairline gaps
   static const double spacing2 = 4.0;   // Micro gaps
   static const double spacing3 = 6.0;   // Tiny gaps
-  static const double spacing4 = 8.0;   // Small gaps
+  static const double spacing4 = 8.0;   // Small gaps (Used for Chips)
   static const double spacing6 = 12.0;  // Standard gaps
   static const double spacing8 = 16.0;  // Standard padding
   static const double spacing10 = 20.0; // Content padding
@@ -24,7 +24,7 @@ class DesignSystem {
   // ═══════════════════════════════════════════════════════════════════════
   // BORDER RADIUS SCALE
   // ═══════════════════════════════════════════════════════════════════════
-  static const double radiusSmall = 12.0;  // Small buttons, pills
+  static const double radiusSmall = 12.0;  // Small buttons, pills, inputs
   static const double radiusMedium = 16.0; // Input fields, cards
   static const double radiusLarge = 20.0;  // Larger cards, banners
   static const double radiusXL = 24.0;     // Main container sections
@@ -106,11 +106,5 @@ class DesignSystem {
   }
 }
 
-/// Health status colors (centralized)
-class HealthColors {
-  HealthColors._();
-
-  static const Color healthy = Color(0xFF10B981);  // Emerald
-  static const Color warning = Color(0xFFF59E0B);  // Amber
-  static const Color danger = Color(0xFFEF4444);   // Red
-}
+// ❌REMOVED: HealthColors class.
+// This logic is now part of the CustomColors ThemeExtension to be theme-aware.

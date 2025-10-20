@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/custom_colors.dart'; // ✅ IMPORTED CUSTOM COLORS
 import '../../theme/design_system.dart';
 import '../../provider/user_profile_provider.dart';
 
@@ -40,7 +41,9 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final statusColor = _getStatusColor(context);
+    // ✅ FIX: Get custom colors from the theme
+    final customColors = Theme.of(context).extension<CustomColors>();
+    final statusColor = _getStatusColor(context, customColors);
     final statusIcon = _getStatusIcon();
 
     return AnimatedBuilder(
@@ -63,7 +66,7 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
               ),
             ],
           ),
-          padding: EdgeInsets.all(DesignSystem.spacing12),
+          padding: const EdgeInsets.all(DesignSystem.spacing12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -78,11 +81,12 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
                       height: 48,
                       decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.18),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius:
+                        BorderRadius.circular(DesignSystem.radiusSmall), // Updated
                         boxShadow: [
                           BoxShadow(
-                            color: statusColor.withOpacity(
-                                0.15 * _pulseController.value),
+                            color: statusColor
+                                .withOpacity(0.15 * _pulseController.value),
                             blurRadius: 12,
                             spreadRadius: 1,
                           ),
@@ -95,7 +99,7 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
                       ),
                     ),
                   ),
-                  SizedBox(width: DesignSystem.spacing12),
+                  const SizedBox(width: DesignSystem.spacing12),
                   Expanded(
                     child: Text(
                       widget.title,
@@ -108,7 +112,7 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
                   ),
                 ],
               ),
-              SizedBox(height: DesignSystem.spacing12),
+              const SizedBox(height: DesignSystem.spacing12),
               // Message with improved spacing
               Text(
                 widget.message,
@@ -125,11 +129,12 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
     );
   }
 
-  Color _getStatusColor(BuildContext context) {
+  // ✅ FIX: Pass customColors and use fallbacks
+  Color _getStatusColor(BuildContext context, CustomColors? customColors) {
     if (widget.status == IncomeHealthStatus.healthy) {
-      return const Color(0xFF10B981); // Emerald
+      return customColors?.healthy ?? const Color(0xFF10B981); // Emerald
     } else if (widget.status == IncomeHealthStatus.warning) {
-      return const Color(0xFFF59E0B); // Amber
+      return customColors?.warning ?? const Color(0xFFF59E0B); // Amber
     }
     return Theme.of(context).colorScheme.outline;
   }
