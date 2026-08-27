@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import {
   X,
   Building2,
-  Sparkles,
   CheckCircle2,
   AlertCircle,
   ArrowRight,
@@ -12,9 +11,9 @@ import {
   RefreshCw,
   Plus,
   Check,
+  Sparkles,
   ExternalLink,
-  Lock,
-  ArrowUpRight
+  Zap
 } from 'lucide-react';
 import {
   POPULAR_FRENCH_BANKS,
@@ -26,52 +25,30 @@ import {
   Subscription
 } from '@subflow/core';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
+import { BankLogo } from './BankLogo';
 import { SubscriptionLogo } from '@subflow/ui';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useTranslation } from '../hooks/useTranslation';
-import { BankLogo } from './BankLogo';
 
 interface TrueLayerSyncModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type SyncStep = 'select_bank' | 'connecting' | 'review_detected' | 'imported_success';
+type SyncStep = 'select_bank' | 'connecting' | 'review_detected' | 'sync_complete';
 
 export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, onClose }) => {
   useEscapeKey(isOpen, onClose);
-  const { t, locale } = useTranslation();
+  const { locale } = useTranslation();
   const { addSubscription, profile } = useSubscriptionStore();
 
   const [step, setStep] = useState<SyncStep>('select_bank');
   const [selectedBank, setSelectedBank] = useState<TrueLayerBankProvider>(POPULAR_FRENCH_BANKS[0]!);
   const [detectedSubs, setDetectedSubs] = useState<DetectedSubscription[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isProcessing, setIsProcessing] = useState(false);
   const [importedCount, setImportedCount] = useState(0);
 
   if (!isOpen) return null;
-
-  const handleStartSync = async (bank: TrueLayerBankProvider) => {
-    setSelectedBank(bank);
-    setStep('connecting');
-    setIsProcessing(true);
-
-    // Analyse intelligente et détection des prélèvements récurrents basée sur la banque sélectionnée
-    setTimeout(() => {
-      const mockTxs = getMockFrenchBankTransactions(bank.id);
-      const detected = detectSubscriptionsFromTransactions(mockTxs, {
-        currency: profile.currency || 'EUR',
-        currencySymbol: profile.currencySymbol || '€'
-      });
-
-      setDetectedSubs(detected);
-      // Sélectionner tous les abonnements détectés par défaut
-      setSelectedIds(new Set(detected.map((s) => s.id)));
-      setIsProcessing(false);
-      setStep('review_detected');
-    }, 1200);
-  };
 
   const getTrueLayerAuthUrl = (bank: TrueLayerBankProvider) => {
     const clientId = 'subflow-6571e7';
@@ -80,7 +57,34 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
     return `https://auth.truelayer.com/?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=info%20accounts%20balance%20transactions%20offline_access&country_code=FR&providers=${bank.id}&provider_id=${bank.id}`;
   };
 
+  const handleConnectBankOAuth = (bank: TrueLayerBankProvider) => {
+    setSelectedBank(bank);
+    if (bank.id === 'mock-sandbox') {
+      handleRunSimulation(bank);
+      return;
+    }
+    const authUrl = getTrueLayerAuthUrl(bank);
+    if (typeof window !== 'undefined') {
+      window.location.href = authUrl;
+    }
+  };
 
+  const handleRunSimulation = (bank: TrueLayerBankProvider) => {
+    setSelectedBank(bank);
+    setStep('connecting');
+
+    setTimeout(() => {
+      const mockTxs = getMockFrenchBankTransactions(bank.id);
+      const detected = detectSubscriptionsFromTransactions(mockTxs, {
+        currency: profile.currency || 'EUR',
+        currencySymbol: profile.currencySymbol || '€'
+      });
+
+      setDetectedSubs(detected);
+      setSelectedIds(new Set(detected.map((s) => s.id)));
+      setStep('review_detected');
+    }, 1000);
+  };
 
   const toggleSelect = (id: string) => {
     const next = new Set(selectedIds);
@@ -120,7 +124,7 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
     });
 
     setImportedCount(toImport.length);
-    setStep('imported_success');
+    setStep('sync_complete');
   };
 
   const totalMonthlyDetected = detectedSubs
@@ -128,13 +132,15 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
     .reduce((sum, s) => sum + s.amount, 0);
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="truelayer-modal-title"
-    >
-      <div className="w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-japandi-scrim/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+        onClick={onClose}
+      />
+
+      {/* Modal Card */}
+      <div className="relative w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-japandi-border bg-japandi-sand/20">
@@ -143,12 +149,12 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
               <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <h2 id="truelayer-modal-title" className="text-base font-bold text-japandi-text">
-                {locale === 'fr' ? 'Connexion Bancaire TrueLayer' : 'TrueLayer Bank Sync'}
+              <h2 className="text-base font-bold text-japandi-text">
+                {locale === 'fr' ? 'Synchronisation Bancaire TrueLayer' : 'TrueLayer Bank Sync'}
               </h2>
               <p className="text-[11px] text-japandi-muted flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-japandi-pine" />
-                {locale === 'fr' ? 'DSP2 Sécurisé • Détection automatique des abonnements' : 'PSD2 Encrypted • Recurring Detection'}
+                {locale === 'fr' ? 'DSP2 Sécurisé • Détection automatique 90 jours' : 'PSD2 Encrypted • 90-Day Analysis'}
               </p>
             </div>
           </div>
@@ -169,19 +175,37 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
           {/* STEP 1: Select Bank */}
           {step === 'select_bank' && (
             <div className="flex flex-col gap-4">
-              <div className="p-3.5 rounded-japandi-xl bg-japandi-sand/40 border border-japandi-border text-xs text-japandi-text leading-relaxed">
-                {locale === 'fr'
-                  ? 'Connectez votre compte bancaire pour détecter automatiquement tous vos prélèvements récurrents (Netflix, Spotify, Free, Salle de sport, IA, etc.) sans aucune saisie manuelle.'
-                  : 'Connect your bank account to automatically discover all recurring debits without manual input.'}
+              {/* Highlight BoursoBank Quick Connect */}
+              <div className="p-4 rounded-japandi-xl bg-japandi-pine/10 border border-japandi-pine/30 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <BankLogo bank={POPULAR_FRENCH_BANKS[0]!} size={40} />
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-japandi-text block truncate">
+                      BoursoBank Direct Connect
+                    </span>
+                    <span className="text-[10px] text-japandi-pine font-medium block">
+                      Connexion officielle TrueLayer Live (DSP2)
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleConnectBankOAuth(POPULAR_FRENCH_BANKS[0]!)}
+                  className="px-3.5 py-2 rounded-japandi-lg bg-japandi-pine text-white text-xs font-bold hover:bg-japandi-pine/90 transition-all flex items-center gap-1.5 shadow-japandi-xs flex-shrink-0"
+                >
+                  <span>Se connecter</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
               </div>
 
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-bold text-japandi-muted uppercase tracking-wider">
-                    {locale === 'fr' ? 'Choisissez votre banque' : 'Select your bank'}
+                    {locale === 'fr' ? 'Ou choisissez une autre banque' : 'Or select another bank'}
                   </label>
                   <span className="text-[10px] font-semibold text-japandi-pine bg-japandi-pine/10 px-2 py-0.5 rounded-full">
-                    DSP2 Direct Sync
+                    DSP2 Live
                   </span>
                 </div>
 
@@ -193,7 +217,7 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
                       <button
                         key={bank.id}
                         type="button"
-                        onClick={() => handleStartSync(bank)}
+                        onClick={() => handleConnectBankOAuth(bank)}
                         className={`flex items-center justify-between p-3.5 rounded-japandi-xl border transition-all text-left group shadow-xs ${
                           isUserMainBank
                             ? 'bg-japandi-surface border-japandi-pine/40 hover:border-japandi-pine hover:bg-japandi-sand/40 ring-1 ring-japandi-pine/20'
@@ -214,15 +238,30 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
                               )}
                             </div>
                             <span className="text-[10px] text-japandi-muted block truncate">
-                              {bank.id === 'mock-sandbox' ? 'Démo 1-Tap' : 'STET / Open Banking'}
+                              {bank.id === 'mock-sandbox' ? 'Démo 1-Tap' : 'Se connecter (OAuth)'}
                             </span>
                           </div>
                         </div>
-                        <ArrowRight className="w-4 h-4 text-japandi-muted group-hover:text-japandi-pine group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                        <ExternalLink className="w-3.5 h-3.5 text-japandi-muted group-hover:text-japandi-pine transition-all flex-shrink-0" />
                       </button>
                     );
                   })}
                 </div>
+              </div>
+
+              {/* Simulation fallback for testing */}
+              <div className="pt-2 border-t border-japandi-border/60 flex items-center justify-between">
+                <span className="text-[11px] text-japandi-muted">
+                  Tester sans identifiants bancaires :
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleRunSimulation(POPULAR_FRENCH_BANKS[0]!)}
+                  className="text-xs font-bold text-japandi-pine hover:underline flex items-center gap-1"
+                >
+                  <Zap className="w-3 h-3" />
+                  <span>Simulation BoursoBank</span>
+                </button>
               </div>
             </div>
           )}
@@ -247,7 +286,6 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
             </div>
           )}
 
-
           {/* STEP 3: Review Detected Subscriptions */}
           {step === 'review_detected' && (
             <div className="flex flex-col gap-3">
@@ -266,16 +304,14 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
                   </div>
                 </div>
 
-                <a
-                  href={getTrueLayerAuthUrl(selectedBank)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <button
+                  type="button"
+                  onClick={() => handleConnectBankOAuth(selectedBank)}
                   className="px-2.5 py-1 rounded-japandi-md bg-japandi-elevated hover:bg-japandi-sand/60 border border-japandi-border text-[10px] font-bold text-japandi-pine flex items-center gap-1 transition-colors"
-                  title="Ouvrir la passerelle d'authentification TrueLayer officielle"
                 >
                   <span>OAuth Live</span>
-                  <ArrowUpRight className="w-3 h-3" />
-                </a>
+                  <ExternalLink className="w-3 h-3" />
+                </button>
               </div>
 
               <div className="flex items-center justify-between p-3.5 rounded-japandi-xl bg-japandi-pine/10 border border-japandi-pine/20">
@@ -306,11 +342,11 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
                 </button>
               </div>
 
-              {/* Detected List */}
-              <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
-
+              {/* Subscriptions List */}
+              <div className="flex flex-col gap-2 max-h-60 overflow-y-auto pr-1">
                 {detectedSubs.map((sub) => {
                   const isChecked = selectedIds.has(sub.id);
+
                   return (
                     <div
                       key={sub.id}
@@ -322,7 +358,6 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
                       }`}
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        {/* Checkbox */}
                         <div
                           className={`w-5 h-5 rounded-md flex items-center justify-center border transition-all flex-shrink-0 ${
                             isChecked
@@ -333,30 +368,22 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
                           {isChecked && <Check className="w-3.5 h-3.5" />}
                         </div>
 
-                        {/* Service Logo */}
                         <SubscriptionLogo
                           name={sub.name}
                           logoUrl={sub.matchedCatalogItem?.logoUrl}
                           size={36}
                         />
 
-                        {/* Details */}
                         <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-bold text-japandi-text truncate">
-                              {sub.name}
-                            </span>
-                            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-japandi-pine/15 text-japandi-pine uppercase tracking-wider">
-                              {sub.confidence === 'high' ? '95%' : '80%'}
-                            </span>
-                          </div>
+                          <span className="text-xs font-bold text-japandi-text truncate block">
+                            {sub.name}
+                          </span>
                           <span className="text-[10px] text-japandi-muted block truncate">
-                            {sub.occurrencesCount} prélèvements • Dernier : {sub.lastChargeDate}
+                            {sub.occurrencesCount} prélèvements détectés • Dernier : {sub.lastChargeDate}
                           </span>
                         </div>
                       </div>
 
-                      {/* Amount & Cycle */}
                       <div className="text-right flex-shrink-0">
                         <span className="text-xs font-bold text-japandi-text block">
                           {formatCurrency(sub.amount, sub.currency, locale)}
@@ -372,9 +399,9 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
             </div>
           )}
 
-          {/* STEP 4: Imported Success */}
-          {step === 'imported_success' && (
-            <div className="py-10 flex flex-col items-center justify-center text-center gap-4">
+          {/* STEP 4: Complete State */}
+          {step === 'sync_complete' && (
+            <div className="py-8 flex flex-col items-center justify-center text-center gap-4">
               <div className="w-14 h-14 rounded-full bg-japandi-pine/15 text-japandi-pine flex items-center justify-center animate-in zoom-in-90 duration-200">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
@@ -382,24 +409,41 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
                 <h3 className="text-base font-bold text-japandi-text">
                   {locale === 'fr'
                     ? `${importedCount} abonnements importés avec succès !`
-                    : `${importedCount} subscriptions imported!`}
+                    : `${importedCount} subscriptions successfully imported!`}
                 </h3>
                 <p className="text-xs text-japandi-muted mt-1 max-w-xs mx-auto">
                   {locale === 'fr'
-                    ? 'Vos calculs de budget 50/30/20, vos simulations What-If et vos échéances sont à jour.'
-                    : 'Your budget split and renewal calendar are now synchronized.'}
+                    ? `Vos abonnements ${selectedBank.name} sont maintenant synchronisés dans votre tableau de bord.`
+                    : `Your ${selectedBank.name} subscriptions are now synced in your dashboard.`}
                 </p>
               </div>
             </div>
           )}
+
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-japandi-border bg-japandi-elevated flex items-center justify-between gap-3">
+        <div className="p-4 border-t border-japandi-border bg-japandi-sand/10 flex items-center justify-between gap-3">
           {step === 'select_bank' && (
-            <div className="text-[11px] text-japandi-muted flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-japandi-pine" />
-              {locale === 'fr' ? 'Agrément ACPR / Banque de France' : 'Bank-Grade PSD2 Encryption'}
+            <>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 rounded-japandi-md border border-japandi-border text-japandi-text text-xs font-bold hover:bg-japandi-sand/40 transition-colors"
+              >
+                {locale === 'fr' ? 'Annuler' : 'Cancel'}
+              </button>
+              <div className="text-[11px] text-japandi-muted flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-japandi-pine" />
+                <span>Connexion sécurisée TLS 256-bit</span>
+              </div>
+            </>
+          )}
+
+          {step === 'connecting' && (
+            <div className="w-full text-center text-xs text-japandi-muted py-1 flex items-center justify-center gap-2">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin text-japandi-pine" />
+              <span>{locale === 'fr' ? 'Synchronisation en cours...' : 'Syncing in progress...'}</span>
             </div>
           )}
 
@@ -412,7 +456,6 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
               >
                 {locale === 'fr' ? 'Retour' : 'Back'}
               </button>
-
               <button
                 type="button"
                 disabled={selectedIds.size === 0}
@@ -420,20 +463,22 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
                 className="px-5 py-2.5 rounded-japandi-md bg-japandi-pine text-white text-xs font-bold hover:bg-japandi-pine/90 disabled:opacity-50 transition-all flex items-center gap-1.5 shadow-japandi-xs"
               >
                 <Plus className="w-4 h-4" />
-                {locale === 'fr'
-                  ? `Importer (${selectedIds.size})`
-                  : `Import (${selectedIds.size})`}
+                <span>
+                  {locale === 'fr'
+                    ? `Importer (${selectedIds.size})`
+                    : `Import (${selectedIds.size})`}
+                </span>
               </button>
             </>
           )}
 
-          {step === 'imported_success' && (
+          {step === 'sync_complete' && (
             <button
               type="button"
               onClick={onClose}
               className="w-full py-2.5 rounded-japandi-md bg-japandi-pine text-white text-xs font-bold hover:bg-japandi-pine/90 transition-all shadow-japandi-xs"
             >
-              {locale === 'fr' ? 'Voir mon tableau de bord' : 'View Dashboard'}
+              {locale === 'fr' ? 'Voir mon tableau de bord' : 'View my dashboard'}
             </button>
           )}
         </div>
