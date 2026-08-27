@@ -9,23 +9,11 @@ export interface CategoryIconProps {
   themeMode?: string;
 }
 
-export const VIBRANT_CATEGORY_PALETTE: Record<
-  string,
-  { color: string; bgColor: string }
-> = {
-  Entertainment: { color: '#FF2A6D', bgColor: 'rgba(255, 42, 109, 0.16)' },
-  Productivity: { color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.16)' },
-  Utilities: { color: '#F59E0B', bgColor: 'rgba(245, 158, 11, 0.16)' },
-  'Health & Fitness': { color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.16)' },
-  'Food & Dining': { color: '#F97316', bgColor: 'rgba(249, 115, 22, 0.16)' },
-  Shopping: { color: '#06B6D4', bgColor: 'rgba(6, 182, 212, 0.16)' },
-  General: { color: '#EC4899', bgColor: 'rgba(236, 72, 153, 0.16)' }
-};
-
 export const BARBIE_CATEGORY_PALETTE: Record<
   string,
   { color: string; bgColor: string }
 > = {
+
   Entertainment: { color: '#EC4899', bgColor: 'rgba(236, 72, 153, 0.16)' },
   Productivity: { color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.16)' },
   Utilities: { color: '#F43F5E', bgColor: 'rgba(244, 63, 94, 0.16)' },
@@ -162,15 +150,12 @@ export const CategoryIcon: React.FC<CategoryIconProps> = ({
   let color = matched.color;
   let bgColor = matched.bgColor;
 
-  if (activeTheme === 'vibrant') {
-    const pal = VIBRANT_CATEGORY_PALETTE[matchedKey] || VIBRANT_CATEGORY_PALETTE['General']!;
-    color = pal.color;
-    bgColor = pal.bgColor;
-  } else if (activeTheme === 'barbie') {
+  if (activeTheme === 'barbie') {
     const pal = BARBIE_CATEGORY_PALETTE[matchedKey] || BARBIE_CATEGORY_PALETTE['General']!;
     color = pal.color;
     bgColor = pal.bgColor;
   }
+
 
   if (showBackground) {
     return (

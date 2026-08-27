@@ -152,7 +152,12 @@ export const useSubscriptionStore = create<SubFlowState>()(
       setCategoryFilter: (category) => set({ activeCategoryFilter: category })
     }),
     {
-      name: 'subflow-storage'
+      name: 'subflow-storage',
+      onRehydrateStorage: () => (state) => {
+        if (state && (state.profile?.themeMode as string) === 'vibrant') {
+          state.profile.themeMode = 'light';
+        }
+      }
     }
   )
 );
@@ -160,4 +165,5 @@ export const useSubscriptionStore = create<SubFlowState>()(
 if (typeof window !== 'undefined') {
   (window as any).__store = useSubscriptionStore;
 }
+
 

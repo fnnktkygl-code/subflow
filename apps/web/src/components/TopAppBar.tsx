@@ -41,9 +41,6 @@ export const TopAppBar: React.FC = () => {
     } else if (currentTheme === 'barbie') {
       root.classList.add('barbie');
       root.setAttribute('data-theme', 'barbie');
-    } else if (currentTheme === 'vibrant') {
-      root.classList.add('vibrant');
-      root.setAttribute('data-theme', 'vibrant');
     } else {
       root.setAttribute('data-theme', 'light');
     }
@@ -56,13 +53,10 @@ export const TopAppBar: React.FC = () => {
     }
   }, [currentTheme, toggleAmountBlur, updateProfile]);
 
-
-
   const cycleTheme = () => {
     let nextTheme: ThemeMode = 'light';
     if (currentTheme === 'light') nextTheme = 'dark';
-    else if (currentTheme === 'dark') nextTheme = 'vibrant';
-    else if (currentTheme === 'vibrant') nextTheme = 'barbie';
+    else if (currentTheme === 'dark') nextTheme = 'barbie';
     else nextTheme = 'light';
 
     updateProfile({ themeMode: nextTheme });
@@ -77,15 +71,12 @@ export const TopAppBar: React.FC = () => {
     switch (currentTheme) {
       case 'dark':
         return <Moon className="w-4 h-4 text-amber-300" />;
-      case 'vibrant':
-        return <Sparkles className="w-4 h-4 text-teal-400 animate-spin" style={{ animationDuration: '6s' }} />;
       case 'barbie':
         return <Sparkles className="w-4 h-4 text-pink-500 animate-pulse" />;
       default:
         return <Sun className="w-4 h-4 text-amber-500" />;
     }
   };
-
 
   return (
     <header className="sticky top-0 z-30 w-full bg-japandi-canvas/80 backdrop-blur-md border-b border-japandi-border/60">
@@ -127,7 +118,7 @@ export const TopAppBar: React.FC = () => {
             {isAmountBlurred ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
 
-          {/* Theme Cycler (Light -> Dark -> Vibrant/Coloré -> Pinkbie) */}
+          {/* Theme Cycler (Light -> Dark -> Pinkbie) */}
           <button
             type="button"
             onClick={cycleTheme}
@@ -138,13 +129,12 @@ export const TopAppBar: React.FC = () => {
             <span className="text-xs font-semibold capitalize hidden sm:inline text-japandi-text">
               {currentTheme === 'barbie'
                 ? 'Pinkbie'
-                : currentTheme === 'vibrant'
-                ? (locale === 'fr' ? 'Coloré' : 'Vibrant')
                 : currentTheme === 'dark'
                 ? (locale === 'fr' ? 'Sombre' : 'Dark')
                 : (locale === 'fr' ? 'Clair' : 'Light')}
             </span>
           </button>
+
 
         </div>
       </div>

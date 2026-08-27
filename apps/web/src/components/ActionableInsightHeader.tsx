@@ -15,7 +15,6 @@ export const ActionableInsightHeader: React.FC = () => {
 
   const totalMonthly = useMemo(() => calculateTotalMonthlyCost(subscriptions), [subscriptions]);
   const spendingGoal = profile.spendingGoal ?? 0;
-  const isVibrant = profile.themeMode === 'vibrant';
 
   // 1. Time-based respectful greeting localized
   const greetingTime = useMemo(() => {
@@ -57,10 +56,8 @@ export const ActionableInsightHeader: React.FC = () => {
           text: locale === 'fr'
             ? `Prélèvement aujourd'hui : ${nextOcc.subscription.name} (${displayAmount(nextOcc.subscription.amount)})`
             : `Due today: ${nextOcc.subscription.name} (${displayAmount(nextOcc.subscription.amount)})`,
-          colorClass: isVibrant
-            ? 'text-pink-700 bg-pink-500/10 border-pink-300 shadow-xs'
-            : 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-terracotta/10',
-          icon: <Bell className={`w-4 h-4 flex-shrink-0 ${isVibrant ? 'text-pink-600' : 'text-japandi-terracotta'}`} />
+          colorClass: 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-terracotta/10',
+          icon: <Bell className="w-4 h-4 flex-shrink-0 text-japandi-terracotta" />
         };
       }
       if (nextOcc.daysRemaining <= 3) {
@@ -69,10 +66,8 @@ export const ActionableInsightHeader: React.FC = () => {
           text: locale === 'fr'
             ? `Prochain prélèvement : ${nextOcc.subscription.name} dans ${nextOcc.daysRemaining} jour${nextOcc.daysRemaining > 1 ? 's' : ''}`
             : `Next renewal: ${nextOcc.subscription.name} in ${nextOcc.daysRemaining} day${nextOcc.daysRemaining > 1 ? 's' : ''}`,
-          colorClass: isVibrant
-            ? 'text-purple-700 bg-purple-500/10 border-purple-300 shadow-xs'
-            : 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-sand/90',
-          icon: <Clock className={`w-4 h-4 flex-shrink-0 ${isVibrant ? 'text-purple-600' : 'text-japandi-terracotta'}`} />
+          colorClass: 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-sand/90',
+          icon: <Clock className="w-4 h-4 flex-shrink-0 text-japandi-terracotta" />
         };
       }
     }
@@ -85,10 +80,8 @@ export const ActionableInsightHeader: React.FC = () => {
         text: locale === 'fr'
           ? `Budget dépassé : +${displayAmount(overAmount)} au-dessus de l'objectif`
           : `Over target: +${displayAmount(overAmount)} exceeding monthly goal`,
-        colorClass: isVibrant
-          ? 'text-amber-700 bg-amber-500/15 border-amber-300 shadow-xs'
-          : 'text-japandi-akane border-japandi-akane/30 bg-japandi-akane/10',
-        icon: <AlertTriangle className={`w-4 h-4 flex-shrink-0 ${isVibrant ? 'text-amber-600' : 'text-japandi-akane'}`} />
+        colorClass: 'text-japandi-akane border-japandi-akane/30 bg-japandi-akane/10',
+        icon: <AlertTriangle className="w-4 h-4 flex-shrink-0 text-japandi-akane" />
       };
     }
 
@@ -100,10 +93,8 @@ export const ActionableInsightHeader: React.FC = () => {
         text: locale === 'fr'
           ? `Objectif respecté : ${displayAmount(buffer)} restant sur le budget cible`
           : `On track: ${displayAmount(buffer)} remaining under monthly target`,
-        colorClass: isVibrant
-          ? 'text-emerald-700 bg-emerald-500/15 border-emerald-300 shadow-xs'
-          : 'text-japandi-pine border-japandi-pine/30 bg-japandi-pine/10',
-        icon: <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${isVibrant ? 'text-emerald-600' : 'text-japandi-pine'}`} />
+        colorClass: 'text-japandi-pine border-japandi-pine/30 bg-japandi-pine/10',
+        icon: <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-japandi-pine" />
       };
     }
 
@@ -113,12 +104,11 @@ export const ActionableInsightHeader: React.FC = () => {
       text: locale === 'fr'
         ? `Gestion active de ${subscriptions.length} abonnement${subscriptions.length > 1 ? 's' : ''}`
         : `Active tracking of ${subscriptions.length} subscription${subscriptions.length > 1 ? 's' : ''}`,
-      colorClass: isVibrant
-        ? 'text-purple-700 bg-purple-500/10 border-purple-200'
-        : 'text-japandi-pine border-japandi-border bg-japandi-elevated',
-      icon: <Activity className={`w-4 h-4 flex-shrink-0 ${isVibrant ? 'text-purple-600' : 'text-japandi-pine'}`} />
+      colorClass: 'text-japandi-pine border-japandi-border bg-japandi-elevated',
+      icon: <Activity className="w-4 h-4 flex-shrink-0 text-japandi-pine" />
     };
-  }, [subscriptions, totalMonthly, spendingGoal, locale, isAmountBlurred, isVibrant]);
+  }, [subscriptions, totalMonthly, spendingGoal, locale, isAmountBlurred]);
+
 
 
   return (

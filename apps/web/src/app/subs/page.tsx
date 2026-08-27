@@ -151,13 +151,11 @@ export default function SubsPage() {
     }
   };
 
-  const isVibrant = profile.themeMode === 'vibrant';
-
   return (
     <div className={`flex flex-col gap-6 animate-in fade-in duration-300 max-w-4xl mx-auto ${isSelectionMode ? 'pb-80' : 'pb-16'}`}>
       {/* 1. Top Header with What-If Mode Toggle */}
       <div className="flex items-center justify-between px-1">
-        <h1 className={`text-2xl font-extrabold tracking-tight hidden sm:block ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
+        <h1 className="text-2xl font-extrabold tracking-tight hidden sm:block text-japandi-text">
           {t('subs.title')}
         </h1>
 
@@ -167,11 +165,7 @@ export default function SubsPage() {
             onClick={toggleSelectionMode}
             aria-expanded={isSelectionMode}
             className={`flex items-center gap-2 px-3.5 py-2 rounded-japandi-xl border text-xs font-bold transition-all shadow-xs ${
-              isVibrant
-                ? isSelectionMode
-                  ? 'btn-3d-gold text-black'
-                  : 'bg-purple-100 border-purple-200 text-purple-800 hover:bg-purple-200'
-                : isSelectionMode
+              isSelectionMode
                 ? 'bg-japandi-pine text-white border-japandi-pine'
                 : 'bg-japandi-surface border-japandi-border hover:border-japandi-pine text-japandi-text'
             }`}
@@ -183,11 +177,7 @@ export default function SubsPage() {
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-japandi-xl text-xs font-bold transition-all ${
-              isVibrant
-                ? 'btn-3d-coral text-white'
-                : 'bg-japandi-pine text-white hover:bg-japandi-pine/90 shadow-japandi-xs'
-            }`}
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-japandi-xl text-xs font-bold transition-all bg-japandi-pine text-white hover:bg-japandi-pine/90 shadow-japandi-xs"
           >
             <Plus className="w-4 h-4" />
             <span>{t('subs.addSubscription')}</span>
@@ -199,37 +189,32 @@ export default function SubsPage() {
       <div
         onClick={toggleAmountBlur}
         onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
-        className={`rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-3 cursor-pointer select-none transition-all ${
-          isVibrant
-            ? 'bg-gradient-to-br from-[#FF2A6D] via-[#8B5CF6] to-[#06B6D4] text-white shadow-[0_15px_35px_rgba(139,92,246,0.3)] border-2 border-white/30 rounded-3xl'
-            : 'bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm'
-        }`}
+        className="rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-3 cursor-pointer select-none transition-all bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm"
         title="Appui long ou clic pour masquer/afficher les montants"
       >
         <div className="flex items-center justify-between">
-          <span className={`text-xs uppercase tracking-wider ${isVibrant ? 'text-white/90 font-black text-[11px]' : 'text-japandi-muted font-semibold'}`}>
+          <span className="text-xs uppercase tracking-wider text-japandi-muted font-semibold">
             {t('home.spendingTitle')}
           </span>
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-            isVibrant ? 'bg-black/25 backdrop-blur-md text-white border border-white/20' : 'text-japandi-pine bg-japandi-pine/10'
-          }`}>
+          <span className="text-xs font-bold px-2.5 py-1 rounded-full text-japandi-pine bg-japandi-pine/10">
             {t('home.activeCount', { count: remainingSubsCount })}
           </span>
         </div>
 
         <div className="flex items-baseline gap-2">
-          <span className={`text-4xl sm:text-5xl font-extrabold ${isVibrant ? 'text-white drop-shadow-sm' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+          <span className={`text-4xl sm:text-5xl font-extrabold text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
             {format(totalMonthly)}
           </span>
-          <span className={`text-sm font-semibold ${isVibrant ? 'text-white/80' : 'text-japandi-muted'}`}>
+          <span className="text-sm font-semibold text-japandi-muted">
             {t('cycles.perMonth')}
           </span>
         </div>
 
-        <p className={`text-xs ${isVibrant ? 'text-white/90 font-medium' : 'text-japandi-muted'}`}>
+        <p className="text-xs text-japandi-muted">
           {t('home.annualized', { amount: isAmountBlurred ? '•••• €' : format(totalYearly) })}
         </p>
       </div>
+
 
 
       {/* 3. Empty State */}
@@ -257,8 +242,8 @@ export default function SubsPage() {
           {groupedSections.dueToday.length > 0 && (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 px-1">
-                <Bell className="w-4 h-4 text-pink-500" />
-                <h3 className={`text-xs font-extrabold uppercase tracking-wider ${isVibrant ? 'text-pink-600 font-black' : 'text-japandi-terracotta'}`}>
+                <Bell className="w-4 h-4 text-japandi-terracotta" />
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-japandi-terracotta">
                   {t('schedule.today')}
                 </h3>
               </div>
@@ -273,8 +258,8 @@ export default function SubsPage() {
           {Object.entries(groupedSections.futureByMonth).map(([monthTitle, items]) => (
             <div key={monthTitle} className="flex flex-col gap-3">
               <div className="flex items-center gap-2 px-1">
-                <Calendar className={`w-4 h-4 ${isVibrant ? 'text-purple-600' : 'text-japandi-pine'}`} />
-                <h3 className={`text-xs font-extrabold uppercase tracking-wider ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
+                <Calendar className="w-4 h-4 text-japandi-pine" />
+                <h3 className="text-xs font-extrabold uppercase tracking-wider text-japandi-text">
                   {monthTitle}
                 </h3>
               </div>
@@ -346,13 +331,7 @@ export default function SubsPage() {
           }
         }}
         className={`p-4 rounded-japandi-2xl border transition-all cursor-pointer flex items-center justify-between select-none shadow-2xs ${
-          isVibrant
-            ? isSelectionMode && isExcluded
-              ? 'bg-purple-50/30 border-purple-100 opacity-40'
-              : isSelectionMode
-              ? 'bg-purple-100 border-purple-400 ring-2 ring-purple-400 shadow-md text-indigo-950'
-              : 'pop-card border border-purple-100 hover:border-purple-300 hover:shadow-md text-indigo-950'
-            : isSelectionMode && isExcluded
+          isSelectionMode && isExcluded
             ? 'bg-japandi-elevated/40 border-japandi-border opacity-50'
             : isSelectionMode
             ? 'bg-japandi-sand/60 border-japandi-pine'
@@ -364,21 +343,20 @@ export default function SubsPage() {
           {isSelectionMode && (
             <div className="flex-shrink-0">
               {isExcluded ? (
-                <Square className="w-5 h-5 text-purple-300" />
+                <Square className="w-5 h-5 text-japandi-muted" />
               ) : (
-                <CheckSquare className={`w-5 h-5 ${isVibrant ? 'text-pink-500' : 'text-japandi-pine'}`} />
+                <CheckSquare className="w-5 h-5 text-japandi-pine" />
               )}
             </div>
           )}
 
           <SubscriptionLogo name={sub.name} logoUrl={sub.logoUrl} category={sub.category} size={48} />
 
-
           <div className="min-w-0">
-            <h4 className={`font-bold text-sm truncate ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'} ${isExcluded && isSelectionMode ? 'line-through' : ''}`}>
+            <h4 className={`font-bold text-sm truncate text-japandi-text ${isExcluded && isSelectionMode ? 'line-through' : ''}`}>
               {sub.name}
             </h4>
-            <div className={`flex items-center gap-2 text-xs ${isVibrant ? 'text-purple-600 font-medium' : 'text-japandi-muted'}`}>
+            <div className="flex items-center gap-2 text-xs text-japandi-muted">
               <span>{t(`categories.${sub.category}` as any) || sub.category}</span>
               <span>•</span>
               <span>{formattedDate}</span>
@@ -387,7 +365,7 @@ export default function SubsPage() {
         </div>
 
         <div className="flex items-center gap-3 flex-shrink-0">
-          <span className={`font-extrabold text-sm ${isVibrant ? 'text-pink-600 font-black' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''} ${isExcluded && isSelectionMode ? 'line-through opacity-50' : ''}`}>
+          <span className={`font-extrabold text-sm text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''} ${isExcluded && isSelectionMode ? 'line-through opacity-50' : ''}`}>
             {format(sub.amount)}
           </span>
 
@@ -399,11 +377,7 @@ export default function SubsPage() {
                 e.stopPropagation();
                 setDeletingSub(sub);
               }}
-              className={`p-1.5 rounded-japandi-md transition-colors ${
-                isVibrant
-                  ? 'text-purple-400 hover:text-red-500 hover:bg-red-50'
-                  : 'text-japandi-muted hover:text-japandi-terracotta hover:bg-japandi-terracotta/10'
-              }`}
+              className="p-1.5 rounded-japandi-md transition-colors text-japandi-muted hover:text-japandi-terracotta hover:bg-japandi-terracotta/10"
             >
               <Trash2 className="w-4 h-4" />
             </button>
@@ -412,6 +386,7 @@ export default function SubsPage() {
       </div>
     );
   }
+
 
 }
 

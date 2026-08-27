@@ -9,7 +9,8 @@ export type SubscriptionCategory =
   | 'Shopping'
   | 'General';
 
-export type ThemeMode = 'light' | 'dark' | 'barbie' | 'vibrant' | 'system';
+export type ThemeMode = 'light' | 'dark' | 'barbie' | 'system';
+
 
 export interface Subscription {
   id: string;

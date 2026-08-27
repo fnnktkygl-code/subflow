@@ -96,39 +96,33 @@ export default function SettingsPage() {
     window.location.reload();
   };
 
-  const isVibrant = profile.themeMode === 'vibrant';
-
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300 max-w-3xl mx-auto pb-24">
       {/* 1. Header */}
       <div>
-        <h1 className={`text-xl font-bold tracking-tight ${isVibrant ? 'text-white font-black' : 'text-japandi-text'}`}>
+        <h1 className="text-xl font-bold tracking-tight text-japandi-text">
           {t('settings.title')}
         </h1>
-        <p className={`text-xs ${isVibrant ? 'text-slate-400' : 'text-japandi-muted'}`}>
+        <p className="text-xs text-japandi-muted">
           {t('settings.subtitle')}
         </p>
       </div>
 
       {/* 2. User Profile & Identity (Name Customization) */}
-      <div className={`rounded-japandi-2xl p-5 shadow-japandi-sm flex flex-col gap-4 ${
-        isVibrant
-          ? 'glass-card bg-[#121020]/70 border-pink-500/20 shadow-xl'
-          : 'bg-japandi-surface border border-japandi-border'
-      }`}>
+      <div className="rounded-japandi-2xl p-5 shadow-japandi-sm flex flex-col gap-4 bg-japandi-surface border border-japandi-border">
         <div className="flex items-center gap-2">
-          <User className={`w-4 h-4 ${isVibrant ? 'text-teal-400' : 'text-japandi-pine'}`} />
-          <h2 className={`text-sm font-bold ${isVibrant ? 'text-white font-black' : 'text-japandi-text'}`}>
+          <User className="w-4 h-4 text-japandi-pine" />
+          <h2 className="text-sm font-bold text-japandi-text">
             {t('settings.profileSection')}
           </h2>
         </div>
 
         <form onSubmit={handleSaveName} className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
           <div className="flex-1">
-            <label className={`block text-xs font-semibold mb-1 ${isVibrant ? 'text-white' : 'text-japandi-text'}`}>
+            <label className="block text-xs font-semibold mb-1 text-japandi-text">
               {t('settings.userNameLabel')}
             </label>
-            <p className={`text-[11px] mb-2 ${isVibrant ? 'text-slate-400' : 'text-japandi-muted'}`}>
+            <p className="text-[11px] mb-2 text-japandi-muted">
               {t('settings.userNameSubtitle')}
             </p>
             <div className="relative">
@@ -139,22 +133,14 @@ export default function SettingsPage() {
                 onBlur={() => updateProfile({ name: userName.trim() })}
                 placeholder={t('settings.userNamePlaceholder')}
                 maxLength={30}
-                className={`w-full px-3.5 py-2.5 rounded-japandi-md text-sm focus:outline-none transition-all ${
-                  isVibrant
-                    ? 'bg-white/5 border border-white/15 text-white focus:border-teal-400 focus:ring-1 focus:ring-teal-400'
-                    : 'bg-japandi-elevated border border-japandi-border text-japandi-text focus:ring-1 focus:ring-japandi-pine'
-                }`}
+                className="w-full px-3.5 py-2.5 rounded-japandi-md text-sm focus:outline-none transition-all bg-japandi-elevated border border-japandi-border text-japandi-text focus:ring-1 focus:ring-japandi-pine"
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className={`px-4 py-2.5 rounded-japandi-md text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-japandi-xs flex-shrink-0 ${
-              isVibrant
-                ? 'btn-3d-mint text-[#002923]'
-                : 'bg-japandi-pine hover:bg-japandi-pine/90 text-white'
-            }`}
+            className="px-4 py-2.5 rounded-japandi-md text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-japandi-xs flex-shrink-0 bg-japandi-pine hover:bg-japandi-pine/90 text-white"
           >
             {isNameSaved ? <Check className="w-4 h-4" /> : null}
             <span>{isNameSaved ? (t('settings.saveNameSuccess') || 'Enregistré !') : t('common.save')}</span>
@@ -163,16 +149,11 @@ export default function SettingsPage() {
       </div>
 
       {/* 3. Language & Regional Settings */}
-      <div className={`rounded-japandi-2xl p-5 shadow-japandi-sm flex flex-col gap-4 ${
-        isVibrant
-          ? 'glass-card bg-[#121020]/70 border-pink-500/20 shadow-xl'
-          : 'bg-japandi-surface border border-japandi-border'
-      }`}>
+      <div className="rounded-japandi-2xl p-5 shadow-japandi-sm flex flex-col gap-4 bg-japandi-surface border border-japandi-border">
         <div className="flex items-center gap-2">
-          <Languages className={`w-4 h-4 ${isVibrant ? 'text-teal-400' : 'text-japandi-pine'}`} />
-          <h2 className={`text-sm font-bold ${isVibrant ? 'text-white font-black' : 'text-japandi-text'}`}>{t('settings.regional')}</h2>
+          <Languages className="w-4 h-4 text-japandi-pine" />
+          <h2 className="text-sm font-bold text-japandi-text">{t('settings.regional')}</h2>
         </div>
-
 
         {/* Language Switcher */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -214,10 +195,10 @@ export default function SettingsPage() {
         {/* Primary Currency Switcher Grid */}
         <div className="flex flex-col gap-2 pt-3 border-t border-japandi-border">
           <div>
-            <label className={`text-xs font-semibold ${isVibrant ? 'text-white' : 'text-japandi-text'}`}>
+            <label className="text-xs font-semibold text-japandi-text">
               {t('settings.currencyLabel')}
             </label>
-            <p className={`text-[11px] ${isVibrant ? 'text-slate-400' : 'text-japandi-muted'}`}>
+            <p className="text-[11px] text-japandi-muted">
               {locale === 'fr' ? 'Choisissez votre devise principale d\'affichage' : 'Choose your primary display currency'}
             </p>
           </div>
@@ -231,11 +212,7 @@ export default function SettingsPage() {
                   type="button"
                   onClick={() => handleCurrencyChange(curr.code)}
                   className={`p-2.5 rounded-japandi-xl border flex flex-col items-center justify-center gap-1 transition-all text-center ${
-                    isVibrant
-                      ? isSelected
-                        ? 'border-teal-400 bg-teal-500/20 text-white ring-1 ring-teal-400 shadow-md scale-[1.02]'
-                        : 'border-white/10 bg-white/5 text-slate-300 hover:border-teal-500/40 hover:bg-white/10'
-                      : isSelected
+                    isSelected
                       ? 'border-japandi-pine bg-japandi-sand/60 text-japandi-pine ring-1 ring-japandi-pine shadow-japandi-xs scale-[1.02]'
                       : 'border-japandi-border bg-japandi-elevated text-japandi-text hover:border-japandi-border-strong hover:bg-japandi-sand/20'
                   }`}
@@ -245,16 +222,16 @@ export default function SettingsPage() {
                     <span className="text-xs font-extrabold">{curr.code}</span>
                     <span className={`text-[10px] font-bold px-1 rounded ${
                       isSelected
-                        ? isVibrant ? 'bg-teal-400/30 text-teal-200' : 'bg-japandi-pine/15 text-japandi-pine'
-                        : isVibrant ? 'bg-white/10 text-slate-400' : 'bg-japandi-border/60 text-japandi-muted'
+                        ? 'bg-japandi-pine/15 text-japandi-pine'
+                        : 'bg-japandi-border/60 text-japandi-muted'
                     }`}>
                       {curr.symbol}
                     </span>
                   </div>
                   <span className={`text-[9px] truncate max-w-full ${
                     isSelected
-                      ? isVibrant ? 'text-teal-200 font-semibold' : 'text-japandi-pine font-semibold'
-                      : isVibrant ? 'text-slate-400' : 'text-japandi-muted'
+                      ? 'text-japandi-pine font-semibold'
+                      : 'text-japandi-muted'
                   }`}>
                     {curr.name}
                   </span>
@@ -265,15 +242,14 @@ export default function SettingsPage() {
         </div>
       </div>
 
-
-      {/* 3. Theme Selector */}
+      {/* 4. Theme Selector */}
       <div className="rounded-japandi-2xl bg-japandi-surface border border-japandi-border p-5 shadow-japandi-sm flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <Palette className="w-4 h-4 text-japandi-pine" />
           <h2 className="text-sm font-bold text-japandi-text">{t('settings.appearance')}</h2>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-3 gap-2.5">
           {/* Light */}
           <button
             type="button"
@@ -315,27 +291,11 @@ export default function SettingsPage() {
             <Sparkles className="w-5 h-5 text-pink-500" />
             <span className="text-xs font-bold text-japandi-text">{t('settings.themeBarbie')}</span>
           </button>
-
-          {/* Coloré / Vibrant */}
-          <button
-            type="button"
-            onClick={() => handleThemeChange('vibrant')}
-            className={`p-3 rounded-japandi-xl border flex flex-col items-center gap-2 transition-all ${
-              profile.themeMode === 'vibrant'
-                ? 'border-teal-400 bg-gradient-to-br from-pink-500/20 to-teal-500/20 ring-1 ring-teal-400'
-                : 'border-japandi-border bg-japandi-elevated hover:border-japandi-border-strong'
-            }`}
-          >
-            <Sparkles className="w-5 h-5 text-teal-400 animate-pulse" />
-            <span className="text-xs font-bold text-japandi-text">
-              {locale === 'fr' ? 'Coloré' : 'Vibrant'}
-            </span>
-          </button>
         </div>
-
       </div>
 
       {/* 4. Strategic Tools: Starter Pack & Backups */}
+
       <div className="rounded-japandi-2xl bg-japandi-surface border border-japandi-border p-5 shadow-japandi-sm flex flex-col gap-4">
         <div className="flex items-center gap-2">
           <Rocket className="w-4 h-4 text-japandi-pine" />

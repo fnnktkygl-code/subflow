@@ -15,16 +15,6 @@ export interface SpendingDonutProps {
   themeMode?: string;
 }
 
-export const VIBRANT_CATEGORY_COLORS: Record<string, string> = {
-  Entertainment: '#FF2A6D', // Neon Punch Pink
-  Productivity: '#8B5CF6', // Vivid Electric Violet
-  Utilities: '#F59E0B', // Cyber Amber
-  'Health & Fitness': '#10B981', // Bright Emerald Mint
-  'Food & Dining': '#F97316', // Tangy Orange
-  Shopping: '#06B6D4', // Electric Cyan
-  General: '#EC4899' // Pop Berry
-};
-
 export const BARBIE_CATEGORY_COLORS: Record<string, string> = {
   Entertainment: '#EC4899', // Hot Pink
   Productivity: '#8B5CF6', // Purple Pop
@@ -46,14 +36,12 @@ export const JAPANDI_CATEGORY_COLORS: Record<string, string> = {
 };
 
 export function getCategoryHexColor(cat: string, themeMode?: string): string {
-  if (themeMode === 'vibrant') {
-    return VIBRANT_CATEGORY_COLORS[cat] || '#8B5CF6';
-  }
   if (themeMode === 'barbie') {
     return BARBIE_CATEGORY_COLORS[cat] || '#EC4899';
   }
   return JAPANDI_CATEGORY_COLORS[cat] || '#8C867A';
 }
+
 
 
 function renderCategorySvg(cat: string) {

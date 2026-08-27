@@ -99,17 +99,15 @@ export default function SchedulePage() {
     }
   };
 
-  const isVibrant = profile.themeMode === 'vibrant';
-
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300 max-w-5xl mx-auto">
       {/* 1. Header with Monthly Overview */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className={`text-xl font-bold tracking-tight ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
+          <h1 className="text-xl font-bold tracking-tight text-japandi-text">
             {t('schedule.title')}
           </h1>
-          <p className={`text-xs ${isVibrant ? 'text-purple-600 font-medium' : 'text-japandi-muted'}`}>
+          <p className="text-xs text-japandi-muted">
             {t('schedule.subtitle')}
           </p>
         </div>
@@ -119,23 +117,17 @@ export default function SchedulePage() {
         <div
           onClick={toggleAmountBlur}
           onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
-          className={`flex items-center gap-3 px-4 py-2.5 rounded-japandi-xl border transition-all cursor-pointer select-none ${
-            isVibrant
-              ? 'pop-card border-2 border-purple-200 shadow-md'
-              : 'bg-japandi-surface border border-japandi-border hover:border-japandi-pine shadow-japandi-sm'
-          }`}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-japandi-xl border transition-all cursor-pointer select-none bg-japandi-surface border-japandi-border hover:border-japandi-pine shadow-japandi-sm"
           title="Appui long ou clic pour masquer/afficher les montants"
         >
-          <div className={`w-8 h-8 rounded-japandi-full flex items-center justify-center ${
-            isVibrant ? 'bg-purple-100 text-purple-700' : 'bg-japandi-pine/10 text-japandi-pine'
-          }`}>
+          <div className="w-8 h-8 rounded-japandi-full flex items-center justify-center bg-japandi-pine/10 text-japandi-pine">
             <Receipt className="w-4 h-4" />
           </div>
           <div className="flex flex-col">
-            <span className={`text-[10px] uppercase font-semibold tracking-wider ${isVibrant ? 'text-purple-700 font-bold' : 'text-japandi-muted'}`}>
+            <span className="text-[10px] uppercase font-semibold tracking-wider text-japandi-muted">
               {t('schedule.monthlyTotal')}
             </span>
-            <span className={`text-base font-extrabold ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+            <span className={`text-base font-extrabold text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
               {format(totalMonthlyCost)}
             </span>
           </div>
@@ -145,14 +137,10 @@ export default function SchedulePage() {
       {/* 2. Responsive 2-Column Layout for Desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Interactive Month Calendar */}
-        <div className={`lg:col-span-7 rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-5 ${
-          isVibrant
-            ? 'pop-card border-2 border-purple-200/90 shadow-xl shadow-purple-500/10 rounded-3xl'
-            : 'bg-japandi-surface border border-japandi-border shadow-japandi-sm'
-        }`}>
+        <div className="lg:col-span-7 rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-5 bg-japandi-surface border border-japandi-border shadow-japandi-sm">
           {/* Calendar Header: Month Name + Prev/Next Arrows */}
           <div className="flex items-center justify-between">
-            <h2 className={`text-base font-extrabold capitalize ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
+            <h2 className="text-base font-extrabold capitalize text-japandi-text">
               {monthLabel}
             </h2>
             <div className="flex items-center gap-1">
@@ -160,11 +148,7 @@ export default function SchedulePage() {
                 type="button"
                 aria-label="Previous month"
                 onClick={handlePrevMonth}
-                className={`p-1.5 rounded-japandi-md transition-colors ${
-                  isVibrant
-                    ? 'text-purple-600 hover:text-purple-900 hover:bg-purple-100'
-                    : 'text-japandi-muted hover:text-japandi-text hover:bg-japandi-elevated'
-                }`}
+                className="p-1.5 rounded-japandi-md transition-colors text-japandi-muted hover:text-japandi-text hover:bg-japandi-elevated"
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -172,11 +156,7 @@ export default function SchedulePage() {
                 type="button"
                 aria-label="Next month"
                 onClick={handleNextMonth}
-                className={`p-1.5 rounded-japandi-md transition-colors ${
-                  isVibrant
-                    ? 'text-purple-600 hover:text-purple-900 hover:bg-purple-100'
-                    : 'text-japandi-muted hover:text-japandi-text hover:bg-japandi-elevated'
-                }`}
+                className="p-1.5 rounded-japandi-md transition-colors text-japandi-muted hover:text-japandi-text hover:bg-japandi-elevated"
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -186,9 +166,7 @@ export default function SchedulePage() {
           {/* Days of Week Header */}
           <div className="grid grid-cols-7 gap-1 text-center">
             {weekDayNames.map((d, i) => (
-              <span key={i} className={`text-[11px] font-bold uppercase tracking-wider py-1 ${
-                isVibrant ? 'text-purple-700 font-black' : 'text-japandi-muted'
-              }`}>
+              <span key={i} className="text-[11px] font-bold uppercase tracking-wider py-1 text-japandi-muted">
                 {d}
               </span>
             ))}
@@ -225,13 +203,7 @@ export default function SchedulePage() {
                     setIsActionsDrawerOpen(true);
                   }}
                   className={`h-14 sm:h-16 rounded-japandi-xl border transition-all p-1.5 flex flex-col justify-between select-none cursor-pointer focus:outline-none ${
-                    isVibrant
-                      ? isSelected
-                        ? 'bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-600 text-white border-white shadow-[0_4px_15px_rgba(139,92,246,0.35)]'
-                        : isToday
-                        ? 'bg-pink-100/80 border-pink-300 text-pink-950 font-bold'
-                        : 'bg-purple-50/60 border-purple-100/80 hover:border-purple-300 text-indigo-950'
-                      : isSelected
+                    isSelected
                       ? 'bg-japandi-pine text-white border-japandi-pine shadow-japandi-sm'
                       : isToday
                       ? 'bg-japandi-sand/60 border-japandi-pine/40 text-japandi-text'
@@ -239,19 +211,11 @@ export default function SchedulePage() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className={`text-xs font-bold ${
-                      isVibrant
-                        ? (isSelected ? 'text-white font-black' : 'text-indigo-950 font-bold')
-                        : (isSelected ? 'text-white' : 'text-japandi-text')
-                    }`}>
+                    <span className={`text-xs font-bold ${isSelected ? 'text-white' : 'text-japandi-text'}`}>
                       {dayNum}
                     </span>
                     {hasSubs && (
-                      <span className={`w-1.5 h-1.5 rounded-full ${
-                        isVibrant
-                          ? (isSelected ? 'bg-amber-300' : 'bg-pink-500')
-                          : (isSelected ? 'bg-white' : 'bg-japandi-terracotta')
-                      }`} />
+                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-white' : 'bg-japandi-terracotta'}`} />
                     )}
                   </div>
 
@@ -264,11 +228,7 @@ export default function SchedulePage() {
                         </div>
                       ))}
                       {subsOnDay.length > 2 && (
-                        <span className={`text-[9px] font-black ${
-                          isVibrant
-                            ? (isSelected ? 'text-white' : 'text-pink-600')
-                            : (isSelected ? 'text-white/80' : 'text-japandi-muted')
-                        }`}>
+                        <span className={`text-[9px] font-black ${isSelected ? 'text-white/80' : 'text-japandi-muted'}`}>
                           +{subsOnDay.length - 2}
                         </span>
                       )}
@@ -281,29 +241,21 @@ export default function SchedulePage() {
         </div>
 
         {/* Right Column: Selected Day Persistent Panel (Sticky on Desktop) */}
-        <div className={`lg:col-span-5 rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 lg:sticky lg:top-24 ${
-          isVibrant
-            ? 'pop-card border-2 border-purple-200/90 shadow-xl shadow-purple-500/10 rounded-3xl'
-            : 'bg-japandi-surface border border-japandi-border shadow-japandi-sm'
-        }`}>
+        <div className="lg:col-span-5 rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 lg:sticky lg:top-24 bg-japandi-surface border border-japandi-border shadow-japandi-sm">
           {/* Selected Day Header */}
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <span className={`text-[11px] font-bold uppercase tracking-wider ${isVibrant ? 'text-purple-700' : 'text-japandi-muted'}`}>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-japandi-muted">
                 {t('schedule.selectedDay')}
               </span>
-              <h3 className={`text-base font-extrabold capitalize ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
+              <h3 className="text-base font-extrabold capitalize text-japandi-text">
                 {selectedDay} {monthLabel}
               </h3>
             </div>
             <button
               type="button"
               onClick={() => handleOpenAddOnDay(selectedDay)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-japandi-md text-xs font-bold shadow-xs transition-all ${
-                isVibrant
-                  ? 'btn-3d-coral text-white rounded-xl'
-                  : 'bg-japandi-pine text-white hover:bg-japandi-pine-light'
-              }`}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-japandi-md text-xs font-bold shadow-xs transition-all bg-japandi-pine text-white hover:bg-japandi-pine-light"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>{t('subs.addSubscription')}</span>
@@ -312,14 +264,10 @@ export default function SchedulePage() {
 
           {/* Subscriptions Renewing on Selected Day */}
           {selectedDaySubs.length === 0 ? (
-            <div className={`py-10 text-center text-xs flex flex-col items-center gap-3 border border-dashed rounded-japandi-xl ${
-              isVibrant
-                ? 'border-purple-200 text-purple-600 bg-purple-50/40'
-                : 'border-japandi-border text-japandi-muted bg-japandi-elevated/40'
-            }`}>
-              <Sparkles className={`w-8 h-8 ${isVibrant ? 'text-purple-400' : 'text-japandi-muted'}`} />
+            <div className="py-10 text-center text-xs flex flex-col items-center gap-3 border border-dashed rounded-japandi-xl border-japandi-border text-japandi-muted bg-japandi-elevated/40">
+              <Sparkles className="w-8 h-8 text-japandi-muted" />
               <div className="flex flex-col gap-1">
-                <span className={`font-bold ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
+                <span className="font-bold text-japandi-text">
                   {t('schedule.noRenewalsOnDay')}
                 </span>
                 <span className="text-[11px] opacity-80">
@@ -336,22 +284,18 @@ export default function SchedulePage() {
                     setEditingSub(sub);
                     setIsAddModalOpen(true);
                   }}
-                  className={`p-3.5 rounded-japandi-xl border flex items-center justify-between transition-all cursor-pointer ${
-                    isVibrant
-                      ? 'pop-card border border-purple-100 hover:border-purple-300 text-indigo-950'
-                      : 'bg-japandi-elevated border-japandi-border hover:border-japandi-pine'
-                  }`}
+                  className="p-3.5 rounded-japandi-xl border flex items-center justify-between transition-all cursor-pointer bg-japandi-elevated border-japandi-border hover:border-japandi-pine"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <SubscriptionLogo name={sub.name} logoUrl={sub.logoUrl} category={sub.category} size={44} />
                     <div className="min-w-0">
-                      <h4 className={`font-bold text-xs truncate ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>{sub.name}</h4>
-                      <span className={`text-[10px] ${isVibrant ? 'text-purple-600 font-medium' : 'text-japandi-muted'}`}>
+                      <h4 className="font-bold text-xs truncate text-japandi-text">{sub.name}</h4>
+                      <span className="text-[10px] text-japandi-muted">
                         {t(`categories.${sub.category}` as any) || sub.category}
                       </span>
                     </div>
                   </div>
-                  <span className={`font-extrabold text-xs ${isVibrant ? 'text-pink-600 font-black' : 'text-japandi-terracotta'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+                  <span className={`font-extrabold text-xs text-japandi-terracotta ${isAmountBlurred ? 'privacy-blur' : ''}`}>
                     {format(sub.amount)}
                   </span>
                 </div>
@@ -360,6 +304,7 @@ export default function SchedulePage() {
           )}
         </div>
       </div>
+
 
 
       {/* Add / Edit Subscription Modal */}
