@@ -9,9 +9,14 @@ import { AddSubscriptionModal } from '../components/AddSubscriptionModal';
 import { TooltipProvider } from '@subflow/ui';
 import { useGoogleDriveAutoSync } from '../hooks/useGoogleDriveAutoSync';
 
+import { useSubscriptionStore } from '../store/useSubscriptionStore';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const { hasCompletedOnboarding, googleAccount, subscriptions } = useSubscriptionStore();
   useGoogleDriveAutoSync();
+
+  const isNewUserOnboarding = !hasCompletedOnboarding && !googleAccount && subscriptions.length === 0;
 
   return (
     <html lang="en" className="h-full">
@@ -27,7 +32,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1 w-full max-w-[1120px] mx-auto px-4 sm:px-6 pt-4 pb-32">
             {children}
           </main>
-          <BottomDock onOpenAddModal={() => setIsAddModalOpen(true)} />
+          {!isNewUserOnboarding && (
+            <BottomDock onOpenAddModal={() => setIsAddModalOpen(true)} />
+          )}
           <AddSubscriptionModal
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
@@ -37,5 +44,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
 
 

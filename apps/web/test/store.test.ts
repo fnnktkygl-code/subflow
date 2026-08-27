@@ -121,4 +121,20 @@ describe('Zustand State Store & Business Interactions', () => {
     expect(updated.spendingGoal).toBe(100);
     expect(updated.currencySymbol).toBe('$');
   });
+
+  it('manages onboarding state and storage mode', () => {
+    const store = useSubscriptionStore.getState();
+    store.resetOnboarding();
+    expect(useSubscriptionStore.getState().hasCompletedOnboarding).toBe(false);
+    expect(useSubscriptionStore.getState().storageMode).toBeNull();
+
+    store.completeOnboarding('local');
+    expect(useSubscriptionStore.getState().hasCompletedOnboarding).toBe(true);
+    expect(useSubscriptionStore.getState().storageMode).toBe('local');
+
+    store.completeOnboarding('cloud');
+    expect(useSubscriptionStore.getState().hasCompletedOnboarding).toBe(true);
+    expect(useSubscriptionStore.getState().storageMode).toBe('cloud');
+  });
 });
+

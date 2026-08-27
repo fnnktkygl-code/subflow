@@ -23,6 +23,10 @@ interface SubFlowState {
   isAmountBlurred: boolean;
   activeCategoryFilter: string | null;
 
+  // Storage and Onboarding Mode
+  hasCompletedOnboarding: boolean;
+  storageMode: 'cloud' | 'local' | null;
+
   // Google Drive Cloud Sync State
   googleAccount: GoogleAccount | null;
   driveSyncStatus: DriveSyncStatus;
@@ -30,6 +34,8 @@ interface SubFlowState {
   googleClientId: string | null;
 
   // Actions
+  completeOnboarding: (mode: 'cloud' | 'local') => void;
+  resetOnboarding: () => void;
   addSubscription: (sub: Omit<Subscription, 'id'>) => void;
   updateSubscription: (id: string, updates: Partial<Subscription>) => void;
   deleteSubscription: (id: string) => void;
@@ -46,6 +52,7 @@ interface SubFlowState {
   setGoogleClientId: (clientId: string | null) => void;
   restoreFromCloud: (data: { subscriptions?: Subscription[]; profile?: Partial<UserProfile> }) => void;
 }
+
 
 
 const DEFAULT_SUBSCRIPTIONS: Subscription[] = [];
@@ -74,13 +81,30 @@ export const useSubscriptionStore = create<SubFlowState>()(
       isAmountBlurred: false,
       activeCategoryFilter: null,
 
+      // Storage & Onboarding Initial State
+      hasCompletedOnboarding: false,
+      storageMode: null,
+
       // Google Drive State
       googleAccount: null,
       driveSyncStatus: 'idle',
       driveSyncError: null,
       googleClientId: null,
 
+      completeOnboarding: (mode) =>
+        set({
+          hasCompletedOnboarding: true,
+          storageMode: mode
+        }),
+
+      resetOnboarding: () =>
+        set({
+          hasCompletedOnboarding: false,
+          storageMode: null
+        }),
+
       addSubscription: (newSub) =>
+
         set((state) => ({
           subscriptions: [
             ...state.subscriptions,
@@ -152,9 +176,12 @@ export const useSubscriptionStore = create<SubFlowState>()(
       setGoogleAccount: (account) =>
         set((state) => ({
           googleAccount: account,
+          storageMode: account ? 'cloud' : state.storageMode,
+          hasCompletedOnboarding: account ? true : state.hasCompletedOnboarding,
           driveSyncStatus: account ? 'synced' : 'idle',
           driveSyncError: null
         })),
+
 
       setDriveSyncStatus: (status, error = null) =>
         set((state) => ({

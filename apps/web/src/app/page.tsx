@@ -38,6 +38,8 @@ import {
 } from 'lucide-react';
 
 
+import { OnboardingWelcomeScreen } from '../components/OnboardingWelcomeScreen';
+
 export default function HomePage() {
   const {
     subscriptions,
@@ -46,7 +48,9 @@ export default function HomePage() {
     toggleAmountBlur,
     isSelectionMode,
     excludedIds,
-    toggleSelectionMode
+    toggleSelectionMode,
+    hasCompletedOnboarding,
+    googleAccount
   } = useSubscriptionStore();
   const { t, format, locale } = useTranslation();
 
@@ -57,7 +61,10 @@ export default function HomePage() {
   const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
   const longPressTimerRef = React.useRef<NodeJS.Timeout | null>(null);
 
-
+  // If new user and onboarding is not completed, show the elegant welcome choice screen
+  if (!hasCompletedOnboarding && !googleAccount && subscriptions.length === 0) {
+    return <OnboardingWelcomeScreen />;
+  }
 
   const activeExcluded = isSelectionMode ? new Set(excludedIds) : new Set<string>();
   const totalMonthly = calculateTotalMonthlyCost(subscriptions, activeExcluded);
@@ -71,6 +78,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300 max-w-4xl mx-auto">
+
 
 
       {/* 1. Actionable Financial Insight Header */}
