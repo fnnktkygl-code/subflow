@@ -15,6 +15,7 @@ export const ActionableInsightHeader: React.FC = () => {
 
   const totalMonthly = useMemo(() => calculateTotalMonthlyCost(subscriptions), [subscriptions]);
   const spendingGoal = profile.spendingGoal ?? 0;
+  const isVibrant = profile.themeMode === 'vibrant';
 
   // 1. Time-based respectful greeting localized
   const greetingTime = useMemo(() => {
@@ -56,8 +57,10 @@ export const ActionableInsightHeader: React.FC = () => {
           text: locale === 'fr'
             ? `Prélèvement aujourd'hui : ${nextOcc.subscription.name} (${displayAmount(nextOcc.subscription.amount)})`
             : `Due today: ${nextOcc.subscription.name} (${displayAmount(nextOcc.subscription.amount)})`,
-          colorClass: 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-terracotta/10',
-          icon: <Bell className="w-4 h-4 text-japandi-terracotta flex-shrink-0" />
+          colorClass: isVibrant
+            ? 'text-pink-700 bg-pink-500/10 border-pink-300 shadow-xs'
+            : 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-terracotta/10',
+          icon: <Bell className={`w-4 h-4 flex-shrink-0 ${isVibrant ? 'text-pink-600' : 'text-japandi-terracotta'}`} />
         };
       }
       if (nextOcc.daysRemaining <= 3) {
@@ -66,8 +69,10 @@ export const ActionableInsightHeader: React.FC = () => {
           text: locale === 'fr'
             ? `Prochain prélèvement : ${nextOcc.subscription.name} dans ${nextOcc.daysRemaining} jour${nextOcc.daysRemaining > 1 ? 's' : ''}`
             : `Next renewal: ${nextOcc.subscription.name} in ${nextOcc.daysRemaining} day${nextOcc.daysRemaining > 1 ? 's' : ''}`,
-          colorClass: 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-sand/90',
-          icon: <Clock className="w-4 h-4 text-japandi-terracotta flex-shrink-0" />
+          colorClass: isVibrant
+            ? 'text-purple-700 bg-purple-500/10 border-purple-300 shadow-xs'
+            : 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-sand/90',
+          icon: <Clock className={`w-4 h-4 flex-shrink-0 ${isVibrant ? 'text-purple-600' : 'text-japandi-terracotta'}`} />
         };
       }
     }
@@ -80,8 +85,10 @@ export const ActionableInsightHeader: React.FC = () => {
         text: locale === 'fr'
           ? `Budget dépassé : +${displayAmount(overAmount)} au-dessus de l'objectif`
           : `Over target: +${displayAmount(overAmount)} exceeding monthly goal`,
-        colorClass: 'text-japandi-akane border-japandi-akane/30 bg-japandi-akane/10',
-        icon: <AlertTriangle className="w-4 h-4 text-japandi-akane flex-shrink-0" />
+        colorClass: isVibrant
+          ? 'text-amber-700 bg-amber-500/15 border-amber-300 shadow-xs'
+          : 'text-japandi-akane border-japandi-akane/30 bg-japandi-akane/10',
+        icon: <AlertTriangle className={`w-4 h-4 flex-shrink-0 ${isVibrant ? 'text-amber-600' : 'text-japandi-akane'}`} />
       };
     }
 
@@ -93,8 +100,10 @@ export const ActionableInsightHeader: React.FC = () => {
         text: locale === 'fr'
           ? `Objectif respecté : ${displayAmount(buffer)} restant sur le budget cible`
           : `On track: ${displayAmount(buffer)} remaining under monthly target`,
-        colorClass: 'text-japandi-pine border-japandi-pine/30 bg-japandi-pine/10',
-        icon: <CheckCircle2 className="w-4 h-4 text-japandi-pine flex-shrink-0" />
+        colorClass: isVibrant
+          ? 'text-emerald-700 bg-emerald-500/15 border-emerald-300 shadow-xs'
+          : 'text-japandi-pine border-japandi-pine/30 bg-japandi-pine/10',
+        icon: <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${isVibrant ? 'text-emerald-600' : 'text-japandi-pine'}`} />
       };
     }
 
@@ -104,175 +113,67 @@ export const ActionableInsightHeader: React.FC = () => {
       text: locale === 'fr'
         ? `Gestion active de ${subscriptions.length} abonnement${subscriptions.length > 1 ? 's' : ''}`
         : `Active tracking of ${subscriptions.length} subscription${subscriptions.length > 1 ? 's' : ''}`,
-      colorClass: 'text-japandi-pine border-japandi-border bg-japandi-elevated',
-      icon: <Activity className="w-4 h-4 text-japandi-pine flex-shrink-0" />
+      colorClass: isVibrant
+        ? 'text-purple-700 bg-purple-500/10 border-purple-200'
+        : 'text-japandi-pine border-japandi-border bg-japandi-elevated',
+      icon: <Activity className={`w-4 h-4 flex-shrink-0 ${isVibrant ? 'text-purple-600' : 'text-japandi-pine'}`} />
     };
-  }, [subscriptions, totalMonthly, spendingGoal, locale, isAmountBlurred]);
+  }, [subscriptions, totalMonthly, spendingGoal, locale, isAmountBlurred, isVibrant]);
 
-
-  const [speechBubble, setSpeechBubble] = React.useState<string | null>(null);
-  const isVibrant = profile.themeMode === 'vibrant';
-
-  const pokeSparky = () => {
-    const phrases = locale === 'fr' ? [
-      "« Prêt à traquer les frais zombies ? 💸 »",
-      "« Objectif en vue : continue comme ça ! 🚀 »",
-      "« 18 jours de streak validés sous budget ! 👑 »",
-      "« Chaque euro préservé est un pas vers ta liberté ! 🏖️ »"
-    ] : [
-      "« Ready to hunt down zombie fees? 💸 »",
-      "« Financial freedom loading... keep it up! 🚀 »",
-      "« 18-day streak under budget! 👑 »",
-      "« Every euro saved is peace of mind! 🏖️ »"
-    ];
-    setSpeechBubble(phrases[Math.floor(Math.random() * phrases.length)] ?? null);
-  };
 
   return (
     <div className="flex flex-col gap-2 pt-2 select-none">
-      {isVibrant ? (
-        <>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div
-                onClick={pokeSparky}
-                className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pink-500 to-amber-400 p-0.5 shadow-md cursor-pointer hover:scale-105 active:scale-95 transition-all flex-shrink-0"
-                title="Clique pour motiver Sparky !"
-              >
-                <div className="w-full h-full bg-[#151226] rounded-[14px] flex items-center justify-center overflow-hidden">
-                  <svg viewBox="0 0 100 100" className="w-10 h-10">
-                    <circle cx="50" cy="52" r="38" fill="#FF4D79" />
-                    <circle cx="38" cy="46" r="7" fill="#110A1A" />
-                    <circle cx="62" cy="46" r="7" fill="#110A1A" />
-                    <circle cx="40" cy="44" r="2.8" fill="#FFFFFF" />
-                    <circle cx="64" cy="44" r="2.8" fill="#FFFFFF" />
-                    <circle cx="28" cy="56" r="5" fill="#FF8DA9" opacity="0.8" />
-                    <circle cx="72" cy="56" r="5" fill="#FF8DA9" opacity="0.8" />
-                    <path d="M42,58 Q50,70 58,58 Z" fill="#110A1A" />
-                    <rect x="47" y="58" width="6" height="4" rx="1" fill="#FFFFFF" />
-                    <path d="M50,10 L52,18 L59,20 L53,24 L55,31 L50,26 L45,31 L47,24 L41,20 L48,18 Z" fill="#FFD166" />
-                  </svg>
-                </div>
-              </div>
-
-              <div>
-                {isEditingName ? (
-                  <form onSubmit={handleSaveInlineName} className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-indigo-950">{greetingTime},</span>
-                    <input
-                      type="text"
-                      autoFocus
-                      value={nameInput}
-                      onChange={(e) => setNameInput(e.target.value)}
-                      onBlur={() => handleSaveInlineName()}
-                      className="px-2 py-0.5 rounded-lg bg-purple-100 border border-purple-400 text-indigo-950 text-xl font-extrabold focus:outline-none w-36"
-                      maxLength={25}
-                    />
-                    <button
-                      type="submit"
-                      className="p-1 rounded-lg bg-purple-600 text-white hover:scale-105 transition-transform"
-                      aria-label="Enregistrer"
-                    >
-                      <Check className="w-4 h-4 stroke-[3]" />
-                    </button>
-                  </form>
-                ) : (
-                  <div className="flex items-center gap-2 group">
-                    <h1
-                      onClick={() => setIsEditingName(true)}
-                      className="text-2xl sm:text-3xl font-extrabold tracking-tight text-indigo-950 font-sans cursor-pointer hover:text-purple-600 transition-colors"
-                      style={{ lineHeight: 1.15, letterSpacing: '-0.6px' }}
-                      title="Cliquer pour modifier votre prénom"
-                    >
-                      {greetingTitle}
-                    </h1>
-                    <button
-                      type="button"
-                      onClick={() => setIsEditingName(true)}
-                      aria-label="Modifier mon prénom"
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-purple-400 hover:text-purple-700 hover:bg-purple-100 transition-all"
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                )}
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-[10px] font-extrabold text-amber-600">🔥 18j streak</span>
-                  <span className="text-[10px] text-purple-600 font-medium">• {subscriptions.length} abonnements</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {speechBubble && (
-            <div className="px-3.5 py-2 rounded-xl bg-purple-100/90 border border-purple-300 text-xs font-bold text-indigo-950 animate-in fade-in">
-              {speechBubble}
-            </div>
-          )}
-
-
-          <div className="flex items-center mt-1">
-            <div
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-japandi-full border text-xs sm:text-sm font-semibold transition-all shadow-2xs ${insight.colorClass}`}
-            >
-              {insight.icon}
-              <span>{insight.text}</span>
-            </div>
-          </div>
-        </>
+      {isEditingName ? (
+        <form onSubmit={handleSaveInlineName} className="flex items-center gap-2">
+          <span className="text-2xl sm:text-3xl font-extrabold text-japandi-text">{greetingTime},</span>
+          <input
+            type="text"
+            autoFocus
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            onBlur={() => handleSaveInlineName()}
+            className="px-2.5 py-1 rounded-japandi-md bg-japandi-surface border border-japandi-pine text-japandi-text text-2xl font-extrabold focus:outline-none w-44 shadow-japandi-xs"
+            maxLength={25}
+          />
+          <button
+            type="submit"
+            className="p-1.5 rounded-japandi-md bg-japandi-pine text-white hover:bg-japandi-pine/90 transition-colors shadow-2xs"
+            aria-label="Enregistrer"
+          >
+            <Check className="w-4 h-4 stroke-[3]" />
+          </button>
+        </form>
       ) : (
-        <>
-          {isEditingName ? (
-            <form onSubmit={handleSaveInlineName} className="flex items-center gap-2">
-              <span className="text-2xl sm:text-3xl font-extrabold text-japandi-text">{greetingTime},</span>
-              <input
-                type="text"
-                autoFocus
-                value={nameInput}
-                onChange={(e) => setNameInput(e.target.value)}
-                onBlur={() => handleSaveInlineName()}
-                className="px-2.5 py-1 rounded-japandi-md bg-japandi-surface border border-japandi-pine text-japandi-text text-2xl font-extrabold focus:outline-none w-44 shadow-japandi-xs"
-                maxLength={25}
-              />
-              <button
-                type="submit"
-                className="p-1.5 rounded-japandi-md bg-japandi-pine text-white hover:bg-japandi-pine/90 transition-colors shadow-2xs"
-                aria-label="Enregistrer"
-              >
-                <Check className="w-4 h-4 stroke-[3]" />
-              </button>
-            </form>
-          ) : (
-            <div className="flex items-center gap-2 group">
-              <h1
-                onClick={() => setIsEditingName(true)}
-                className="text-3xl sm:text-4xl font-extrabold tracking-tight text-japandi-text font-sans cursor-pointer hover:text-japandi-pine transition-colors"
-                style={{ lineHeight: 1.15, letterSpacing: '-0.6px' }}
-                title="Cliquer pour modifier votre prénom"
-              >
-                {greetingTitle}
-              </h1>
-              <button
-                type="button"
-                onClick={() => setIsEditingName(true)}
-                aria-label="Modifier mon prénom"
-                className="opacity-0 group-hover:opacity-100 p-1.5 rounded-japandi-md text-japandi-muted hover:text-japandi-pine hover:bg-japandi-elevated transition-all"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-
-          <div className="flex items-center">
-            <div
-              className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-japandi-full border text-xs sm:text-sm font-semibold transition-all shadow-2xs ${insight.colorClass}`}
-            >
-              {insight.icon}
-              <span>{insight.text}</span>
-            </div>
-          </div>
-        </>
+        <div className="flex items-center gap-2 group">
+          <h1
+            onClick={() => setIsEditingName(true)}
+            className="text-3xl sm:text-4xl font-extrabold tracking-tight text-japandi-text font-sans cursor-pointer hover:text-japandi-pine transition-colors"
+            style={{ lineHeight: 1.15, letterSpacing: '-0.6px' }}
+            title="Cliquer pour modifier votre prénom"
+          >
+            {greetingTitle}
+          </h1>
+          <button
+            type="button"
+            onClick={() => setIsEditingName(true)}
+            aria-label="Modifier mon prénom"
+            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-japandi-md text-japandi-muted hover:text-japandi-pine hover:bg-japandi-elevated transition-all"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+        </div>
       )}
+
+      {/* Dynamic Actionable Insight Pill */}
+      <div className="flex items-center">
+        <div
+          className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-japandi-full border text-xs sm:text-sm font-semibold transition-all shadow-2xs ${insight.colorClass}`}
+        >
+          {insight.icon}
+          <span>{insight.text}</span>
+        </div>
+      </div>
     </div>
   );
 };
+

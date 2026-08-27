@@ -201,35 +201,36 @@ export default function SubsPage() {
         onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
         className={`rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-3 cursor-pointer select-none transition-all ${
           isVibrant
-            ? 'pop-card border-2 border-purple-200/90 shadow-xl shadow-purple-500/10 rounded-3xl'
+            ? 'bg-gradient-to-br from-[#FF2A6D] via-[#8B5CF6] to-[#06B6D4] text-white shadow-[0_15px_35px_rgba(139,92,246,0.3)] border-2 border-white/30 rounded-3xl'
             : 'bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm'
         }`}
         title="Appui long ou clic pour masquer/afficher les montants"
       >
         <div className="flex items-center justify-between">
-          <span className={`text-xs font-semibold uppercase tracking-wider ${isVibrant ? 'text-purple-700 font-bold' : 'text-japandi-muted'}`}>
+          <span className={`text-xs uppercase tracking-wider ${isVibrant ? 'text-white/90 font-black text-[11px]' : 'text-japandi-muted font-semibold'}`}>
             {t('home.spendingTitle')}
           </span>
           <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
-            isVibrant ? 'bg-purple-100 text-purple-700 border border-purple-200' : 'text-japandi-pine bg-japandi-pine/10'
+            isVibrant ? 'bg-black/25 backdrop-blur-md text-white border border-white/20' : 'text-japandi-pine bg-japandi-pine/10'
           }`}>
             {t('home.activeCount', { count: remainingSubsCount })}
           </span>
         </div>
 
         <div className="flex items-baseline gap-2">
-          <span className={`text-4xl sm:text-5xl font-extrabold ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+          <span className={`text-4xl sm:text-5xl font-extrabold ${isVibrant ? 'text-white drop-shadow-sm' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
             {format(totalMonthly)}
           </span>
-          <span className={`text-sm font-semibold ${isVibrant ? 'text-purple-600' : 'text-japandi-muted'}`}>
+          <span className={`text-sm font-semibold ${isVibrant ? 'text-white/80' : 'text-japandi-muted'}`}>
             {t('cycles.perMonth')}
           </span>
         </div>
 
-        <p className={`text-xs ${isVibrant ? 'text-purple-700 font-medium' : 'text-japandi-muted'}`}>
+        <p className={`text-xs ${isVibrant ? 'text-white/90 font-medium' : 'text-japandi-muted'}`}>
           {t('home.annualized', { amount: isAmountBlurred ? '•••• €' : format(totalYearly) })}
         </p>
       </div>
+
 
       {/* 3. Empty State */}
       {subscriptions.length === 0 && (

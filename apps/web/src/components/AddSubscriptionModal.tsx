@@ -209,17 +209,25 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           {!editSubscription && (
             <div className="flex flex-col gap-2.5">
               {/* AI Gemini Invoice Scanner & TrueLayer Open Banking Shortcut */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <button
                   type="button"
                   onClick={() => setIsScanInvoiceOpen(true)}
-                  className="flex items-center justify-between p-3 rounded-japandi-xl bg-teal-500/10 border border-teal-500/30 hover:bg-teal-500/20 text-teal-600 dark:text-teal-300 text-xs font-bold transition-all shadow-xs"
+                  className={`flex items-center justify-between p-3 rounded-japandi-xl border text-xs font-bold transition-all shadow-xs ${
+                    profile.themeMode === 'vibrant'
+                      ? 'bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-cyan-500/15 border-teal-300 hover:border-teal-400 text-teal-950 dark:text-teal-200'
+                      : 'bg-teal-500/10 border-teal-500/30 hover:bg-teal-500/20 text-teal-600 dark:text-teal-300'
+                  }`}
                 >
                   <div className="flex items-center gap-2">
                     <Camera className="w-4 h-4 text-teal-500" />
                     <span>Scanner une Facture (IA)</span>
                   </div>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-teal-500 text-slate-950">
+                  <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                    profile.themeMode === 'vibrant'
+                      ? 'bg-gradient-to-r from-teal-400 to-emerald-400 text-slate-950 font-black'
+                      : 'bg-teal-500 text-slate-950'
+                  }`}>
                     Gemini 3.6
                   </span>
                 </button>
@@ -229,35 +237,51 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                   onClick={() => {
                     setIsTrueLayerOpen(true);
                   }}
-                  className="flex items-center justify-between p-3 rounded-japandi-xl bg-japandi-pine/10 border border-japandi-pine/20 hover:bg-japandi-pine/15 text-japandi-pine text-xs font-bold transition-all shadow-xs"
+                  className={`flex items-center justify-between p-3 rounded-japandi-xl border text-xs font-bold transition-all shadow-xs ${
+                    profile.themeMode === 'vibrant'
+                      ? 'bg-gradient-to-r from-purple-500/15 via-indigo-500/15 to-pink-500/15 border-purple-300 hover:border-purple-400 text-indigo-950 dark:text-purple-200'
+                      : 'bg-japandi-pine/10 border-japandi-pine/20 hover:bg-japandi-pine/15 text-japandi-pine'
+                  }`}
                 >
                   <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4" />
                     <span>Synchro TrueLayer</span>
                   </div>
-                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-japandi-pine text-white">
+                  <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+                    profile.themeMode === 'vibrant'
+                      ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-black'
+                      : 'bg-japandi-pine text-white'
+                  }`}>
                     DSP2 1-Tap
                   </span>
                 </button>
               </div>
 
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
-                {presets.map((preset) => (
-                  <button
-                    key={preset.name}
-                    type="button"
-                    onClick={() => handleApplyPreset(preset)}
-                    className={`flex-shrink-0 px-3.5 py-1.5 rounded-japandi-full text-xs font-semibold transition-all ${
-                      selectedPreset === preset.name
-                        ? 'bg-japandi-pine text-white shadow-japandi-sm'
-                        : 'bg-japandi-elevated border border-japandi-border text-japandi-text hover:border-japandi-pine'
-                    }`}
-                  >
-                    {preset.name}
-                  </button>
-                ))}
+                {presets.map((preset) => {
+                  const isSel = selectedPreset === preset.name;
+                  return (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      onClick={() => handleApplyPreset(preset)}
+                      className={`flex-shrink-0 px-3.5 py-1.5 rounded-japandi-full text-xs font-bold transition-all ${
+                        isSel
+                          ? profile.themeMode === 'vibrant'
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md'
+                            : 'bg-japandi-pine text-white shadow-japandi-sm'
+                          : profile.themeMode === 'vibrant'
+                          ? 'bg-purple-50/70 border border-purple-200 text-indigo-950 hover:border-purple-400 hover:bg-purple-100'
+                          : 'bg-japandi-elevated border border-japandi-border text-japandi-text hover:border-japandi-pine'
+                      }`}
+                    >
+                      {preset.name}
+                    </button>
+                  );
+                })}
               </div>
             </div>
+
           )}
 
           {/* Form */}
@@ -321,7 +345,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
             </div>
 
             {/* Amount & Billing Cycle */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-japandi-muted uppercase tracking-wider mb-1.5">
                   {t('modal.amountLabel')}
@@ -346,15 +370,17 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                 <label className="block text-xs font-semibold text-japandi-muted uppercase tracking-wider mb-1.5">
                   {t('modal.cycleLabel')}
                 </label>
-                <div className="flex rounded-japandi-md bg-japandi-elevated border border-japandi-border p-1">
+                <div className="flex rounded-japandi-md bg-japandi-elevated border border-japandi-border p-1 gap-1">
                   {CYCLE_SEGMENTS.map((seg) => (
                     <button
                       key={seg.value}
                       type="button"
                       onClick={() => setCycle(seg.value)}
-                      className={`flex-1 py-1.5 text-xs font-bold rounded-japandi-sm transition-all ${
+                      className={`flex-1 py-2 px-1 text-[11px] sm:text-xs font-bold rounded-japandi-sm transition-all whitespace-nowrap ${
                         cycle === seg.value
-                          ? 'bg-japandi-pine text-white shadow-xs'
+                          ? profile.themeMode === 'vibrant'
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-sm font-extrabold'
+                            : 'bg-japandi-pine text-white shadow-xs'
                           : 'text-japandi-muted hover:text-japandi-text'
                       }`}
                     >
@@ -364,6 +390,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                 </div>
               </div>
             </div>
+
 
             {/* Category Dropdown */}
             <CustomDropdown
@@ -408,11 +435,16 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           <button
             type="submit"
             form="sub-form"
-            className="px-6 py-2.5 rounded-japandi-md bg-japandi-pine hover:bg-japandi-pine/90 text-white text-sm font-bold shadow-japandi-sm transition-all"
+            className={`px-6 py-2.5 rounded-japandi-md text-white text-sm font-bold shadow-japandi-sm transition-all ${
+              profile.themeMode === 'vibrant'
+                ? 'bg-gradient-to-r from-purple-600 via-pink-600 to-rose-500 hover:opacity-95 shadow-md shadow-purple-500/20'
+                : 'bg-japandi-pine hover:bg-japandi-pine/90'
+            }`}
           >
             {editSubscription ? t('modal.submitEdit') : t('modal.submitAdd')}
           </button>
         </div>
+
       </div>
 
       {/* Linked Cancellation Assistant Modal */}

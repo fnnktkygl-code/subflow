@@ -68,30 +68,9 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300 max-w-4xl mx-auto">
+
       {/* 1. Actionable Financial Insight Header */}
       <ActionableInsightHeader />
-
-      {/* Vibrant Pop Mascot Header */}
-      {isVibrant && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 border-2 border-purple-200 backdrop-blur-md shadow-sm">
-          <div className="flex flex-col gap-0.5">
-            <span className="text-[11px] font-black uppercase tracking-wider text-purple-700">Compagnon Budgétaire</span>
-            <h2 className="text-lg font-black text-indigo-950 flex items-center gap-1.5">
-              <span>Bonjour {profile.name || 'Champion'} !</span>
-              <span className="text-xl">🚀</span>
-            </h2>
-          </div>
-
-          <div className="self-end sm:self-auto">
-            <VibrantMascot
-              mood={isSelectionMode ? 'curious' : (spendingGoal > 0 && isUnderGoal) ? 'celebrating' : 'happy'}
-              totalMonthly={totalMonthly}
-              savingsMonthly={goalDiff}
-              activeCount={subscriptions.length}
-            />
-          </div>
-        </div>
-      )}
 
       {/* 2. Spending Card with Goal & Long Press to Blur */}
       <div
@@ -104,7 +83,7 @@ export default function HomePage() {
         }}
         className={`rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 relative overflow-hidden transition-all select-none ${
           isVibrant
-            ? 'bg-gradient-to-br from-[#FF2A6D] via-[#8B5CF6] to-[#06B6D4] text-white shadow-[0_15px_35px_rgba(139,92,246,0.35)] border-2 border-white/40'
+            ? 'bg-gradient-to-br from-[#FF2A6D] via-[#8B5CF6] to-[#06B6D4] text-white shadow-[0_15px_35px_rgba(139,92,246,0.3)] border-2 border-white/30'
             : 'bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm'
         }`}
         title="Appui long ou clic sur l'œil en haut pour masquer les montants"
@@ -119,7 +98,7 @@ export default function HomePage() {
           <div className="flex flex-col gap-0.5">
             <div className="flex items-center gap-2">
               <span className="text-lg">💰</span>
-              <h3 className={`font-bold text-sm ${isVibrant ? 'text-amber-100 uppercase tracking-wider text-[11px] font-black' : 'text-japandi-muted'}`}>
+              <h3 className={`font-bold text-sm ${isVibrant ? 'text-white/95 uppercase tracking-wider text-[11px] font-black' : 'text-japandi-muted'}`}>
                 {t('home.spendingTitle')}
               </h3>
             </div>
@@ -133,7 +112,7 @@ export default function HomePage() {
             aria-label={t('home.monthlyTarget')}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-japandi-md text-xs font-semibold transition-all shadow-xs ${
               isVibrant
-                ? 'bg-black/30 backdrop-blur-md border border-white/20 text-white hover:bg-black/40'
+                ? 'bg-black/25 backdrop-blur-md border border-white/30 text-white hover:bg-black/35'
                 : 'bg-japandi-elevated border border-japandi-border hover:border-japandi-pine text-japandi-text'
             }`}
           >
@@ -147,7 +126,7 @@ export default function HomePage() {
           onClick={toggleAmountBlur}
           className="flex items-baseline gap-2 cursor-pointer"
         >
-          <span className={`text-4xl sm:text-5xl font-extrabold tracking-tight ${isVibrant ? 'text-white drop-shadow-md' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+          <span className={`text-4xl sm:text-5xl font-extrabold tracking-tight ${isVibrant ? 'text-white drop-shadow-sm' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
             {format(totalMonthly)}
           </span>
           <span className={`text-sm font-semibold ${isVibrant ? 'text-white/80' : 'text-japandi-muted'}`}>
@@ -157,13 +136,13 @@ export default function HomePage() {
 
         {/* Spending Goal Progress Bar */}
         {spendingGoal > 0 && (
-          <div className="flex flex-col gap-2 pt-2 border-t border-japandi-border">
+          <div className="flex flex-col gap-2 pt-2 border-t border-japandi-border/40">
             <div className="flex items-center justify-between text-xs">
-              <div className={`flex items-center gap-1.5 ${isVibrant ? 'text-amber-100 font-bold' : 'text-japandi-muted'}`}>
+              <div className={`flex items-center gap-1.5 ${isVibrant ? 'text-white/90 font-bold' : 'text-japandi-muted'}`}>
                 <Target className={`w-3.5 h-3.5 ${isVibrant ? 'text-teal-300' : 'text-japandi-pine'}`} />
                 <span>{t('home.targetBudget')} : {format(spendingGoal)}</span>
               </div>
-              <span className={`font-bold ${isVibrant ? (isUnderGoal ? 'text-teal-300' : 'text-amber-200') : (isUnderGoal ? 'text-japandi-pine' : 'text-japandi-terracotta')}`}>
+              <span className={`font-bold ${isVibrant ? (isUnderGoal ? 'text-teal-200' : 'text-amber-200') : (isUnderGoal ? 'text-japandi-pine' : 'text-japandi-terracotta')}`}>
                 {isUnderGoal
                   ? `${format(goalDiff)} ${t('home.remainingBudget').toLowerCase()}`
                   : `${format(goalDiff)} ${t('home.targetExceeded').toLowerCase()}`}
@@ -188,56 +167,31 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* Action Triggers in Vibrant Mode: 3D Cushion Buttons */}
-        {isVibrant ? (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
-            <button
-              type="button"
-              onClick={() => setIsCancellationModalOpen(true)}
-              className="btn-3d-coral p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black text-white"
-            >
-              <span>🥊 Résilier 1-Clic</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={toggleSelectionMode}
-              className="btn-3d-gold p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black"
-            >
-              <span>✨ Simuler What-If</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsScanInvoiceModalOpen(true)}
-              className="btn-3d-mint p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black"
-            >
-              <span>📸 Scanner IA</span>
-            </button>
-          </div>
-        ) : (
-          /* Original What-If Simulator Action Trigger */
-          <div className="pt-2">
-            <button
-              type="button"
-              onClick={toggleSelectionMode}
-              aria-expanded={isSelectionMode}
-              className={`w-full py-2.5 px-4 rounded-japandi-xl border text-xs font-bold flex items-center justify-between transition-all ${
-                isSelectionMode
-                  ? 'bg-japandi-sand/60 border-japandi-pine text-japandi-pine'
-                  : 'bg-japandi-elevated border-japandi-border hover:border-japandi-pine text-japandi-text'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-japandi-pine animate-pulse" />
-                <span>{isSelectionMode ? t('whatIf.modeActive') : t('home.whatIfTitle')}</span>
-              </div>
-              <span className="text-[11px] text-japandi-muted">
-                {isSelectionMode ? t('whatIf.exitMode') : t('home.whatIfButton')} →
-              </span>
-            </button>
-          </div>
-        )}
+        {/* Unified What-If Simulator Action Trigger */}
+        <div className="pt-2">
+          <button
+            type="button"
+            onClick={toggleSelectionMode}
+            aria-expanded={isSelectionMode}
+            className={`w-full py-2.5 px-4 rounded-japandi-xl border text-xs font-bold flex items-center justify-between transition-all ${
+              isVibrant
+                ? isSelectionMode
+                  ? 'bg-white/30 border-white text-white shadow-sm'
+                  : 'bg-black/20 border-white/25 hover:bg-black/30 text-white'
+                : isSelectionMode
+                ? 'bg-japandi-sand/60 border-japandi-pine text-japandi-pine'
+                : 'bg-japandi-elevated border-japandi-border hover:border-japandi-pine text-japandi-text'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full animate-pulse ${isVibrant ? 'bg-amber-300' : 'bg-japandi-pine'}`} />
+              <span>{isSelectionMode ? t('whatIf.modeActive') : t('home.whatIfTitle')}</span>
+            </div>
+            <span className={`text-[11px] ${isVibrant ? 'text-white/80' : 'text-japandi-muted'}`}>
+              {isSelectionMode ? t('whatIf.exitMode') : t('home.whatIfButton')} →
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* 3. Category Breakdown & Donut */}
@@ -259,6 +213,7 @@ export default function HomePage() {
             </span>
           </div>
 
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             {/* Donut Chart */}
             <div className="flex justify-center">
@@ -269,8 +224,10 @@ export default function HomePage() {
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}
                 isAmountBlurred={isAmountBlurred}
+                themeMode={profile.themeMode}
               />
             </div>
+
 
             {/* Category List with interactive selection */}
             <div className="flex flex-col gap-2">

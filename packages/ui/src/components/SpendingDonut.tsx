@@ -12,9 +12,30 @@ export interface SpendingDonutProps {
   onSelectCategory?: (category: SubscriptionCategory | null) => void;
   categorySubscriptions?: Subscription[];
   isAmountBlurred?: boolean;
+  themeMode?: string;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
+export const VIBRANT_CATEGORY_COLORS: Record<string, string> = {
+  Entertainment: '#FF2A6D', // Neon Punch Pink
+  Productivity: '#8B5CF6', // Vivid Electric Violet
+  Utilities: '#F59E0B', // Cyber Amber
+  'Health & Fitness': '#10B981', // Bright Emerald Mint
+  'Food & Dining': '#F97316', // Tangy Orange
+  Shopping: '#06B6D4', // Electric Cyan
+  General: '#EC4899' // Pop Berry
+};
+
+export const BARBIE_CATEGORY_COLORS: Record<string, string> = {
+  Entertainment: '#EC4899', // Hot Pink
+  Productivity: '#8B5CF6', // Purple Pop
+  Utilities: '#F43F5E', // Rose Red
+  'Health & Fitness': '#FB7185', // Strawberry
+  'Food & Dining': '#F472B6', // Light Bubblegum
+  Shopping: '#DB2777', // Deep Fuchsia
+  General: '#BE123C' // Ruby Pink
+};
+
+export const JAPANDI_CATEGORY_COLORS: Record<string, string> = {
   Entertainment: '#B87D56', // Terracotta Clay
   Productivity: '#3B4D3C', // Kuro-Matsu Pine
   Utilities: '#C4823F', // Yuzu Amber
@@ -23,6 +44,17 @@ const CATEGORY_COLORS: Record<string, string> = {
   Shopping: '#8C7355', // Sandalwood
   General: '#8C867A' // Tatami Ash
 };
+
+export function getCategoryHexColor(cat: string, themeMode?: string): string {
+  if (themeMode === 'vibrant') {
+    return VIBRANT_CATEGORY_COLORS[cat] || '#8B5CF6';
+  }
+  if (themeMode === 'barbie') {
+    return BARBIE_CATEGORY_COLORS[cat] || '#EC4899';
+  }
+  return JAPANDI_CATEGORY_COLORS[cat] || '#8C867A';
+}
+
 
 function renderCategorySvg(cat: string) {
   const norm = cat.toLowerCase().trim();
@@ -93,8 +125,10 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
   selectedCategory,
   onSelectCategory,
   categorySubscriptions = [],
-  isAmountBlurred = false
+  isAmountBlurred = false,
+  themeMode
 }) => {
+
   const entries = Object.entries(categories);
   const sorted = entries.sort((a, b) => b[1].total - a[1].total);
 
@@ -139,7 +173,7 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
 
             const isSelected = selectedCategory === cat;
             const isDimmed = selectedCategory && !isSelected;
-            const catColor = CATEGORY_COLORS[cat] || '#8C867A';
+            const catColor = getCategoryHexColor(cat, themeMode);
 
             return (
               <circle
@@ -168,8 +202,8 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
               <div
                 className="w-5 h-5 rounded-japandi-sm flex items-center justify-center p-0.5 shadow-2xs"
                 style={{
-                  backgroundColor: `${CATEGORY_COLORS[selectedCategory] || '#8C867A'}20`,
-                  color: CATEGORY_COLORS[selectedCategory] || '#8C867A'
+                  backgroundColor: `${getCategoryHexColor(selectedCategory, themeMode)}25`,
+                  color: getCategoryHexColor(selectedCategory, themeMode)
                 }}
               >
                 {renderCategorySvg(selectedCategory)}
@@ -178,6 +212,7 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
                 {selectedCategory}
               </span>
             </div>
+
 
             <span className={`text-base font-extrabold text-japandi-text tracking-tight ${isAmountBlurred ? 'privacy-blur' : ''}`}>
               {currencySymbol}{selectedData.total.toFixed(2)}

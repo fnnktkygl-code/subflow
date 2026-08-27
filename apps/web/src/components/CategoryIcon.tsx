@@ -1,18 +1,59 @@
 import React from 'react';
+import { useSubscriptionStore } from '../store/useSubscriptionStore';
 
 export interface CategoryIconProps {
   category: string;
   className?: string;
   size?: number;
   showBackground?: boolean;
+  themeMode?: string;
 }
+
+export const VIBRANT_CATEGORY_PALETTE: Record<
+  string,
+  { color: string; bgColor: string }
+> = {
+  Entertainment: { color: '#FF2A6D', bgColor: 'rgba(255, 42, 109, 0.16)' },
+  Productivity: { color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.16)' },
+  Utilities: { color: '#F59E0B', bgColor: 'rgba(245, 158, 11, 0.16)' },
+  'Health & Fitness': { color: '#10B981', bgColor: 'rgba(16, 185, 129, 0.16)' },
+  'Food & Dining': { color: '#F97316', bgColor: 'rgba(249, 115, 22, 0.16)' },
+  Shopping: { color: '#06B6D4', bgColor: 'rgba(6, 182, 212, 0.16)' },
+  General: { color: '#EC4899', bgColor: 'rgba(236, 72, 153, 0.16)' }
+};
+
+export const BARBIE_CATEGORY_PALETTE: Record<
+  string,
+  { color: string; bgColor: string }
+> = {
+  Entertainment: { color: '#EC4899', bgColor: 'rgba(236, 72, 153, 0.16)' },
+  Productivity: { color: '#8B5CF6', bgColor: 'rgba(139, 92, 246, 0.16)' },
+  Utilities: { color: '#F43F5E', bgColor: 'rgba(244, 63, 94, 0.16)' },
+  'Health & Fitness': { color: '#FB7185', bgColor: 'rgba(251, 113, 133, 0.16)' },
+  'Food & Dining': { color: '#F472B6', bgColor: 'rgba(244, 114, 182, 0.16)' },
+  Shopping: { color: '#DB2777', bgColor: 'rgba(219, 39, 119, 0.16)' },
+  General: { color: '#BE123C', bgColor: 'rgba(190, 18, 60, 0.16)' }
+};
+
+export const JAPANDI_CATEGORY_PALETTE: Record<
+  string,
+  { color: string; bgColor: string }
+> = {
+  Entertainment: { color: '#B87D56', bgColor: 'rgba(184, 125, 86, 0.15)' },
+  Productivity: { color: '#3B4D3C', bgColor: 'rgba(59, 77, 60, 0.15)' },
+  Utilities: { color: '#C4823F', bgColor: 'rgba(196, 130, 63, 0.15)' },
+  'Health & Fitness': { color: '#477A56', bgColor: 'rgba(71, 122, 86, 0.15)' },
+  'Food & Dining': { color: '#C49A6C', bgColor: 'rgba(196, 154, 108, 0.15)' },
+  Shopping: { color: '#8C7355', bgColor: 'rgba(140, 115, 85, 0.15)' },
+  General: { color: '#8C867A', bgColor: 'rgba(140, 134, 122, 0.15)' }
+};
 
 export const CATEGORY_METADATA: Record<
   string,
   { color: string; bgColor: string; label: string; icon: React.ReactNode }
 > = {
   Entertainment: {
-    color: '#B87D56', // Terracotta Clay
+    color: '#B87D56',
     bgColor: 'rgba(184, 125, 86, 0.15)',
     label: 'Entertainment',
     icon: (
@@ -29,7 +70,7 @@ export const CATEGORY_METADATA: Record<
     )
   },
   Productivity: {
-    color: '#3B4D3C', // Kuro-Matsu Pine
+    color: '#3B4D3C',
     bgColor: 'rgba(59, 77, 60, 0.15)',
     label: 'Productivity',
     icon: (
@@ -41,7 +82,7 @@ export const CATEGORY_METADATA: Record<
     )
   },
   Utilities: {
-    color: '#C4823F', // Yuzu Amber
+    color: '#C4823F',
     bgColor: 'rgba(196, 130, 63, 0.15)',
     label: 'Utilities',
     icon: (
@@ -51,7 +92,7 @@ export const CATEGORY_METADATA: Record<
     )
   },
   'Health & Fitness': {
-    color: '#477A56', // Matcha Green
+    color: '#477A56',
     bgColor: 'rgba(71, 122, 86, 0.15)',
     label: 'Health & Fitness',
     icon: (
@@ -61,7 +102,7 @@ export const CATEGORY_METADATA: Record<
     )
   },
   'Food & Dining': {
-    color: '#C49A6C', // Hinoki Warm Ochre
+    color: '#C49A6C',
     bgColor: 'rgba(196, 154, 108, 0.15)',
     label: 'Food & Dining',
     icon: (
@@ -75,7 +116,7 @@ export const CATEGORY_METADATA: Record<
     )
   },
   Shopping: {
-    color: '#8C7355', // Sandalwood
+    color: '#8C7355',
     bgColor: 'rgba(140, 115, 85, 0.15)',
     label: 'Shopping',
     icon: (
@@ -87,7 +128,7 @@ export const CATEGORY_METADATA: Record<
     )
   },
   General: {
-    color: '#8C867A', // Tatami Ash
+    color: '#8C867A',
     bgColor: 'rgba(140, 134, 122, 0.15)',
     label: 'General',
     icon: (
@@ -104,23 +145,40 @@ export const CategoryIcon: React.FC<CategoryIconProps> = ({
   category,
   className = 'w-4 h-4',
   size,
-  showBackground = false
+  showBackground = false,
+  themeMode
 }) => {
+  const storeTheme = useSubscriptionStore((s) => s.profile.themeMode);
+  const activeTheme = themeMode || storeTheme;
+
   const norm = category.trim();
-  const matched =
-    CATEGORY_METADATA[norm] ||
-    Object.values(CATEGORY_METADATA).find((meta) =>
-      norm.toLowerCase().includes(meta.label.toLowerCase())
-    ) ||
-    CATEGORY_METADATA['General']!;
+  const matchedKey =
+    Object.keys(CATEGORY_METADATA).find((k) => k.toLowerCase() === norm.toLowerCase()) ||
+    Object.keys(CATEGORY_METADATA).find((k) => norm.toLowerCase().includes(k.toLowerCase())) ||
+    'General';
+
+  const matched = CATEGORY_METADATA[matchedKey] || CATEGORY_METADATA['General']!;
+
+  let color = matched.color;
+  let bgColor = matched.bgColor;
+
+  if (activeTheme === 'vibrant') {
+    const pal = VIBRANT_CATEGORY_PALETTE[matchedKey] || VIBRANT_CATEGORY_PALETTE['General']!;
+    color = pal.color;
+    bgColor = pal.bgColor;
+  } else if (activeTheme === 'barbie') {
+    const pal = BARBIE_CATEGORY_PALETTE[matchedKey] || BARBIE_CATEGORY_PALETTE['General']!;
+    color = pal.color;
+    bgColor = pal.bgColor;
+  }
 
   if (showBackground) {
     return (
       <div
-        className="flex items-center justify-center rounded-japandi-sm flex-shrink-0 p-1.5 shadow-xs"
+        className="flex items-center justify-center rounded-japandi-sm flex-shrink-0 p-1.5 shadow-xs transition-colors"
         style={{
-          backgroundColor: matched.bgColor,
-          color: matched.color,
+          backgroundColor: bgColor,
+          color: color,
           width: size ? `${size}px` : undefined,
           height: size ? `${size}px` : undefined
         }}
@@ -132,10 +190,11 @@ export const CategoryIcon: React.FC<CategoryIconProps> = ({
 
   return (
     <span
-      className={`inline-flex items-center justify-center flex-shrink-0 ${className}`}
-      style={{ color: matched.color, width: size ? `${size}px` : undefined, height: size ? `${size}px` : undefined }}
+      className={`inline-flex items-center justify-center flex-shrink-0 transition-colors ${className}`}
+      style={{ color: color, width: size ? `${size}px` : undefined, height: size ? `${size}px` : undefined }}
     >
       {matched.icon}
     </span>
   );
 };
+
