@@ -9,6 +9,8 @@ import { StarterPackModal } from '../../components/StarterPackModal';
 import { BackupManagerModal } from '../../components/BackupManagerModal';
 import { TrueLayerSyncModal } from '../../components/TrueLayerSyncModal';
 import { NotificationSettingsCard } from '../../components/NotificationSettingsCard';
+import { GoogleDriveSyncCard } from '../../components/GoogleDriveSyncCard';
+
 import {
   Globe,
   Languages,
@@ -302,7 +304,11 @@ export default function SettingsPage() {
           <h2 className="text-sm font-bold text-japandi-text">{t('settings.toolsSection')}</h2>
         </div>
 
+        {/* Google Drive Cloud Real-Time Continuity Sync */}
+        <GoogleDriveSyncCard variant="settings_card" />
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+
           {/* Starter Pack Trigger */}
           <button
             type="button"

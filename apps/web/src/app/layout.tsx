@@ -7,9 +7,11 @@ import { BottomDock } from '../components/BottomDock';
 import { AddSubscriptionModal } from '../components/AddSubscriptionModal';
 
 import { TooltipProvider } from '@subflow/ui';
+import { useGoogleDriveAutoSync } from '../hooks/useGoogleDriveAutoSync';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  useGoogleDriveAutoSync();
 
   return (
     <html lang="en" className="h-full">
@@ -17,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <title>SubFlow — Mindful Subscription Management</title>
+        <script src="https://accounts.google.com/gsi/client" async defer></script>
       </head>
       <body className="h-full bg-japandi-bg text-japandi-text font-sans antialiased selection:bg-japandi-pine selection:text-white flex flex-col min-h-screen">
         <TooltipProvider delayDuration={150}>
@@ -34,4 +37,5 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
 

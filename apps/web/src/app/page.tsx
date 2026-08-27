@@ -19,6 +19,8 @@ import { GoalDialog } from '../components/GoalDialog';
 import { ActionableInsightHeader } from '../components/ActionableInsightHeader';
 import { CancellationArenaModal } from '../components/CancellationArenaModal';
 import { AddSubscriptionModal } from '../components/AddSubscriptionModal';
+import { GoogleDriveSyncCard } from '../components/GoogleDriveSyncCard';
+
 import {
   SlidersHorizontal,
   Target,
@@ -73,6 +75,10 @@ export default function HomePage() {
 
       {/* 1. Actionable Financial Insight Header */}
       <ActionableInsightHeader />
+
+      {/* Cloud Drive Continuity Banner */}
+      <GoogleDriveSyncCard variant="banner" />
+
 
       {/* 2. Spending Card with Goal & Long Press to Blur */}
       <Tooltip

@@ -4,6 +4,17 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Subscription, UserProfile, fetchLogo, detectUserCountry } from '@subflow/core';
 
+export interface GoogleAccount {
+  email: string;
+  name: string;
+  picture?: string;
+  accessToken: string;
+  expiresAt?: number;
+  lastSyncedAt?: string;
+}
+
+export type DriveSyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
+
 interface SubFlowState {
   subscriptions: Subscription[];
   profile: UserProfile;
@@ -11,6 +22,12 @@ interface SubFlowState {
   excludedIds: string[];
   isAmountBlurred: boolean;
   activeCategoryFilter: string | null;
+
+  // Google Drive Cloud Sync State
+  googleAccount: GoogleAccount | null;
+  driveSyncStatus: DriveSyncStatus;
+  driveSyncError: string | null;
+  googleClientId: string | null;
 
   // Actions
   addSubscription: (sub: Omit<Subscription, 'id'>) => void;
@@ -24,7 +41,12 @@ interface SubFlowState {
   updateProfile: (profile: Partial<UserProfile>) => void;
   setMonthlySpendLimit: (limit: number | null) => void;
   setCategoryFilter: (category: string | null) => void;
+  setGoogleAccount: (account: GoogleAccount | null) => void;
+  setDriveSyncStatus: (status: DriveSyncStatus, error?: string | null) => void;
+  setGoogleClientId: (clientId: string | null) => void;
+  restoreFromCloud: (data: { subscriptions?: Subscription[]; profile?: Partial<UserProfile> }) => void;
 }
+
 
 const DEFAULT_SUBSCRIPTIONS: Subscription[] = [
   {
@@ -81,6 +103,12 @@ export const useSubscriptionStore = create<SubFlowState>()(
       excludedIds: [],
       isAmountBlurred: false,
       activeCategoryFilter: null,
+
+      // Google Drive State
+      googleAccount: null,
+      driveSyncStatus: 'idle',
+      driveSyncError: null,
+      googleClientId: null,
 
       addSubscription: (newSub) =>
         set((state) => ({
@@ -149,8 +177,42 @@ export const useSubscriptionStore = create<SubFlowState>()(
           }
         })),
 
-      setCategoryFilter: (category) => set({ activeCategoryFilter: category })
+      setCategoryFilter: (category) => set({ activeCategoryFilter: category }),
+
+      setGoogleAccount: (account) =>
+        set((state) => ({
+          googleAccount: account,
+          driveSyncStatus: account ? 'synced' : 'idle',
+          driveSyncError: null
+        })),
+
+      setDriveSyncStatus: (status, error = null) =>
+        set((state) => ({
+          driveSyncStatus: status,
+          driveSyncError: error,
+          googleAccount: state.googleAccount
+            ? {
+                ...state.googleAccount,
+                lastSyncedAt: status === 'synced' ? new Date().toISOString() : state.googleAccount.lastSyncedAt
+              }
+            : null
+        })),
+
+      setGoogleClientId: (clientId) => set({ googleClientId: clientId }),
+
+      restoreFromCloud: (data) =>
+        set((state) => ({
+          subscriptions: Array.isArray(data.subscriptions) && data.subscriptions.length > 0
+            ? data.subscriptions
+            : state.subscriptions,
+          profile: data.profile
+            ? { ...state.profile, ...data.profile }
+            : state.profile,
+          driveSyncStatus: 'synced',
+          driveSyncError: null
+        }))
     }),
+
     {
       name: 'subflow-storage',
       onRehydrateStorage: () => (state) => {
