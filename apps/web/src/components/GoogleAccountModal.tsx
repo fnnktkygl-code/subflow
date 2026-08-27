@@ -292,12 +292,50 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                 </div>
               </div>
 
+              {/* Google OAuth Client ID Configuration Input */}
+              <div className="p-4 rounded-japandi-xl bg-japandi-sand/30 border border-japandi-border flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-japandi-text flex items-center gap-1.5">
+                    <Key className="w-3.5 h-3.5 text-japandi-pine" />
+                    <span>Google OAuth 2.0 Client ID</span>
+                  </span>
+                  <a
+                    href="https://console.cloud.google.com/apis/credentials"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[11px] text-japandi-pine hover:underline flex items-center gap-0.5 font-semibold"
+                  >
+                    <span>Google Cloud Console</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </a>
+                </div>
+
+                <p className="text-[11px] text-japandi-muted leading-relaxed">
+                  {locale === 'fr'
+                    ? 'Pour autoriser l\'accès sécurisé à votre Google Drive privé, renseignez votre identifiant Client ID Google :'
+                    : 'To allow secure private Google Drive backups, provide your Google Client ID:'}
+                </p>
+
+                <input
+                  type="text"
+                  placeholder="exemple: 123456789-abc.apps.googleusercontent.com"
+                  value={customClientIdInput}
+                  onChange={(e) => setCustomClientIdInput(e.target.value)}
+                  className="w-full px-3 py-2 rounded-japandi-lg bg-japandi-surface border border-japandi-border text-xs text-japandi-text font-mono focus:outline-none focus:border-japandi-pine shadow-inner"
+                />
+
+                <div className="text-[10px] text-japandi-muted bg-japandi-surface/60 p-2.5 rounded-japandi-md border border-japandi-border/60 flex flex-col gap-1">
+                  <span className="font-bold text-japandi-text">📌 Origine JavaScript autorisée à déclarer sur Google Cloud :</span>
+                  <code className="text-japandi-pine font-mono select-all">https://subflowapp.vercel.app</code>
+                </div>
+              </div>
+
               {/* Google Sign-In Button */}
               <button
                 type="button"
-                disabled={isLoading}
+                disabled={isLoading || !customClientIdInput.trim()}
                 onClick={handleLogin}
-                className="w-full py-3 px-4 rounded-japandi-xl bg-japandi-text text-japandi-canvas hover:opacity-90 transition-all flex items-center justify-center gap-3 font-bold text-xs shadow-japandi-md disabled:opacity-50"
+                className="w-full py-3 px-4 rounded-japandi-xl bg-japandi-text text-japandi-canvas hover:opacity-90 transition-all flex items-center justify-center gap-3 font-bold text-xs shadow-japandi-md disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {/* Official Google G Logo */}
                 <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -324,39 +362,10 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                     : (locale === 'fr' ? 'Se connecter avec Google' : 'Sign in with Google')}
                 </span>
               </button>
-
-              {/* Optional Custom Client ID toggle for developer/user configuration */}
-              <div className="pt-2 border-t border-japandi-border/60">
-                <button
-                  type="button"
-                  onClick={() => setShowConfigClientId(!showConfigClientId)}
-                  className="text-[11px] text-japandi-muted hover:text-japandi-text flex items-center gap-1 mx-auto transition-colors"
-                >
-                  <Key className="w-3 h-3 text-japandi-pine" />
-                  <span>{showConfigClientId ? 'Masquer la configuration' : 'Paramètres avancés Google OAuth'}</span>
-                </button>
-
-                {showConfigClientId && (
-                  <div className="mt-2.5 p-3 rounded-japandi-lg bg-japandi-sand/30 border border-japandi-border flex flex-col gap-2">
-                    <label className="text-[10px] uppercase font-bold text-japandi-muted">
-                      Google OAuth Client ID :
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="votre-client-id.apps.googleusercontent.com"
-                      value={customClientIdInput}
-                      onChange={(e) => setCustomClientIdInput(e.target.value)}
-                      className="w-full px-2.5 py-1.5 rounded-japandi-md bg-japandi-surface border border-japandi-border text-xs text-japandi-text font-mono focus:outline-none focus:border-japandi-pine"
-                    />
-                    <p className="text-[10px] text-japandi-muted">
-                      Laissez vide pour utiliser le Client ID officiel SubFlow par défaut.
-                    </p>
-                  </div>
-                )}
-              </div>
             </div>
           )}
         </div>
+
 
         {/* Footer */}
         <div className="p-4 border-t border-japandi-border bg-japandi-sand/10 flex items-center justify-end">
