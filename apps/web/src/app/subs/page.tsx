@@ -34,6 +34,7 @@ export default function SubsPage() {
     subscriptions,
     profile,
     isAmountBlurred,
+    toggleAmountBlur,
     isSelectionMode,
     excludedIds,
     toggleSelectionMode,
@@ -184,8 +185,13 @@ export default function SubsPage() {
         </div>
       </div>
 
-      {/* 2. Hero Spend Overview Card */}
-      <div className="rounded-japandi-2xl bg-japandi-surface border border-japandi-border p-6 shadow-japandi-sm flex flex-col gap-4">
+      {/* 2. Monthly Spend Card with Long Press / Click to Blur */}
+      <div
+        onClick={toggleAmountBlur}
+        onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
+        className="rounded-japandi-2xl bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 p-5 sm:p-6 shadow-japandi-sm flex flex-col gap-3 cursor-pointer select-none transition-all"
+        title="Appui long ou clic pour masquer/afficher les montants"
+      >
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-japandi-muted uppercase tracking-wider">
             {t('home.spendingTitle')}
@@ -196,7 +202,7 @@ export default function SubsPage() {
         </div>
 
         <div className="flex items-baseline gap-2">
-          <span className={`text-4xl sm:text-5xl font-extrabold text-japandi-text ${isAmountBlurred ? 'blur-md select-none' : ''}`}>
+          <span className={`text-4xl sm:text-5xl font-extrabold text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
             {format(totalMonthly)}
           </span>
           <span className="text-sm font-semibold text-japandi-muted">
@@ -205,7 +211,7 @@ export default function SubsPage() {
         </div>
 
         <p className="text-xs text-japandi-muted">
-          {t('home.annualized', { amount: format(totalYearly) })}
+          {t('home.annualized', { amount: isAmountBlurred ? '•••• €' : format(totalYearly) })}
         </p>
       </div>
 
@@ -357,7 +363,7 @@ export default function SubsPage() {
         </div>
 
         <div className="flex items-center gap-3 flex-shrink-0">
-          <span className={`font-extrabold text-sm text-japandi-text ${isAmountBlurred ? 'blur-xs select-none' : ''} ${isExcluded && isSelectionMode ? 'line-through opacity-50' : ''}`}>
+          <span className={`font-extrabold text-sm text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''} ${isExcluded && isSelectionMode ? 'line-through opacity-50' : ''}`}>
             {format(sub.amount)}
           </span>
 

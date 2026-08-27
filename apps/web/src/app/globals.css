@@ -111,4 +111,13 @@
     scrollbar-width: thin;
     scrollbar-color: var(--color-border-strong) transparent;
   }
+
+  /* Amount Privacy Mode Blur */
+  .privacy-blur {
+    filter: blur(8px) !important;
+    user-select: none !important;
+    pointer-events: none !important;
+    transition: filter 0.15s ease-in-out;
+    display: inline-block;
+  }
 }

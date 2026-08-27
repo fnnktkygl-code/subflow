@@ -112,8 +112,19 @@ export default function SchedulePage() {
           </p>
         </div>
 
-        {/* Monthly Total Pill */}
-        <div className="flex items-center gap-3 bg-japandi-surface border border-japandi-border rounded-japandi-xl p-3 shadow-japandi-sm self-start sm:self-auto">
+        {/* Monthly Total Pill with Long Press / Click to Blur */}
+        <div
+          onClick={toggleAmountBlur}
+          onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
+          onTouchStart={() => {
+            longPressTimerRef.current = setTimeout(toggleAmountBlur, 500);
+          }}
+          onTouchEnd={() => {
+            if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+          }}
+          className="flex items-center gap-3 bg-japandi-surface border border-japandi-border hover:border-japandi-pine rounded-japandi-xl p-3 shadow-japandi-sm self-start sm:self-auto cursor-pointer select-none transition-all"
+          title="Appui long ou clic pour masquer/afficher les montants"
+        >
           <div className="w-8 h-8 rounded-japandi-full bg-japandi-pine/10 flex items-center justify-center text-japandi-pine">
             <Receipt className="w-4 h-4" />
           </div>
@@ -121,7 +132,7 @@ export default function SchedulePage() {
             <span className="text-[10px] uppercase font-semibold tracking-wider text-japandi-muted">
               {t('schedule.monthlyTotal')}
             </span>
-            <span className={`text-base font-extrabold text-japandi-text ${isAmountBlurred ? 'blur-xs select-none' : ''}`}>
+            <span className={`text-base font-extrabold text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
               {format(totalMonthlyCost)}
             </span>
           </div>
@@ -288,12 +299,12 @@ export default function SchedulePage() {
                     <div className="min-w-0">
                       <h4 className="font-bold text-xs text-japandi-text truncate">{sub.name}</h4>
                       <span className="text-[10px] text-japandi-muted">
-                        {t(`categories.${sub.category}` as any) || sub.category} • {t(`cycles.${sub.cycle}` as any) || sub.cycle}
+                        {t(`categories.${sub.category}` as any) || sub.category || 'General'} • {sub.cycle ? (t(`cycles.${sub.cycle}` as any) || sub.cycle) : t('cycles.Monthly')}
                       </span>
                     </div>
                   </div>
 
-                  <span className={`font-extrabold text-xs text-japandi-terracotta ${isAmountBlurred ? 'blur-xs select-none' : ''}`}>
+                  <span className={`font-extrabold text-xs text-japandi-terracotta ${isAmountBlurred ? 'privacy-blur' : ''}`}>
                     {format(sub.amount)}
                   </span>
                 </div>

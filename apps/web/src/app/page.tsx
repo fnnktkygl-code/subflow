@@ -31,6 +31,7 @@ export default function HomePage() {
     subscriptions,
     profile,
     isAmountBlurred,
+    toggleAmountBlur,
     isSelectionMode,
     excludedIds,
     toggleSelectionMode
@@ -39,6 +40,7 @@ export default function HomePage() {
 
   const [selectedCategory, setSelectedCategory] = useState<SubscriptionCategory | null>(null);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const longPressTimerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const activeExcluded = isSelectionMode ? new Set(excludedIds) : new Set<string>();
   const totalMonthly = calculateTotalMonthlyCost(subscriptions, activeExcluded);
@@ -55,8 +57,21 @@ export default function HomePage() {
       {/* 1. Actionable Financial Insight Header */}
       <ActionableInsightHeader />
 
-      {/* 2. Monthly Spending Card */}
-      <div className="rounded-japandi-2xl bg-japandi-surface border border-japandi-border p-5 sm:p-6 shadow-japandi-sm flex flex-col gap-5">
+      {/* 2. Spending Card with Goal & Long Press to Blur */}
+      <div
+        onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
+        onTouchStart={() => {
+          longPressTimerRef.current = setTimeout(toggleAmountBlur, 500);
+        }}
+        onTouchEnd={() => {
+          if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+        }}
+        className="rounded-japandi-2xl bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 p-5 sm:p-6 shadow-japandi-sm flex flex-col gap-4 relative overflow-hidden transition-all select-none"
+        title="Appui long ou clic sur l'œil en haut pour masquer les montants"
+      >
+        {/* Subtle accent backdrop */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-japandi-pine/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+
         {/* Header: Title + yearly subtitle + tune button */}
         <div className="flex items-start justify-between">
           <div className="flex flex-col gap-0.5">
@@ -65,12 +80,12 @@ export default function HomePage() {
               <h3 className="font-semibold text-sm text-japandi-muted">{t('home.spendingTitle')}</h3>
             </div>
             <p className="text-xs text-japandi-muted ml-7">
-              {t('home.annualized', { amount: format(totalYearly) })}
+              {t('home.annualized', { amount: isAmountBlurred ? '•••• €' : format(totalYearly) })}
             </p>
           </div>
           <button
             type="button"
-            onClick={() => setIsGoalModalOpen(true)}
+            onClick={(e) => { e.stopPropagation(); setIsGoalModalOpen(true); }}
             aria-label={t('home.monthlyTarget')}
             className="flex items-center gap-1 px-3 py-1.5 rounded-japandi-md bg-japandi-elevated border border-japandi-border hover:border-japandi-pine text-japandi-text text-xs font-semibold transition-all shadow-xs"
           >
@@ -80,8 +95,11 @@ export default function HomePage() {
         </div>
 
         {/* Big Hero Amount */}
-        <div className="flex items-baseline gap-2">
-          <span className={`text-4xl sm:text-5xl font-extrabold tracking-tight text-japandi-text ${isAmountBlurred ? 'blur-md select-none' : ''}`}>
+        <div
+          onClick={toggleAmountBlur}
+          className="flex items-baseline gap-2 cursor-pointer"
+        >
+          <span className={`text-4xl sm:text-5xl font-extrabold tracking-tight text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
             {format(totalMonthly)}
           </span>
           <span className="text-sm font-semibold text-japandi-muted">
@@ -165,6 +183,7 @@ export default function HomePage() {
                 currencySymbol={profile.currencySymbol || '€'}
                 selectedCategory={selectedCategory}
                 onSelectCategory={setSelectedCategory}
+                isAmountBlurred={isAmountBlurred}
               />
             </div>
 
@@ -198,7 +217,7 @@ export default function HomePage() {
                       </div>
                     </div>
 
-                    <span className={`font-bold text-xs text-japandi-text ${isAmountBlurred ? 'blur-xs select-none' : ''}`}>
+                    <span className={`font-bold text-xs text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
                       {format(cat.total)}
                     </span>
                   </button>
@@ -245,7 +264,7 @@ export default function HomePage() {
                     </span>
                   </div>
                 </div>
-                <span className={`font-extrabold text-xs text-japandi-terracotta ${isAmountBlurred ? 'blur-xs select-none' : ''}`}>
+                <span className={`font-extrabold text-xs text-japandi-terracotta ${isAmountBlurred ? 'privacy-blur' : ''}`}>
                   {format(sub.amount)}
                 </span>
               </div>

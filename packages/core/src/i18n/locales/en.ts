@@ -105,6 +105,12 @@ export const en = {
     Weekly: 'Weekly',
     Quarterly: 'Quarterly',
     Daily: 'Daily',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+    weekly: 'Weekly',
+    quarterly: 'Quarterly',
+    daily: 'Daily',
+    undefined: 'Monthly',
     perMonth: '/ month',
     perYear: '/ year',
     perWeek: '/ week'

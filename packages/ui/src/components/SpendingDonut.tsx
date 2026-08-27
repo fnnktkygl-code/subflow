@@ -11,6 +11,7 @@ export interface SpendingDonutProps {
   selectedCategory?: SubscriptionCategory | string | null;
   onSelectCategory?: (category: SubscriptionCategory | null) => void;
   categorySubscriptions?: Subscription[];
+  isAmountBlurred?: boolean;
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -91,7 +92,8 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
   currencySymbol = '€',
   selectedCategory,
   onSelectCategory,
-  categorySubscriptions = []
+  categorySubscriptions = [],
+  isAmountBlurred = false
 }) => {
   const entries = Object.entries(categories);
   const sorted = entries.sort((a, b) => b[1].total - a[1].total);
@@ -177,7 +179,7 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
               </span>
             </div>
 
-            <span className="text-base font-extrabold text-japandi-text tracking-tight">
+            <span className={`text-base font-extrabold text-japandi-text tracking-tight ${isAmountBlurred ? 'privacy-blur' : ''}`}>
               {currencySymbol}{selectedData.total.toFixed(2)}
             </span>
             <span className="text-[10px] font-medium text-japandi-muted">
@@ -190,7 +192,7 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
             <span className="text-[10px] uppercase font-bold text-japandi-muted tracking-wider">
               TOTAL / MONTH
             </span>
-            <span className="text-2xl font-extrabold text-japandi-text tracking-tight">
+            <span className={`text-2xl font-extrabold text-japandi-text tracking-tight ${isAmountBlurred ? 'privacy-blur' : ''}`}>
               {currencySymbol}{totalMonthlyAmount.toFixed(2)}
             </span>
           </div>

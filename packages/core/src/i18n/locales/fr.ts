@@ -105,6 +105,12 @@ export const fr = {
     Weekly: 'Hebdomadaire',
     Quarterly: 'Trimestriel',
     Daily: 'Quotidien',
+    monthly: 'Mensuel',
+    yearly: 'Annuel',
+    weekly: 'Hebdomadaire',
+    quarterly: 'Trimestriel',
+    daily: 'Quotidien',
+    undefined: 'Mensuel',
     perMonth: '/ mois',
     perYear: '/ an',
     perWeek: '/ sem'

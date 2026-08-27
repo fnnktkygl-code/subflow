@@ -2,25 +2,32 @@
 
 import React, { useMemo } from 'react';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
-import { formatCurrency, calculateUpcomingOccurrences, calculateTotalMonthlyCost } from '@subflow/core';
+import { useTranslation } from '../hooks/useTranslation';
+import { calculateUpcomingOccurrences, calculateTotalMonthlyCost } from '@subflow/core';
 
 export const ActionableInsightHeader: React.FC = () => {
-  const { profile, subscriptions } = useSubscriptionStore();
+  const { profile, subscriptions, isAmountBlurred } = useSubscriptionStore();
+  const { t, format, locale } = useTranslation();
 
   const totalMonthly = useMemo(() => calculateTotalMonthlyCost(subscriptions), [subscriptions]);
-  const currencySymbol = profile.currencySymbol || '€';
   const spendingGoal = profile.spendingGoal ?? 0;
 
-  // 1. Time-based respectful greeting
+  // 1. Time-based respectful greeting localized
   const greetingTime = useMemo(() => {
     const hour = new Date().getHours();
+    if (locale === 'fr') {
+      if (hour >= 5 && hour < 18) return 'Bonjour';
+      return 'Bonsoir';
+    }
     if (hour >= 5 && hour < 12) return 'Good morning';
     if (hour >= 12 && hour < 18) return 'Good afternoon';
     return 'Good evening';
-  }, []);
+  }, [locale]);
 
   const displayName = profile.name && profile.name.trim() !== '' ? profile.name.trim() : null;
   const greetingTitle = displayName ? `${greetingTime}, ${displayName}` : greetingTime;
+
+  const displayAmount = (amt: number) => isAmountBlurred ? '•••• €' : format(amt);
 
   // 2. Compute the most critical financial insight
   const insight = useMemo(() => {
@@ -34,7 +41,9 @@ export const ActionableInsightHeader: React.FC = () => {
       if (nextOcc.daysRemaining === 0) {
         return {
           type: 'imminent',
-          text: `Due today: ${nextOcc.subscription.name} (${formatCurrency(nextOcc.subscription.amount, currencySymbol)})`,
+          text: locale === 'fr'
+            ? `Prélèvement aujourd'hui : ${nextOcc.subscription.name} (${displayAmount(nextOcc.subscription.amount)})`
+            : `Due today: ${nextOcc.subscription.name} (${displayAmount(nextOcc.subscription.amount)})`,
           colorClass: 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-terracotta/10',
           icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-japandi-terracotta">
@@ -47,7 +56,9 @@ export const ActionableInsightHeader: React.FC = () => {
       if (nextOcc.daysRemaining <= 3) {
         return {
           type: 'imminent',
-          text: `Next renewal: ${nextOcc.subscription.name} in ${nextOcc.daysRemaining} day${nextOcc.daysRemaining > 1 ? 's' : ''}`,
+          text: locale === 'fr'
+            ? `Prochain prélèvement : ${nextOcc.subscription.name} dans ${nextOcc.daysRemaining} jour${nextOcc.daysRemaining > 1 ? 's' : ''}`
+            : `Next renewal: ${nextOcc.subscription.name} in ${nextOcc.daysRemaining} day${nextOcc.daysRemaining > 1 ? 's' : ''}`,
           colorClass: 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-sand/90',
           icon: (
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-japandi-terracotta">
@@ -64,7 +75,9 @@ export const ActionableInsightHeader: React.FC = () => {
       const overAmount = totalMonthly - spendingGoal;
       return {
         type: 'warning',
-        text: `Over target: +${formatCurrency(overAmount, currencySymbol)} exceeding monthly goal`,
+        text: locale === 'fr'
+          ? `Budget dépassé : +${displayAmount(overAmount)} au-dessus de l'objectif`
+          : `Over target: +${displayAmount(overAmount)} exceeding monthly goal`,
         colorClass: 'text-japandi-akane border-japandi-akane/30 bg-japandi-akane/10',
         icon: (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-japandi-akane">
@@ -81,7 +94,9 @@ export const ActionableInsightHeader: React.FC = () => {
       const buffer = spendingGoal - totalMonthly;
       return {
         type: 'healthy',
-        text: `On track: ${formatCurrency(buffer, currencySymbol)} remaining under monthly target`,
+        text: locale === 'fr'
+          ? `Objectif respecté : ${displayAmount(buffer)} restant sur le budget cible`
+          : `On track: ${displayAmount(buffer)} remaining under monthly target`,
         colorClass: 'text-japandi-pine border-japandi-pine/30 bg-japandi-pine/10',
         icon: (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-japandi-pine">
@@ -95,7 +110,9 @@ export const ActionableInsightHeader: React.FC = () => {
     // Case D: General healthy summary
     return {
       type: 'summary',
-      text: `${subscriptions.length} active subscriptions totaling ${formatCurrency(totalMonthly, currencySymbol)}/mo`,
+      text: locale === 'fr'
+        ? `${subscriptions.length} abonnements actifs totalisant ${displayAmount(totalMonthly)} / mois`
+        : `${subscriptions.length} active subscriptions totaling ${displayAmount(totalMonthly)}/mo`,
       colorClass: 'text-japandi-muted border-japandi-border bg-japandi-sand/80',
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 text-japandi-muted">
@@ -103,7 +120,7 @@ export const ActionableInsightHeader: React.FC = () => {
         </svg>
       )
     };
-  }, [subscriptions, totalMonthly, spendingGoal, currencySymbol]);
+  }, [subscriptions, totalMonthly, spendingGoal, locale, isAmountBlurred]);
 
   return (
     <div className="flex flex-col gap-2 pt-2 select-none">
