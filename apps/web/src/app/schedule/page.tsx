@@ -140,29 +140,25 @@ export default function SchedulePage() {
 
 
         {/* Monthly Total Pill with Long Press / Click to Blur */}
-        <Tooltip
-          content={locale === 'fr' ? "Appui long ou clic pour masquer/afficher les montants" : "Click to toggle amount visibility"}
-          side="bottom"
+        <div
+          onClick={toggleAmountBlur}
+          onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
+          className="flex items-center gap-3 px-4 py-2.5 rounded-japandi-xl border transition-all cursor-pointer select-none bg-japandi-surface border-japandi-border hover:border-japandi-pine shadow-japandi-sm"
         >
-          <div
-            onClick={toggleAmountBlur}
-            onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-japandi-xl border transition-all cursor-pointer select-none bg-japandi-surface border-japandi-border hover:border-japandi-pine shadow-japandi-sm"
-          >
-            <div className="w-8 h-8 rounded-japandi-full flex items-center justify-center bg-japandi-pine/10 text-japandi-pine">
-              <Receipt className="w-4 h-4" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] uppercase font-semibold tracking-wider text-japandi-muted">
-                {t('schedule.monthlyTotal')}
-              </span>
-              <span className={`text-base font-extrabold text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
-                {format(totalMonthlyCost)}
-              </span>
-            </div>
+          <div className="w-8 h-8 rounded-japandi-full flex items-center justify-center bg-japandi-pine/10 text-japandi-pine">
+            <Receipt className="w-4 h-4" />
           </div>
-        </Tooltip>
+          <div className="flex flex-col">
+            <span className="text-[10px] uppercase font-semibold tracking-wider text-japandi-muted">
+              {t('schedule.monthlyTotal')}
+            </span>
+            <span className={`text-base font-extrabold text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+              {format(totalMonthlyCost)}
+            </span>
+          </div>
+        </div>
       </div>
+
 
 
       {/* 2. Responsive 2-Column Layout for Desktop */}

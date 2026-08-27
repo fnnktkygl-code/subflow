@@ -81,20 +81,17 @@ export default function HomePage() {
 
 
       {/* 2. Spending Card with Goal & Long Press to Blur */}
-      <Tooltip
-        content={locale === 'fr' ? "Appui long ou clic sur l'œil en haut pour masquer les montants" : "Long-press or click the eye icon to blur amounts"}
-        side="bottom"
+      <div
+        onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
+        onTouchStart={() => {
+          longPressTimerRef.current = setTimeout(toggleAmountBlur, 500);
+        }}
+        onTouchEnd={() => {
+          if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+        }}
+        className="rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 relative overflow-hidden transition-all select-none bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm cursor-default"
       >
-        <div
-          onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
-          onTouchStart={() => {
-            longPressTimerRef.current = setTimeout(toggleAmountBlur, 500);
-          }}
-          onTouchEnd={() => {
-            if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
-          }}
-          className="rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 relative overflow-hidden transition-all select-none bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm cursor-default"
-        >
+
           {/* Subtle accent backdrop */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-japandi-pine/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
 
@@ -200,10 +197,9 @@ export default function HomePage() {
             </button>
           </div>
         </div>
-      </Tooltip>
-
 
       {/* 3. Category Breakdown & Donut */}
+
       {subscriptions.length > 0 && (
         <div className="rounded-japandi-2xl border p-5 sm:p-6 flex flex-col gap-4 bg-japandi-surface border-japandi-border shadow-japandi-sm">
           <div className="flex items-center justify-between">

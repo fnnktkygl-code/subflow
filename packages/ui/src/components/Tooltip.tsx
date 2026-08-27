@@ -31,8 +31,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
   if (!content) return <>{children}</>;
 
   return (
-    <TooltipPrimitive.Root delayDuration={delayDuration}>
+    <TooltipPrimitive.Root delayDuration={delayDuration} disableHoverableContent={true}>
       <TooltipPrimitive.Trigger asChild={asChild}>
+
         {children}
       </TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
