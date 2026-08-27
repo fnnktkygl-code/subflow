@@ -26,14 +26,20 @@ export const LOCAL_SVG_LOGOS: Record<string, string> = {
   typeform: '/logos/typeform.svg',
   youtube: '/logos/youtube.svg',
   'youtube premium': '/logos/youtube.svg',
-  barbie: '/logos/barbie.svg'
+  barbie: '/logos/barbie.svg',
+  shadowz: '/logos/shadowz.png',
+  'shadowz (horreur)': '/logos/shadowz.png',
+  'shadowz svod': '/logos/shadowz.png'
 };
 
 export const KNOWN_BRAND_DOMAINS: Record<string, string> = {
   // Streaming & Media
   netflix: 'netflix.com',
   spotify: 'spotify.com',
+  shadowz: 'shadowz.fr',
+  'shadowz (horreur)': 'shadowz.fr',
   amazon: 'amazon.com',
+
   'amazon prime': 'amazon.com',
   'prime video': 'primevideo.com',
   prime: 'primevideo.com',

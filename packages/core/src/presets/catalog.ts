@@ -9,10 +9,12 @@ export interface CatalogService {
   currencySymbol: string;
   defaultCycle: BillingCycle;
   domain: string;
+  logoUrl?: string;
   popularIn: string[];
   cancellationUrl?: string;
   threeClicksCompliant?: boolean;
 }
+
 
 export const COMPLETE_SUBSCRIPTION_CATALOG: CatalogService[] = [
   // ==========================================
@@ -241,17 +243,19 @@ export const COMPLETE_SUBSCRIPTION_CATALOG: CatalogService[] = [
   },
   {
     id: 'shadowz',
-    name: 'Shadowz (Horreur)',
+    name: 'Shadowz',
     category: 'Entertainment',
     defaultAmount: 4.99,
     currency: 'EUR',
     currencySymbol: '€',
     defaultCycle: 'Monthly',
-    domain: 'touslescinemas.fr',
+    domain: 'shadowz.fr',
+    logoUrl: '/logos/shadowz.png',
     popularIn: ['FR'],
     cancellationUrl: 'https://www.shadowz.fr/account',
     threeClicksCompliant: true
   },
+
   {
     id: 'filmotv',
     name: 'FilmoTV',
