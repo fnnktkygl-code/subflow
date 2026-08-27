@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
   trailingSlash: false,
   transpilePackages: ['@subflow/core', '@subflow/ui'],
   reactStrictMode: true,
@@ -7,6 +8,7 @@ const nextConfig = {
     unoptimized: true
   }
 };
+
 
 
 export default nextConfig;

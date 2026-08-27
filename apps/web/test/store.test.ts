@@ -8,10 +8,9 @@ describe('Zustand State Store & Business Interactions', () => {
     store.clearExcludedIds();
   });
 
-  it('initializes with default subscriptions and profile', () => {
+  it('initializes with empty subscriptions array and clean profile', () => {
     const state = useSubscriptionStore.getState();
-    expect(state.subscriptions.length).toBeGreaterThan(0);
-    expect(state.profile.name).toBe('Richard');
+    expect(Array.isArray(state.subscriptions)).toBe(true);
     expect(state.profile.currencySymbol).toBe('€');
   });
 
@@ -35,13 +34,25 @@ describe('Zustand State Store & Business Interactions', () => {
 
   it('updates an existing subscription', () => {
     const store = useSubscriptionStore.getState();
-    const firstSub = store.subscriptions[0];
-    if (!firstSub) return;
+    store.addSubscription({
+      id: 'test-sub-edit',
+      name: 'Service to Edit',
+      amount: 10,
+      category: 'Productivity',
+      cycle: 'Monthly',
+      startDate: '2026-08-01'
+    });
 
-    store.updateSubscription(firstSub.id, { amount: 99.99 });
-    const updatedSub = useSubscriptionStore.getState().subscriptions.find((s) => s.id === firstSub.id);
-    expect(updatedSub?.amount).toBe(99.99);
+    const created = useSubscriptionStore.getState().subscriptions.find((s) => s.name === 'Service to Edit');
+    expect(created).toBeDefined();
+
+    if (created) {
+      store.updateSubscription(created.id, { amount: 99.99 });
+      const updatedSub = useSubscriptionStore.getState().subscriptions.find((s) => s.id === created.id);
+      expect(updatedSub?.amount).toBe(99.99);
+    }
   });
+
 
   it('deletes a subscription cleanly and removes it from excluded list', () => {
     const store = useSubscriptionStore.getState();

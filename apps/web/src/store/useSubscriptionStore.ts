@@ -48,51 +48,21 @@ interface SubFlowState {
 }
 
 
-const DEFAULT_SUBSCRIPTIONS: Subscription[] = [
-  {
-    id: 'sub-netflix',
-    name: 'Netflix',
-    amount: 13.49,
-    category: 'Entertainment',
-    cycle: 'Monthly',
-    startDate: '2026-08-27',
-    logoUrl: fetchLogo('Netflix'),
-    status: 'active'
-  },
-  {
-    id: 'sub-spotify',
-    name: 'Spotify',
-    amount: 10.99,
-    category: 'Entertainment',
-    cycle: 'Monthly',
-    startDate: '2026-08-15',
-    logoUrl: fetchLogo('Spotify'),
-    status: 'active'
-  },
-  {
-    id: 'sub-chatgpt',
-    name: 'ChatGPT Plus',
-    amount: 24.00,
-    category: 'Productivity',
-    cycle: 'Monthly',
-    startDate: '2026-08-01',
-    logoUrl: fetchLogo('ChatGPT'),
-    status: 'active'
-  }
-];
+const DEFAULT_SUBSCRIPTIONS: Subscription[] = [];
 
 const DEFAULT_PROFILE: UserProfile = {
   id: 'usr-default',
   name: 'Richard',
-  email: 'richard@subflow.app',
+  email: '',
   currency: 'EUR',
   currencySymbol: '€',
   countryCode: 'FR',
-  spendingGoal: 80,
-  monthlyIncome: 2500,
-  isIncomeConfigured: true,
+  spendingGoal: 0,
+  monthlyIncome: 0,
+  isIncomeConfigured: false,
   themeMode: 'light'
 };
+
 
 export const useSubscriptionStore = create<SubFlowState>()(
   persist(

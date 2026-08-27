@@ -27,18 +27,20 @@ export const NotificationSettingsCard: React.FC = () => {
   };
 
   const handleSendTestNotification = () => {
-    const upcoming = getUpcomingRenewalsForNotification(subscriptions, new Date(2026, 7, 27), leadTime);
+    const upcoming = getUpcomingRenewalsForNotification(subscriptions, new Date(), leadTime);
+    const firstSub = subscriptions[0];
     const item = upcoming[0] || {
-      title: '🔔 SubFlow Reminder : Netflix',
-      body: 'Your Netflix subscription will be renewed in 2 days.'
+      title: firstSub ? `🔔 SubFlow : ${firstSub.name}` : '🔔 SubFlow Notifications',
+      body: firstSub ? `Votre abonnement ${firstSub.name} arrive bientôt à échéance.` : 'Les notifications de prélèvement sont actives !'
     };
 
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       new Notification(item.title, {
         body: item.body,
-        icon: '/logos/netflix.svg'
+        icon: firstSub?.logoUrl || '/icon-192.png'
       });
     }
+
 
     setTestSent(true);
     setTimeout(() => setTestSent(false), 3000);

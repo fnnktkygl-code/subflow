@@ -14,8 +14,12 @@ export default function SchedulePage() {
   const { subscriptions, profile, isAmountBlurred, toggleAmountBlur, deleteSubscription } = useSubscriptionStore();
   const { t, format, locale } = useTranslation();
 
-  const [currentMonthDate, setCurrentMonthDate] = useState(() => new Date(2026, 7, 1)); // August 2026
-  const [selectedDay, setSelectedDay] = useState<number>(27);
+  const [currentMonthDate, setCurrentMonthDate] = useState(() => {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), 1);
+  });
+  const [selectedDay, setSelectedDay] = useState<number>(() => new Date().getDate());
+
 
   // Modals & Drawers
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

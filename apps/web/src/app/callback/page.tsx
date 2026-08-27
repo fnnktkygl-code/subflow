@@ -67,11 +67,11 @@ function TrueLayerCallbackContent() {
     processTrueLayerAuth(code);
   }, [searchParams]);
 
-  const processTrueLayerAuth = async (code: string) => {
+    const processTrueLayerAuth = async (code: string) => {
     try {
       setStatus('exchanging');
 
-      // Nettoyer l'URL immédiatement pour éviter la réutilisation du code à l'actualisation
+      // Clean URL immediately
       if (typeof window !== 'undefined') {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
@@ -80,44 +80,91 @@ function TrueLayerCallbackContent() {
         ? `${window.location.origin}/callback`
         : 'https://subflowapp.vercel.app/callback';
 
-      // 1. Échange du code contre le token
-      const tokenRes = await fetch('/api/truelayer/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, redirect_uri: redirectUri })
-      });
+      // 1. Exchange authorization code for token
+      let tokenData: any = null;
+      try {
+        const tokenRes = await fetch('/api/truelayer/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code, redirect_uri: redirectUri })
+        });
+        if (tokenRes.ok) {
+          tokenData = await tokenRes.json();
+        }
+      } catch (_) {}
 
-      const tokenData = await tokenRes.json();
-      if (!tokenRes.ok || !tokenData.access_token) {
-        throw new Error(tokenData.error || 'Impossible d\'échanger le code d\'autorisation');
+      // Direct fallback if API route is not present in static export
+      if (!tokenData || !tokenData.access_token) {
+        const params = new URLSearchParams();
+        params.append('grant_type', 'authorization_code');
+        params.append('client_id', 'subflow-6571e7');
+        params.append('redirect_uri', redirectUri);
+        params.append('code', code);
+
+        const directRes = await fetch('https://auth.truelayer.com/connect/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: params.toString()
+        });
+        tokenData = await directRes.json();
+      }
+
+      if (!tokenData || !tokenData.access_token) {
+        throw new Error(tokenData?.error_description || tokenData?.error || 'Impossible d\'échanger le code d\'autorisation avec TrueLayer.');
       }
 
       const accessToken = tokenData.access_token;
       setStatus('fetching_data');
 
-      // 2. Récupération des comptes bancaires
-      const accountsRes = await fetch('/api/truelayer/accounts', {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      });
-      const accountsData = await accountsRes.json();
+      // 2. Fetch Bank Accounts
+      let accountsData: any = null;
+      try {
+        const accountsRes = await fetch('/api/truelayer/accounts', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (accountsRes.ok) {
+          accountsData = await accountsRes.json();
+        }
+      } catch (_) {}
 
-      const accountsList = Array.isArray(accountsData.results) ? accountsData.results : [];
+      if (!accountsData || !Array.isArray(accountsData.results)) {
+        const directAccountsRes = await fetch('https://api.truelayer.com/data/v1/accounts', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        accountsData = await directAccountsRes.json();
+      }
+
+      const accountsList = Array.isArray(accountsData?.results) ? accountsData.results : [];
       setAccountsCount(accountsList.length);
 
       if (accountsList[0]?.provider?.display_name) {
         setBankName(accountsList[0].provider.display_name);
       }
 
-      // 3. Récupération des transactions sur 90 jours
+      // 3. Fetch 90 days of transactions across all accounts
       const allTransactions: TrueLayerTransaction[] = [];
+      const fromDate = new Date(Date.now() - 90 * 86400000).toISOString();
+      const toDate = new Date().toISOString();
 
       for (const acc of accountsList) {
         try {
-          const txRes = await fetch(`/api/truelayer/transactions?account_id=${encodeURIComponent(acc.account_id)}`, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-          });
-          const txData = await txRes.json();
-          if (Array.isArray(txData.results)) {
+          let txData: any = null;
+          try {
+            const txRes = await fetch(`/api/truelayer/transactions?account_id=${encodeURIComponent(acc.account_id)}`, {
+              headers: { Authorization: `Bearer ${accessToken}` }
+            });
+            if (txRes.ok) txData = await txRes.json();
+          } catch (_) {}
+
+          if (!txData || !Array.isArray(txData.results)) {
+            const directTxRes = await fetch(
+              `https://api.truelayer.com/data/v1/accounts/${acc.account_id}/transactions?from=${fromDate}&to=${toDate}`,
+              { headers: { Authorization: `Bearer ${accessToken}` } }
+            );
+            txData = await directTxRes.json();
+          }
+
+          if (Array.isArray(txData?.results)) {
             txData.results.forEach((tx: any) => {
               const txDate = tx.timestamp || tx.date || new Date().toISOString();
               allTransactions.push({
@@ -135,6 +182,7 @@ function TrueLayerCallbackContent() {
           }
         } catch (_) {}
       }
+
 
       // 4. Détection intelligente des récurrences
       const detected = detectSubscriptionsFromTransactions(allTransactions, {

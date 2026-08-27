@@ -44,11 +44,12 @@ export const ActionableInsightHeader: React.FC = () => {
 
   const displayAmount = (amt: number) => isAmountBlurred ? '•••• €' : format(amt);
 
-  // 2. Compute the most critical financial insight
+  // 2. Compute the most critical financial insight based on current real-time date
   const insight = useMemo(() => {
-    const now = new Date(2026, 7, 27); // August 27, 2026
+    const now = new Date();
     const occurrences = calculateUpcomingOccurrences(subscriptions, now, 60);
     const sortedUpcoming = occurrences.filter((occ) => occ.daysRemaining >= 0);
+
 
     // Case A: Imminent renewal (today or within 7 days)
     if (sortedUpcoming.length > 0 && sortedUpcoming[0]) {

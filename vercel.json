@@ -1,7 +1,6 @@
 {
-  "framework": "nextjs",
+  "outputDirectory": "apps/web/out",
   "headers": [
-
     {
       "source": "/(.*)",
       "headers": [
@@ -30,4 +29,3 @@
     }
   ]
 }
-
