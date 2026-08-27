@@ -13,7 +13,8 @@ import {
   Laptop,
   ArrowRight,
   Sparkles,
-  Key
+  HardDrive,
+  AlertTriangle
 } from 'lucide-react';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
@@ -22,8 +23,7 @@ import {
   loginWithGoogleAndSync,
   pushToGoogleDrive,
   pullFromGoogleDrive,
-  disconnectGoogleAccount,
-  DEFAULT_GOOGLE_CLIENT_ID
+  disconnectGoogleAccount
 } from '../services/googleDriveSync';
 
 interface GoogleAccountModalProps {
@@ -34,18 +34,10 @@ interface GoogleAccountModalProps {
 export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, onClose }) => {
   useEscapeKey(isOpen, onClose);
   const { locale } = useTranslation();
-  const {
-    googleAccount,
-    driveSyncStatus,
-    driveSyncError,
-    googleClientId,
-    setGoogleClientId
-  } = useSubscriptionStore();
+  const { googleAccount, driveSyncStatus, driveSyncError } = useSubscriptionStore();
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showConfigClientId, setShowConfigClientId] = useState(false);
-  const [customClientIdInput, setCustomClientIdInput] = useState(googleClientId || DEFAULT_GOOGLE_CLIENT_ID);
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
 
   if (!isOpen) return null;
@@ -56,14 +48,14 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
     setSuccessNotice(null);
 
     try {
-      if (customClientIdInput.trim()) {
-        setGoogleClientId(customClientIdInput.trim());
-      }
-      await loginWithGoogleAndSync(customClientIdInput.trim());
+      await loginWithGoogleAndSync();
       setSuccessNotice(locale === 'fr' ? 'Connecté avec succès à Google Drive !' : 'Successfully connected to Google Drive!');
-      setTimeout(() => setSuccessNotice(null), 3000);
+      setTimeout(() => {
+        setSuccessNotice(null);
+        onClose();
+      }, 1500);
     } catch (err: any) {
-      setErrorMessage(err.message || (locale === 'fr' ? 'Impossible de se connecter à Google.' : 'Failed to connect to Google.'));
+      setErrorMessage(err.message || (locale === 'fr' ? 'Impossible d\'ouvrir la fenêtre de connexion Google.' : 'Unable to open Google login.'));
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +66,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
     setErrorMessage(null);
     try {
       await pushToGoogleDrive();
-      setSuccessNotice(locale === 'fr' ? 'Sauvegarde Google Drive mise à jour !' : 'Google Drive backup updated!');
+      setSuccessNotice(locale === 'fr' ? 'Sauvegarde Google Drive synchronisée !' : 'Google Drive backup synced!');
       setTimeout(() => setSuccessNotice(null), 3000);
     } catch (err: any) {
       setErrorMessage(err.message || 'Erreur lors de la synchronisation.');
@@ -99,7 +91,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
 
   const handleLogout = () => {
     disconnectGoogleAccount();
-    setSuccessNotice(locale === 'fr' ? 'Compte Google déconnecté.' : 'Google account disconnected.');
+    setSuccessNotice(locale === 'fr' ? 'Déconnecté. Vos données sont désormais conservées en local.' : 'Disconnected. Your data is now kept locally.');
     setTimeout(() => setSuccessNotice(null), 3000);
   };
 
@@ -112,7 +104,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
       />
 
       {/* Modal Box */}
-      <div className="relative w-full max-w-md rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+      <div className="relative w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-japandi-border bg-japandi-sand/20">
@@ -124,11 +116,11 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
               <h2 className="text-base font-bold text-japandi-text">
                 {googleAccount
                   ? (locale === 'fr' ? 'Compte Google & Drive' : 'Google Account & Drive')
-                  : (locale === 'fr' ? 'Connexion Google Drive' : 'Connect Google Drive')}
+                  : (locale === 'fr' ? 'Sauvegarde & Stockage' : 'Cloud Backup & Storage')}
               </h2>
               <p className="text-[11px] text-japandi-muted flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-japandi-pine" />
-                {locale === 'fr' ? 'Synchronisation Cloud temps réel' : 'Real-time Cloud Sync'}
+                {locale === 'fr' ? 'Sécurisé & Privé (zéro publicité)' : 'Private & Sandboxed'}
               </p>
             </div>
           </div>
@@ -136,7 +128,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer la modal"
+            aria-label="Fermer"
             className="p-2 rounded-japandi-md text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/60 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -146,7 +138,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
         {/* Content Body */}
         <div className="p-5 overflow-y-auto flex-1 flex flex-col gap-4">
 
-          {/* Success message banner */}
+          {/* Success Banner */}
           {successNotice && (
             <div className="p-3 rounded-japandi-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2 animate-in fade-in">
               <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
@@ -154,7 +146,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
             </div>
           )}
 
-          {/* Error message banner */}
+          {/* Error Banner */}
           {(errorMessage || driveSyncError) && (
             <div className="p-3 rounded-japandi-xl bg-japandi-terracotta/10 border border-japandi-terracotta/30 text-japandi-terracotta text-xs font-semibold flex items-start gap-2 animate-in fade-in">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -165,7 +157,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
           )}
 
           {googleAccount ? (
-            /* Logged-In State */
+            /* ================= STATE 1: ALREADY CONNECTED ================= */
             <div className="flex flex-col gap-4">
               {/* Profile Card */}
               <div className="p-4 rounded-japandi-xl bg-japandi-elevated border border-japandi-border flex items-center justify-between gap-3 shadow-xs">
@@ -193,22 +185,22 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
 
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>{locale === 'fr' ? 'Actif' : 'Synced'}</span>
+                  <span>{locale === 'fr' ? 'Synchronisé' : 'Synced'}</span>
                 </span>
               </div>
 
-              {/* Multi-Device Feature Highlight */}
-              <div className="p-3.5 rounded-japandi-xl bg-japandi-sand/30 border border-japandi-border flex flex-col gap-2">
+              {/* Multi-Device Continuity Summary */}
+              <div className="p-4 rounded-japandi-xl bg-japandi-sand/30 border border-japandi-border flex flex-col gap-2">
                 <span className="text-xs font-bold text-japandi-text flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-japandi-pine" />
-                  <span>{locale === 'fr' ? 'Synchronisation multi-appareils' : 'Multi-Device Sync'}</span>
+                  <span>{locale === 'fr' ? 'Synchronisation automatique en temps réel' : 'Real-Time Auto Sync'}</span>
                 </span>
-                <p className="text-[11px] text-japandi-muted leading-relaxed">
+                <p className="text-xs text-japandi-muted leading-relaxed">
                   {locale === 'fr'
-                    ? 'Vos abonnements sont sauvegardés en temps réel sur votre Google Drive privé. Connectez-vous sur votre téléphone ou un autre ordinateur pour récupérer automatiquement toutes vos données.'
-                    : 'Your subscriptions are backed up in real time to your private Google Drive. Log in on your phone or laptop to sync instantly.'}
+                    ? 'Tous vos abonnements et réglages sont sauvegardés sur votre Google Drive privé. Lorsque vous ouvrez SubFlow sur votre téléphone ou un autre ordinateur, vos données se synchronisent automatiquement.'
+                    : 'All your subscriptions and settings are backed up to your private Google Drive and stay up-to-date across all your devices.'}
                 </p>
-                <div className="flex items-center justify-center gap-3 text-xs font-semibold text-japandi-muted pt-1">
+                <div className="flex items-center justify-center gap-3 text-xs font-semibold text-japandi-muted pt-2 border-t border-japandi-border/40">
                   <div className="flex items-center gap-1">
                     <Smartphone className="w-3.5 h-3.5 text-japandi-pine" />
                     <span>Mobile</span>
@@ -221,7 +213,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                 </div>
               </div>
 
-              {/* Action Buttons */}
+              {/* Actions */}
               <div className="flex flex-col gap-2 pt-1">
                 <button
                   type="button"
@@ -249,86 +241,113 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                   className="w-full py-2 px-4 rounded-japandi-xl border border-japandi-border text-japandi-terracotta hover:bg-japandi-terracotta/10 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 mt-2"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>{locale === 'fr' ? 'Se déconnecter de Google' : 'Sign out of Google'}</span>
+                  <span>{locale === 'fr' ? 'Se déconnecter (Repasser en mode local)' : 'Sign out (Switch to Local Only)'}</span>
                 </button>
               </div>
             </div>
           ) : (
-            /* Logged-Out / Onboarding State */
+            /* ================= STATE 2: CAPTURE-INSPIRED CHOICE (CLOUD VS LOCAL) ================= */
             <div className="flex flex-col gap-4">
-              <div className="text-center py-2 flex flex-col items-center gap-2">
-                <div className="w-12 h-12 rounded-2xl bg-japandi-pine/10 text-japandi-pine flex items-center justify-center shadow-xs">
-                  <Cloud className="w-6 h-6" />
+              
+              {/* Option 1: Cloud Google Drive (Recommended) */}
+              <div className="p-4 rounded-japandi-2xl border-2 border-japandi-pine bg-japandi-sand/30 flex flex-col gap-3 relative shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Cloud className="w-4 h-4 text-japandi-pine" />
+                    <span className="font-extrabold text-sm text-japandi-text">
+                      {locale === 'fr' ? '1. Sauvegarde Cloud Google Drive' : '1. Google Drive Cloud Sync'}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-japandi-pine text-white">
+                    {locale === 'fr' ? 'Recommandé' : 'Recommended'}
+                  </span>
                 </div>
-                <h3 className="text-sm font-extrabold text-japandi-text">
-                  {locale === 'fr' ? 'Sauvegarde & Continuité multi-écrans' : 'Cloud Backup & Multi-device Sync'}
-                </h3>
-                <p className="text-xs text-japandi-muted max-w-xs">
+
+                <p className="text-xs text-japandi-muted leading-relaxed">
                   {locale === 'fr'
-                    ? 'Connectez votre compte Google pour synchroniser vos données en temps réel entre votre mobile et votre ordinateur.'
-                    : 'Sign in with Google to sync your data in real time between your mobile and computer.'}
+                    ? 'Connectez votre compte Google pour sauvegarder vos abonnements en temps réel sur votre Google Drive privé.'
+                    : 'Connect your Google account to back up subscriptions in real time to your private Google Drive.'}
                 </p>
+
+                <div className="flex flex-col gap-1.5 text-xs text-japandi-text pt-1">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />
+                    <span>{locale === 'fr' ? 'Synchronisation automatique entre téléphone et ordinateur' : 'Real-time sync between phone & computer'}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />
+                    <span>{locale === 'fr' ? 'Restauration garantie en cas de réinitialisation ou changement d\'appareil' : 'Instant recovery if you change or reset your phone'}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />
+                    <span>{locale === 'fr' ? 'Stockage privé 100% sécurisé (vos données vous appartiennent)' : '100% private sandboxed storage in your own Drive'}</span>
+                  </div>
+                </div>
+
+                {/* Google Sign-in Action Button */}
+                <button
+                  type="button"
+                  disabled={isLoading}
+                  onClick={handleLogin}
+                  className="w-full mt-2 py-3 px-4 rounded-japandi-xl bg-japandi-text text-japandi-canvas hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-3 font-bold text-xs shadow-japandi-md disabled:opacity-50"
+                >
+                  {/* Official Google G Logo */}
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                    />
+                  </svg>
+                  <span>
+                    {isLoading
+                      ? (locale === 'fr' ? 'Connexion en cours...' : 'Connecting...')
+                      : (locale === 'fr' ? 'Se connecter avec Google' : 'Sign in with Google')}
+                  </span>
+                </button>
               </div>
 
-              {/* Benefits list */}
-              <div className="p-3.5 rounded-japandi-xl bg-japandi-elevated border border-japandi-border flex flex-col gap-2.5 text-xs">
-                <div className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-japandi-pine flex-shrink-0 mt-0.5" />
-                  <span className="text-japandi-text font-medium">
-                    {locale === 'fr' ? 'Sauvegardes automatiques en temps réel' : 'Real-time automated backups'}
+              {/* Option 2: Local Only Warning Card */}
+              <div className="p-4 rounded-japandi-xl border border-japandi-border bg-japandi-elevated flex flex-col gap-2.5">
+                <div className="flex items-center gap-2">
+                  <HardDrive className="w-4 h-4 text-japandi-muted" />
+                  <span className="font-bold text-xs text-japandi-text">
+                    {locale === 'fr' ? '2. Mode Local Uniquement (Hors-ligne)' : '2. Local Only Mode (Offline)'}
                   </span>
                 </div>
-                <div className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-japandi-pine flex-shrink-0 mt-0.5" />
-                  <span className="text-japandi-text font-medium">
-                    {locale === 'fr' ? 'Restauration instantanée sur nouvel appareil' : 'Instant restore on any new device'}
+
+                <div className="p-2.5 rounded-japandi-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[11px] text-amber-700 dark:text-amber-400">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <span>
+                    {locale === 'fr'
+                      ? 'Attention : en mode local, vos données restent uniquement dans ce navigateur. Elles ne seront pas synchronisées sur votre téléphone et seront perdues si vous videz le cache ou changez d\'appareil.'
+                      : 'Notice: in local mode, data is only stored in this browser. You won\'t be able to sync across devices or recover data if you reset your browser cache.'}
                   </span>
                 </div>
-                <div className="flex items-start gap-2.5">
-                  <CheckCircle2 className="w-4 h-4 text-japandi-pine flex-shrink-0 mt-0.5" />
-                  <span className="text-japandi-text font-medium">
-                    {locale === 'fr' ? 'Stockage privé sécurisé dans Google Drive AppData' : 'Private sandboxed storage in Google Drive'}
-                  </span>
-                </div>
+
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full py-2 px-3 rounded-japandi-lg border border-japandi-border bg-japandi-surface text-japandi-muted hover:text-japandi-text hover:border-japandi-pine text-xs font-semibold transition-all mt-1"
+                >
+                  {locale === 'fr' ? 'Continuer en mode local uniquement' : 'Continue in Local Mode'}
+                </button>
               </div>
 
-              {/* Google Sign-In Button */}
-              <button
-                type="button"
-                disabled={isLoading}
-                onClick={handleLogin}
-                className="w-full py-3.5 px-4 rounded-japandi-xl bg-japandi-text text-japandi-canvas hover:opacity-90 active:scale-[0.99] transition-all flex items-center justify-center gap-3 font-bold text-xs shadow-japandi-md disabled:opacity-50 mt-1"
-              >
-                {/* Official Google G Logo */}
-                <svg className="w-4 h-4" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                  />
-                </svg>
-                <span>
-                  {isLoading
-                    ? (locale === 'fr' ? 'Connexion en cours...' : 'Connecting...')
-                    : (locale === 'fr' ? 'Se connecter avec Google' : 'Sign in with Google')}
-                </span>
-              </button>
             </div>
           )}
         </div>
-
-
 
         {/* Footer */}
         <div className="p-4 border-t border-japandi-border bg-japandi-sand/10 flex items-center justify-end">
