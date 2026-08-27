@@ -1,13 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export',
-  trailingSlash: false,
+  trailingSlash: true,
   transpilePackages: ['@subflow/core', '@subflow/ui'],
   reactStrictMode: true,
   images: {
     unoptimized: true
   }
 };
+
 
 
 

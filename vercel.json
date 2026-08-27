@@ -1,6 +1,8 @@
 {
   "outputDirectory": "apps/web/out",
+  "cleanUrls": true,
   "headers": [
+
     {
       "source": "/(.*)",
       "headers": [
