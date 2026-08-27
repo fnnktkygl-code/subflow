@@ -50,27 +50,50 @@ export const ActionableInsightHeader: React.FC = () => {
     const occurrences = calculateUpcomingOccurrences(subscriptions, now, 60);
     const sortedUpcoming = occurrences.filter((occ) => occ.daysRemaining >= 0);
 
-    // Case A: Imminent renewal (today or within 3 days)
+    // Case A: Imminent renewal (today or within 7 days)
     if (sortedUpcoming.length > 0 && sortedUpcoming[0]) {
       const nextOcc = sortedUpcoming[0];
+      const subName = nextOcc.subscription.name;
+      const subAmount = displayAmount(nextOcc.subscription.amount);
+
       if (nextOcc.daysRemaining === 0) {
         return {
           type: 'imminent',
           text: locale === 'fr'
-            ? `Prélèvement aujourd'hui : ${nextOcc.subscription.name} (${displayAmount(nextOcc.subscription.amount)})`
-            : `Due today: ${nextOcc.subscription.name} (${displayAmount(nextOcc.subscription.amount)})`,
+            ? `Vous avez un prélèvement aujourd'hui pour ${subName} (${subAmount})`
+            : `You have a payment due today for ${subName} (${subAmount})`,
           colorClass: 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-terracotta/10',
           icon: <Bell className="w-4 h-4 flex-shrink-0 text-japandi-terracotta" />
+        };
+      }
+      if (nextOcc.daysRemaining === 1) {
+        return {
+          type: 'imminent',
+          text: locale === 'fr'
+            ? `Vous avez un prélèvement demain pour ${subName} (${subAmount})`
+            : `You have a payment due tomorrow for ${subName} (${subAmount})`,
+          colorClass: 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-sand/90',
+          icon: <Clock className="w-4 h-4 flex-shrink-0 text-japandi-terracotta" />
         };
       }
       if (nextOcc.daysRemaining <= 3) {
         return {
           type: 'imminent',
           text: locale === 'fr'
-            ? `Prochain prélèvement : ${nextOcc.subscription.name} dans ${nextOcc.daysRemaining} jour${nextOcc.daysRemaining > 1 ? 's' : ''}`
-            : `Next renewal: ${nextOcc.subscription.name} in ${nextOcc.daysRemaining} day${nextOcc.daysRemaining > 1 ? 's' : ''}`,
+            ? `Vous avez un prélèvement dans ${nextOcc.daysRemaining} jours pour ${subName} (${subAmount})`
+            : `You have a payment in ${nextOcc.daysRemaining} days for ${subName} (${subAmount})`,
           colorClass: 'text-japandi-terracotta border-japandi-terracotta/30 bg-japandi-sand/90',
           icon: <Clock className="w-4 h-4 flex-shrink-0 text-japandi-terracotta" />
+        };
+      }
+      if (nextOcc.daysRemaining <= 7) {
+        return {
+          type: 'imminent',
+          text: locale === 'fr'
+            ? `Votre prochain prélèvement sera ${subName} (${subAmount}) dans ${nextOcc.daysRemaining} jours`
+            : `Your next payment is ${subName} (${subAmount}) in ${nextOcc.daysRemaining} days`,
+          colorClass: 'text-japandi-pine border-japandi-border bg-japandi-elevated',
+          icon: <Clock className="w-4 h-4 flex-shrink-0 text-japandi-pine" />
         };
       }
     }
@@ -81,8 +104,8 @@ export const ActionableInsightHeader: React.FC = () => {
       return {
         type: 'warning',
         text: locale === 'fr'
-          ? `Budget dépassé : +${displayAmount(overAmount)} au-dessus de l'objectif`
-          : `Over target: +${displayAmount(overAmount)} exceeding monthly goal`,
+          ? `Attention, votre budget est dépassé de ${displayAmount(overAmount)} ce mois-ci`
+          : `Heads up, you are ${displayAmount(overAmount)} over your monthly budget`,
         colorClass: 'text-japandi-akane border-japandi-akane/30 bg-japandi-akane/10',
         icon: <AlertTriangle className="w-4 h-4 flex-shrink-0 text-japandi-akane" />
       };
@@ -94,23 +117,35 @@ export const ActionableInsightHeader: React.FC = () => {
       return {
         type: 'healthy',
         text: locale === 'fr'
-          ? `Objectif respecté : ${displayAmount(buffer)} restant sur le budget cible`
-          : `On track: ${displayAmount(buffer)} remaining under monthly target`,
+          ? `Bravo, il vous reste ${displayAmount(buffer)} sur votre budget ce mois-ci`
+          : `Great job, you have ${displayAmount(buffer)} left in your budget this month`,
         colorClass: 'text-japandi-pine border-japandi-pine/30 bg-japandi-pine/10',
         icon: <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-japandi-pine" />
       };
     }
 
     // Case D: General healthy summary
+    if (subscriptions.length === 0) {
+      return {
+        type: 'neutral',
+        text: locale === 'fr'
+          ? 'Ajoutez vos premiers abonnements pour commencer votre suivi'
+          : 'Add your first subscriptions to start tracking',
+        colorClass: 'text-japandi-pine border-japandi-border bg-japandi-elevated',
+        icon: <Activity className="w-4 h-4 flex-shrink-0 text-japandi-pine" />
+      };
+    }
+
     return {
       type: 'neutral',
       text: locale === 'fr'
-        ? `Gestion active de ${subscriptions.length} abonnement${subscriptions.length > 1 ? 's' : ''}`
-        : `Active tracking of ${subscriptions.length} subscription${subscriptions.length > 1 ? 's' : ''}`,
+        ? 'Tout est calme : aucun prélèvement prévu dans les prochains jours'
+        : 'All clear: no payments due in the next few days',
       colorClass: 'text-japandi-pine border-japandi-border bg-japandi-elevated',
       icon: <Activity className="w-4 h-4 flex-shrink-0 text-japandi-pine" />
     };
   }, [subscriptions, totalMonthly, spendingGoal, locale, isAmountBlurred]);
+
 
 
 
