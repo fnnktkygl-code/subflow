@@ -198,5 +198,30 @@ export function calculateUpcomingOccurrences(
     }
   });
 
-  return occurrences.sort((a, b) => a.daysRemaining - b.daysRemaining);
+    return occurrences.sort((a, b) => a.daysRemaining - b.daysRemaining);
+}
+
+export function calculateNextRenewalDate(
+  lastChargeDateStr: string,
+  cycle: string = 'monthly',
+  referenceDate: Date = new Date()
+): string {
+  const last = new Date(lastChargeDateStr);
+  if (isNaN(last.getTime())) return new Date().toISOString().slice(0, 10);
+
+  const next = new Date(last);
+  const refTime = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate()).getTime();
+  const c = (cycle || 'monthly').toLowerCase();
+
+  while (next.getTime() <= refTime) {
+    if (c === 'weekly') {
+      next.setDate(next.getDate() + 7);
+    } else if (c === 'yearly' || c === 'annual') {
+      next.setFullYear(next.getFullYear() + 1);
+    } else {
+      next.setMonth(next.getMonth() + 1);
+    }
+  }
+
+  return next.toISOString().slice(0, 10);
 }

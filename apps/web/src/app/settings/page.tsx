@@ -6,23 +6,29 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { CustomDropdown, DropdownOption } from '@subflow/ui';
 import { ThemeMode, Locale } from '@subflow/core';
-import { NotificationSettingsCard } from '../../components/NotificationSettingsCard';
-import { BackupManagerModal } from '../../components/BackupManagerModal';
 import { StarterPackModal } from '../../components/StarterPackModal';
+import { BackupManagerModal } from '../../components/BackupManagerModal';
+import { TrueLayerSyncModal } from '../../components/TrueLayerSyncModal';
+import { NotificationSettingsCard } from '../../components/NotificationSettingsCard';
 import {
-  Landmark,
+  Globe,
   Languages,
-  CircleDollarSign,
-  Shield,
+  Palette,
+  Bell,
+  Sparkles,
+  Download,
+  Upload,
   Trash2,
+  Check,
+  CheckCircle2,
   ChevronRight,
+  Shield,
+  FileSpreadsheet,
   Sun,
   Moon,
-  Sparkles,
-  Palette,
-  CheckCircle2,
-  FileSpreadsheet,
   Rocket,
+  Landmark,
+  Building2,
   AlertCircle
 } from 'lucide-react';
 
@@ -90,6 +96,7 @@ export default function SettingsPage() {
   // Modals
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const [isStarterPackOpen, setIsStarterPackOpen] = useState(false);
+  const [isTrueLayerModalOpen, setIsTrueLayerModalOpen] = useState(false);
 
   const handleSaveFinancials = (e: React.FormEvent) => {
     e.preventDefault();
@@ -257,7 +264,7 @@ export default function SettingsPage() {
           <h2 className="text-sm font-bold text-japandi-text">{t('settings.toolsSection')}</h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {/* Starter Pack Trigger */}
           <button
             type="button"
@@ -276,6 +283,26 @@ export default function SettingsPage() {
             <ChevronRight className="w-4 h-4 text-japandi-muted group-hover:text-japandi-pine transition-colors" />
           </button>
 
+          {/* TrueLayer Open Banking Sync */}
+          <button
+            type="button"
+            onClick={() => setIsTrueLayerModalOpen(true)}
+            className="p-3.5 rounded-japandi-xl bg-japandi-elevated border border-japandi-border hover:border-japandi-pine flex items-center justify-between transition-all text-left group shadow-2xs"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-japandi-full bg-japandi-pine/10 flex items-center justify-center text-japandi-pine group-hover:scale-105 transition-transform">
+                <Building2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-xs text-japandi-text">
+                  {locale === 'fr' ? 'Synchro Bancaire' : 'TrueLayer Bank Sync'}
+                </h3>
+                <span className="text-[10px] text-japandi-muted">DSP2 & Détection auto</span>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-japandi-muted group-hover:text-japandi-pine transition-colors" />
+          </button>
+
           {/* Backup Manager Trigger */}
           <button
             type="button"
@@ -288,7 +315,7 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h3 className="font-bold text-xs text-japandi-text">{t('settings.openBackup')}</h3>
-                <span className="text-[10px] text-japandi-muted">CSV & AES-256</span>
+                <span className="text-[10px] text-japandi-muted">Drive, CSV & AES</span>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-japandi-muted group-hover:text-japandi-pine transition-colors" />
@@ -387,6 +414,13 @@ export default function SettingsPage() {
         <StarterPackModal
           isOpen={isStarterPackOpen}
           onClose={() => setIsStarterPackOpen(false)}
+        />
+      )}
+
+      {isTrueLayerModalOpen && (
+        <TrueLayerSyncModal
+          isOpen={isTrueLayerModalOpen}
+          onClose={() => setIsTrueLayerModalOpen(false)}
         />
       )}
 

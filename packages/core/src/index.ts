@@ -10,3 +10,5 @@ export * from './backup/crypto';
 export * from './backup/googleDrive';
 export * from './notifications/scheduler';
 export * from './i18n';
+export * from './truelayer/types';
+export * from './truelayer/detector';

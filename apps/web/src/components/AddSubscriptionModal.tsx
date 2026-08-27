@@ -17,7 +17,8 @@ import { useEscapeKey } from '../hooks/useEscapeKey';
 import { CategoryIcon } from './CategoryIcon';
 import { JapandiDatePicker } from './JapandiDatePicker';
 import { CancellationAssistantModal } from './CancellationAssistantModal';
-import { X, Sparkles, FileText } from 'lucide-react';
+import { TrueLayerSyncModal } from './TrueLayerSyncModal';
+import { X, Sparkles, FileText, Building2 } from 'lucide-react';
 
 interface AddSubscriptionModalProps {
   isOpen: boolean;
@@ -73,6 +74,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   const [logoUrl, setLogoUrl] = useState<string>('');
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
+  const [isTrueLayerOpen, setIsTrueLayerOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const matchingSuggestions = React.useMemo(() => {
@@ -201,23 +203,42 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
 
         {/* Content body */}
         <div className="p-5 overflow-y-auto flex-1 flex flex-col gap-5">
-          {/* Quick Pick Presets */}
+          {/* Quick Pick Presets & Bank Sync */}
           {!editSubscription && (
-            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
-              {presets.map((preset) => (
-                <button
-                  key={preset.name}
-                  type="button"
-                  onClick={() => handleApplyPreset(preset)}
-                  className={`flex-shrink-0 px-3.5 py-1.5 rounded-japandi-full text-xs font-semibold transition-all ${
-                    selectedPreset === preset.name
-                      ? 'bg-japandi-pine text-white shadow-japandi-sm'
-                      : 'bg-japandi-elevated border border-japandi-border text-japandi-text hover:border-japandi-pine'
-                  }`}
-                >
-                  {preset.name}
-                </button>
-              ))}
+            <div className="flex flex-col gap-2.5">
+              {/* TrueLayer Open Banking Shortcut */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsTrueLayerOpen(true);
+                }}
+                className="w-full flex items-center justify-between p-3 rounded-japandi-xl bg-japandi-pine/10 border border-japandi-pine/20 hover:bg-japandi-pine/15 text-japandi-pine text-xs font-bold transition-all shadow-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
+                  <span>Synchro Bancaire TrueLayer (Détecter automatiquement)</span>
+                </div>
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-japandi-pine text-white">
+                  DSP2 1-Tap
+                </span>
+              </button>
+
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                {presets.map((preset) => (
+                  <button
+                    key={preset.name}
+                    type="button"
+                    onClick={() => handleApplyPreset(preset)}
+                    className={`flex-shrink-0 px-3.5 py-1.5 rounded-japandi-full text-xs font-semibold transition-all ${
+                      selectedPreset === preset.name
+                        ? 'bg-japandi-pine text-white shadow-japandi-sm'
+                        : 'bg-japandi-elevated border border-japandi-border text-japandi-text hover:border-japandi-pine'
+                    }`}
+                  >
+                    {preset.name}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -381,6 +402,17 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           isOpen={isCancellationModalOpen}
           onClose={() => setIsCancellationModalOpen(false)}
           subscriptionName={editSubscription.name}
+        />
+      )}
+
+      {/* TrueLayer Bank Sync Modal */}
+      {isTrueLayerOpen && (
+        <TrueLayerSyncModal
+          isOpen={isTrueLayerOpen}
+          onClose={() => {
+            setIsTrueLayerOpen(false);
+            onClose();
+          }}
         />
       )}
     </div>
