@@ -8,6 +8,7 @@ import {
   calculateTotalMonthlyCost,
   calculateTotalYearlyCost,
   calculateCategoryBreakdown,
+  normalizeMonthlyAmount,
   SubscriptionCategory,
   Subscription
 } from '@subflow/core';
@@ -17,6 +18,7 @@ import { GoalDialog } from '../components/GoalDialog';
 import { ActionableInsightHeader } from '../components/ActionableInsightHeader';
 import { CancellationArenaModal } from '../components/CancellationArenaModal';
 import { ScanInvoiceModal } from '../components/ScanInvoiceModal';
+import { AddSubscriptionModal } from '../components/AddSubscriptionModal';
 import {
   SlidersHorizontal,
   Target,
@@ -48,10 +50,13 @@ export default function HomePage() {
   const { t, format, locale } = useTranslation();
 
   const [selectedCategory, setSelectedCategory] = useState<SubscriptionCategory | null>(null);
+  const [editingSub, setEditingSub] = useState<Subscription | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
   const [isScanInvoiceModalOpen, setIsScanInvoiceModalOpen] = useState(false);
   const longPressTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
 
   const activeExcluded = isSelectionMode ? new Set(excludedIds) : new Set<string>();
   const totalMonthly = calculateTotalMonthlyCost(subscriptions, activeExcluded);
@@ -245,6 +250,82 @@ export default function HomePage() {
               })}
             </div>
           </div>
+
+          {/* Category Subscriptions Breakdown Detail List (as in original app) */}
+          {selectedCategory && categoryBreakdown[selectedCategory] && (() => {
+            const activeCategoryData = categoryBreakdown[selectedCategory];
+            if (!activeCategoryData) return null;
+
+            return (
+              <div className="flex flex-col gap-3 pt-4 border-t border-japandi-border animate-in fade-in-50 slide-in-from-top-2 duration-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <CategoryIcon category={selectedCategory} className="w-4 h-4" showBackground={true} />
+                    <div>
+                      <h4 className="font-extrabold text-xs text-japandi-text">
+                        {t(`categories.${selectedCategory}` as any) || selectedCategory}
+                      </h4>
+                      <span className="text-[10px] text-japandi-muted">
+                        {activeCategoryData.subscriptions.length} service{activeCategoryData.subscriptions.length > 1 ? 's' : ''} • {format(activeCategoryData.total)} / mois ({activeCategoryData.percentage.toFixed(0)}% du total)
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCategory(null)}
+                    className="px-2.5 py-1 rounded-japandi-md bg-japandi-elevated hover:bg-japandi-sand/60 border border-japandi-border text-[11px] font-bold text-japandi-muted hover:text-japandi-text transition-all"
+                  >
+                    ✕ {locale === 'fr' ? 'Réinitialiser' : 'Show all'}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {activeCategoryData.subscriptions.map((sub) => {
+                    const monthlyEquivalent = normalizeMonthlyAmount(sub.amount, sub.cycle);
+                    const subPercentage = activeCategoryData.total > 0
+                      ? (monthlyEquivalent / activeCategoryData.total) * 100
+                      : 0;
+
+                    return (
+                      <div
+                        key={sub.id}
+                        onClick={() => {
+                          setEditingSub(sub);
+                          setIsAddModalOpen(true);
+                        }}
+                        className="p-3.5 rounded-japandi-xl border border-japandi-border hover:border-japandi-pine bg-japandi-elevated hover:bg-japandi-sand/20 flex items-center justify-between cursor-pointer transition-all shadow-xs group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <SubscriptionLogo name={sub.name} logoUrl={sub.logoUrl} category={sub.category} size={40} />
+                          <div className="min-w-0">
+                            <h5 className="font-bold text-xs text-japandi-text group-hover:text-japandi-pine transition-colors truncate">
+                              {sub.name}
+                            </h5>
+                            <div className="flex items-center gap-1.5 text-[10px] text-japandi-muted">
+                              <span>{t(`cycles.${sub.cycle}` as any) || sub.cycle}</span>
+                              <span>•</span>
+                              <span>{format(sub.amount)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end flex-shrink-0">
+                          <span className={`font-extrabold text-xs text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+                            {format(monthlyEquivalent)} / mois
+                          </span>
+                          <span className="text-[10px] font-semibold text-japandi-pine">
+                            {subPercentage.toFixed(0)}% du pôle
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+
         </div>
       )}
 
@@ -275,7 +356,11 @@ export default function HomePage() {
             {subscriptions.slice(0, 3).map((sub) => (
               <div
                 key={sub.id}
-                className="p-3.5 rounded-japandi-xl border flex items-center justify-between shadow-2xs transition-all bg-japandi-elevated border-japandi-border"
+                onClick={() => {
+                  setEditingSub(sub);
+                  setIsAddModalOpen(true);
+                }}
+                className="p-3.5 rounded-japandi-xl border flex items-center justify-between shadow-2xs transition-all bg-japandi-elevated border-japandi-border hover:border-japandi-pine cursor-pointer"
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <SubscriptionLogo name={sub.name} logoUrl={sub.logoUrl} category={sub.category} size={44} />
@@ -295,8 +380,19 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Goal Setting Dialog */}
+      {/* Add / Edit Subscription Modal */}
+      {isAddModalOpen && (
+        <AddSubscriptionModal
+          isOpen={isAddModalOpen}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setEditingSub(null);
+          }}
+          editSubscription={editingSub}
+        />
+      )}
 
+      {/* Goal Setting Dialog */}
       <GoalDialog
         isOpen={isGoalModalOpen}
         onClose={() => setIsGoalModalOpen(false)}
@@ -317,4 +413,5 @@ export default function HomePage() {
     </div>
   );
 }
+
 

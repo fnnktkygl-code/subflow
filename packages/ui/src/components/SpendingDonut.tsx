@@ -185,7 +185,11 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
         {/* Center Content: Either Selected Category Card or Total */}
         {selectedCategory && selectedData ? (
           /* Selected Category Center Card matching Flutter screenshot 1 */
-          <div className="absolute z-10 w-32 py-2.5 px-2 rounded-japandi-lg bg-japandi-surface border border-japandi-border shadow-japandi-md flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-150 select-none pointer-events-none">
+          <div
+            onClick={() => onSelectCategory?.(null)}
+            title="Cliquer pour réinitialiser"
+            className="absolute z-10 w-32 py-2.5 px-2 rounded-japandi-lg bg-japandi-surface border border-japandi-border hover:border-japandi-pine shadow-japandi-md flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-150 select-none cursor-pointer transition-colors"
+          >
             <div className="flex items-center gap-1.5 mb-0.5">
               <div
                 className="w-5 h-5 rounded-japandi-sm flex items-center justify-center p-0.5 shadow-2xs"
