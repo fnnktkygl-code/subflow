@@ -106,41 +106,36 @@ export default function SchedulePage() {
       {/* 1. Header with Monthly Overview */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className={`text-xl font-bold tracking-tight ${isVibrant ? 'text-white font-black' : 'text-japandi-text'}`}>
+          <h1 className={`text-xl font-bold tracking-tight ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
             {t('schedule.title')}
           </h1>
-          <p className={`text-xs ${isVibrant ? 'text-slate-400' : 'text-japandi-muted'}`}>
+          <p className={`text-xs ${isVibrant ? 'text-purple-600 font-medium' : 'text-japandi-muted'}`}>
             {t('schedule.subtitle')}
           </p>
         </div>
+
 
         {/* Monthly Total Pill with Long Press / Click to Blur */}
         <div
           onClick={toggleAmountBlur}
           onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
-          onTouchStart={() => {
-            longPressTimerRef.current = setTimeout(toggleAmountBlur, 500);
-          }}
-          onTouchEnd={() => {
-            if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
-          }}
-          className={`flex items-center gap-3 rounded-japandi-xl p-3 self-start sm:self-auto cursor-pointer select-none transition-all ${
+          className={`flex items-center gap-3 px-4 py-2.5 rounded-japandi-xl border transition-all cursor-pointer select-none ${
             isVibrant
-              ? 'glass-card bg-[#121020]/80 border-pink-500/30 hover:border-pink-400 shadow-lg'
+              ? 'pop-card border-2 border-purple-200 shadow-md'
               : 'bg-japandi-surface border border-japandi-border hover:border-japandi-pine shadow-japandi-sm'
           }`}
           title="Appui long ou clic pour masquer/afficher les montants"
         >
           <div className={`w-8 h-8 rounded-japandi-full flex items-center justify-center ${
-            isVibrant ? 'bg-teal-500/20 text-teal-300' : 'bg-japandi-pine/10 text-japandi-pine'
+            isVibrant ? 'bg-purple-100 text-purple-700' : 'bg-japandi-pine/10 text-japandi-pine'
           }`}>
             <Receipt className="w-4 h-4" />
           </div>
           <div className="flex flex-col">
-            <span className={`text-[10px] uppercase font-semibold tracking-wider ${isVibrant ? 'text-slate-400' : 'text-japandi-muted'}`}>
+            <span className={`text-[10px] uppercase font-semibold tracking-wider ${isVibrant ? 'text-purple-700 font-bold' : 'text-japandi-muted'}`}>
               {t('schedule.monthlyTotal')}
             </span>
-            <span className={`text-base font-extrabold ${isVibrant ? 'text-teal-300 font-black' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+            <span className={`text-base font-extrabold ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
               {format(totalMonthlyCost)}
             </span>
           </div>
@@ -152,12 +147,12 @@ export default function SchedulePage() {
         {/* Left Column: Interactive Month Calendar */}
         <div className={`lg:col-span-7 rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-5 ${
           isVibrant
-            ? 'glass-card bg-[#121020]/70 border-pink-500/20 shadow-xl'
+            ? 'pop-card border-2 border-purple-200/90 shadow-xl shadow-purple-500/10 rounded-3xl'
             : 'bg-japandi-surface border border-japandi-border shadow-japandi-sm'
         }`}>
           {/* Calendar Header: Month Name + Prev/Next Arrows */}
           <div className="flex items-center justify-between">
-            <h2 className={`text-base font-extrabold capitalize ${isVibrant ? 'text-white font-black' : 'text-japandi-text'}`}>
+            <h2 className={`text-base font-extrabold capitalize ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
               {monthLabel}
             </h2>
             <div className="flex items-center gap-1">
@@ -167,7 +162,7 @@ export default function SchedulePage() {
                 onClick={handlePrevMonth}
                 className={`p-1.5 rounded-japandi-md transition-colors ${
                   isVibrant
-                    ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                    ? 'text-purple-600 hover:text-purple-900 hover:bg-purple-100'
                     : 'text-japandi-muted hover:text-japandi-text hover:bg-japandi-elevated'
                 }`}
               >
@@ -179,7 +174,7 @@ export default function SchedulePage() {
                 onClick={handleNextMonth}
                 className={`p-1.5 rounded-japandi-md transition-colors ${
                   isVibrant
-                    ? 'text-slate-400 hover:text-white hover:bg-white/10'
+                    ? 'text-purple-600 hover:text-purple-900 hover:bg-purple-100'
                     : 'text-japandi-muted hover:text-japandi-text hover:bg-japandi-elevated'
                 }`}
               >
@@ -192,7 +187,7 @@ export default function SchedulePage() {
           <div className="grid grid-cols-7 gap-1 text-center">
             {weekDayNames.map((d, i) => (
               <span key={i} className={`text-[11px] font-bold uppercase tracking-wider py-1 ${
-                isVibrant ? 'text-pink-400/80 font-black' : 'text-japandi-muted'
+                isVibrant ? 'text-purple-700 font-black' : 'text-japandi-muted'
               }`}>
                 {d}
               </span>
@@ -232,10 +227,10 @@ export default function SchedulePage() {
                   className={`h-14 sm:h-16 rounded-japandi-xl border transition-all p-1.5 flex flex-col justify-between select-none cursor-pointer focus:outline-none ${
                     isVibrant
                       ? isSelected
-                        ? 'bg-gradient-to-tr from-teal-400 to-teal-500 text-black border-teal-300 shadow-[0_0_20px_rgba(0,245,212,0.4)]'
+                        ? 'bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-600 text-white border-white shadow-[0_4px_15px_rgba(139,92,246,0.35)]'
                         : isToday
-                        ? 'bg-pink-500/20 border-pink-500/50 text-white'
-                        : 'bg-white/5 border-white/10 hover:border-pink-500/40 text-white'
+                        ? 'bg-pink-100/80 border-pink-300 text-pink-950 font-bold'
+                        : 'bg-purple-50/60 border-purple-100/80 hover:border-purple-300 text-indigo-950'
                       : isSelected
                       ? 'bg-japandi-pine text-white border-japandi-pine shadow-japandi-sm'
                       : isToday
@@ -246,36 +241,33 @@ export default function SchedulePage() {
                   <div className="flex items-center justify-between">
                     <span className={`text-xs font-bold ${
                       isVibrant
-                        ? (isSelected ? 'text-black font-black' : 'text-white')
+                        ? (isSelected ? 'text-white font-black' : 'text-indigo-950 font-bold')
                         : (isSelected ? 'text-white' : 'text-japandi-text')
                     }`}>
                       {dayNum}
                     </span>
                     {hasSubs && (
-                      <span className={`w-2 h-2 rounded-full ${
+                      <span className={`w-1.5 h-1.5 rounded-full ${
                         isVibrant
-                          ? (isSelected ? 'bg-black' : 'bg-pink-500 shadow-[0_0_8px_#FF2E63] animate-pulse')
-                          : (isSelected ? 'bg-white' : 'bg-japandi-terracotta animate-pulse')
+                          ? (isSelected ? 'bg-amber-300' : 'bg-pink-500')
+                          : (isSelected ? 'bg-white' : 'bg-japandi-terracotta')
                       }`} />
                     )}
                   </div>
 
-                  {/* Micro Logo Avatars on Day */}
+                  {/* Logo Badges for Subscriptions Renewing on this Day */}
                   {hasSubs && (
-                    <div className="flex items-center -space-x-1 overflow-hidden">
-                      {subsOnDay.slice(0, 2).map((s) => (
-                        <div
-                          key={s.id}
-                          className="w-4 h-4 rounded-full border border-japandi-surface bg-white flex items-center justify-center overflow-hidden"
-                        >
-                          <SubscriptionLogo name={s.name} logoUrl={s.logoUrl} category={s.category} size={16} />
+                    <div className="flex items-center gap-1 overflow-hidden">
+                      {subsOnDay.slice(0, 2).map((sub) => (
+                        <div key={sub.id} className="w-5 h-5 flex-shrink-0">
+                          <SubscriptionLogo name={sub.name} logoUrl={sub.logoUrl} category={sub.category} size={20} />
                         </div>
                       ))}
                       {subsOnDay.length > 2 && (
-                        <span className={`text-[9px] font-extrabold pl-1.5 ${
+                        <span className={`text-[9px] font-black ${
                           isVibrant
-                            ? (isSelected ? 'text-black' : 'text-pink-400')
-                            : (isSelected ? 'text-white' : 'text-japandi-muted')
+                            ? (isSelected ? 'text-white' : 'text-pink-600')
+                            : (isSelected ? 'text-white/80' : 'text-japandi-muted')
                         }`}>
                           +{subsOnDay.length - 2}
                         </span>
@@ -288,52 +280,52 @@ export default function SchedulePage() {
           </div>
         </div>
 
-        {/* Right Column: Selected Day Detail List */}
-        <div className={`lg:col-span-5 rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 ${
+        {/* Right Column: Selected Day Persistent Panel (Sticky on Desktop) */}
+        <div className={`lg:col-span-5 rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 lg:sticky lg:top-24 ${
           isVibrant
-            ? 'glass-card bg-[#121020]/70 border-pink-500/20 shadow-xl'
+            ? 'pop-card border-2 border-purple-200/90 shadow-xl shadow-purple-500/10 rounded-3xl'
             : 'bg-japandi-surface border border-japandi-border shadow-japandi-sm'
         }`}>
-          <div className="flex items-center justify-between border-b border-japandi-border pb-3">
-            <div>
-              <h3 className={`text-sm font-extrabold ${isVibrant ? 'text-white font-black' : 'text-japandi-text'}`}>
-                {t('schedule.renewalsOn', { date: `${selectedDay} ${monthLabel}` })}
-              </h3>
-              <span className={`text-xs ${isVibrant ? 'text-pink-300 font-bold' : 'text-japandi-muted'}`}>
-                {selectedDaySubs.length} service{selectedDaySubs.length > 1 ? 's' : ''}
+          {/* Selected Day Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <span className={`text-[11px] font-bold uppercase tracking-wider ${isVibrant ? 'text-purple-700' : 'text-japandi-muted'}`}>
+                {t('schedule.selectedDay')}
               </span>
+              <h3 className={`text-base font-extrabold capitalize ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
+                {selectedDay} {monthLabel}
+              </h3>
             </div>
-
             <button
               type="button"
               onClick={() => handleOpenAddOnDay(selectedDay)}
-              className={`p-2 rounded-xl transition-all shadow-2xs ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-japandi-md text-xs font-bold shadow-xs transition-all ${
                 isVibrant
-                  ? 'btn-3d-mint text-[#002923]'
-                  : 'bg-japandi-pine text-white hover:bg-japandi-pine/90'
+                  ? 'btn-3d-coral text-white rounded-xl'
+                  : 'bg-japandi-pine text-white hover:bg-japandi-pine-light'
               }`}
-              aria-label={t('modal.addTitle')}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-3.5 h-3.5" />
+              <span>{t('subs.addSubscription')}</span>
             </button>
           </div>
 
-          {/* Subscriptions List on Selected Day */}
+          {/* Subscriptions Renewing on Selected Day */}
           {selectedDaySubs.length === 0 ? (
-            <div className={`py-12 text-center text-xs flex flex-col items-center gap-3 ${
-              isVibrant ? 'text-slate-400' : 'text-japandi-muted'
+            <div className={`py-10 text-center text-xs flex flex-col items-center gap-3 border border-dashed rounded-japandi-xl ${
+              isVibrant
+                ? 'border-purple-200 text-purple-600 bg-purple-50/40'
+                : 'border-japandi-border text-japandi-muted bg-japandi-elevated/40'
             }`}>
-              <span>{t('schedule.noRenewalsOnDate')}</span>
-              <button
-                type="button"
-                onClick={() => handleOpenAddOnDay(selectedDay)}
-                className={`text-xs font-bold flex items-center gap-1 ${
-                  isVibrant ? 'text-teal-300 hover:text-teal-200' : 'text-japandi-pine hover:underline'
-                }`}
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>{t('modal.addTitle')}</span>
-              </button>
+              <Sparkles className={`w-8 h-8 ${isVibrant ? 'text-purple-400' : 'text-japandi-muted'}`} />
+              <div className="flex flex-col gap-1">
+                <span className={`font-bold ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
+                  {t('schedule.noRenewalsOnDay')}
+                </span>
+                <span className="text-[11px] opacity-80">
+                  {t('schedule.zenDay')}
+                </span>
+              </div>
             </div>
           ) : (
             <div className="flex flex-col gap-2.5">
@@ -344,24 +336,22 @@ export default function SchedulePage() {
                     setEditingSub(sub);
                     setIsAddModalOpen(true);
                   }}
-                  className={`p-3 rounded-japandi-xl border flex items-center justify-between cursor-pointer transition-all shadow-2xs ${
+                  className={`p-3.5 rounded-japandi-xl border flex items-center justify-between transition-all cursor-pointer ${
                     isVibrant
-                      ? 'bg-white/5 border-white/10 hover:border-pink-500/40 text-white'
+                      ? 'pop-card border border-purple-100 hover:border-purple-300 text-indigo-950'
                       : 'bg-japandi-elevated border-japandi-border hover:border-japandi-pine'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <SubscriptionLogo name={sub.name} logoUrl={sub.logoUrl} category={sub.category} size={44} />
                     <div className="min-w-0">
-
-                      <h4 className={`font-bold text-xs truncate ${isVibrant ? 'text-white font-black' : 'text-japandi-text'}`}>{sub.name}</h4>
-                      <span className={`text-[10px] ${isVibrant ? 'text-slate-400' : 'text-japandi-muted'}`}>
-                        {t(`categories.${sub.category}` as any) || sub.category || 'General'} • {sub.cycle ? (t(`cycles.${sub.cycle}` as any) || sub.cycle) : t('cycles.Monthly')}
+                      <h4 className={`font-bold text-xs truncate ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>{sub.name}</h4>
+                      <span className={`text-[10px] ${isVibrant ? 'text-purple-600 font-medium' : 'text-japandi-muted'}`}>
+                        {t(`categories.${sub.category}` as any) || sub.category}
                       </span>
                     </div>
                   </div>
-
-                  <span className={`font-extrabold text-xs ${isVibrant ? 'text-pink-400 font-black' : 'text-japandi-terracotta'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+                  <span className={`font-extrabold text-xs ${isVibrant ? 'text-pink-600 font-black' : 'text-japandi-terracotta'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
                     {format(sub.amount)}
                   </span>
                 </div>

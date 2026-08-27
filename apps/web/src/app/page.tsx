@@ -17,6 +17,7 @@ import { GoalDialog } from '../components/GoalDialog';
 import { ActionableInsightHeader } from '../components/ActionableInsightHeader';
 import { CancellationArenaModal } from '../components/CancellationArenaModal';
 import { ScanInvoiceModal } from '../components/ScanInvoiceModal';
+import { VibrantMascot } from '../components/VibrantMascot';
 import {
   SlidersHorizontal,
   Target,
@@ -28,8 +29,12 @@ import {
   Info,
   Sparkles,
   Scissors,
-  Camera
+  Camera,
+  Flame,
+  Zap,
+  TrendingDown
 } from 'lucide-react';
+
 
 export default function HomePage() {
   const {
@@ -66,6 +71,28 @@ export default function HomePage() {
       {/* 1. Actionable Financial Insight Header */}
       <ActionableInsightHeader />
 
+      {/* Vibrant Pop Mascot Header */}
+      {isVibrant && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-cyan-500/10 border-2 border-purple-200 backdrop-blur-md shadow-sm">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-[11px] font-black uppercase tracking-wider text-purple-700">Compagnon Budgétaire</span>
+            <h2 className="text-lg font-black text-indigo-950 flex items-center gap-1.5">
+              <span>Bonjour {profile.name || 'Champion'} !</span>
+              <span className="text-xl">🚀</span>
+            </h2>
+          </div>
+
+          <div className="self-end sm:self-auto">
+            <VibrantMascot
+              mood={isSelectionMode ? 'curious' : (spendingGoal > 0 && isUnderGoal) ? 'celebrating' : 'happy'}
+              totalMonthly={totalMonthly}
+              savingsMonthly={goalDiff}
+              activeCount={subscriptions.length}
+            />
+          </div>
+        </div>
+      )}
+
       {/* 2. Spending Card with Goal & Long Press to Blur */}
       <div
         onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
@@ -77,7 +104,7 @@ export default function HomePage() {
         }}
         className={`rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 relative overflow-hidden transition-all select-none ${
           isVibrant
-            ? 'bg-gradient-to-br from-[#FF2E63] via-[#FF6F3C] to-[#FFAA00] text-white shadow-[0_12px_32px_rgba(255,46,99,0.35)] border border-pink-400/40'
+            ? 'bg-gradient-to-br from-[#FF2A6D] via-[#8B5CF6] to-[#06B6D4] text-white shadow-[0_15px_35px_rgba(139,92,246,0.35)] border-2 border-white/40'
             : 'bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm'
         }`}
         title="Appui long ou clic sur l'œil en haut pour masquer les montants"
@@ -217,17 +244,17 @@ export default function HomePage() {
       {subscriptions.length > 0 && (
         <div className={`rounded-japandi-2xl border p-5 sm:p-6 flex flex-col gap-4 ${
           isVibrant
-            ? 'glass-card bg-[#121020]/70 border-pink-500/20 shadow-xl'
+            ? 'pop-card border-2 border-purple-200/90 shadow-lg shadow-purple-500/10'
             : 'bg-japandi-surface border-japandi-border shadow-japandi-sm'
         }`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <PieChart className={`w-4 h-4 ${isVibrant ? 'text-teal-400' : 'text-japandi-pine'}`} />
-              <h3 className={`font-bold text-sm ${isVibrant ? 'text-white font-black' : 'text-japandi-text'}`}>
+              <PieChart className={`w-4 h-4 ${isVibrant ? 'text-purple-600' : 'text-japandi-pine'}`} />
+              <h3 className={`font-bold text-sm ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
                 {t('home.categoriesTitle')}
               </h3>
             </div>
-            <span className={`text-xs ${isVibrant ? 'text-pink-300 font-bold' : 'text-japandi-muted'}`}>
+            <span className={`text-xs ${isVibrant ? 'text-purple-600 font-bold bg-purple-100 px-2.5 py-0.5 rounded-full' : 'text-japandi-muted'}`}>
               {t('home.activeCount', { count: subscriptions.length })}
             </span>
           </div>
@@ -260,8 +287,8 @@ export default function HomePage() {
                     className={`flex items-center justify-between p-2.5 rounded-japandi-lg border transition-all text-left ${
                       isVibrant
                         ? isSelected
-                          ? 'bg-pink-500/20 border-pink-400 text-white'
-                          : 'bg-white/5 border-white/10 hover:border-pink-500/40 text-white'
+                          ? 'bg-purple-100 border-purple-400 text-indigo-950 shadow-sm'
+                          : 'bg-purple-50/60 border-purple-100/80 hover:border-purple-300 text-indigo-950'
                         : isSelected
                         ? 'bg-japandi-sand/60 border-japandi-pine'
                         : 'bg-japandi-elevated border-japandi-border hover:border-japandi-border-strong'
@@ -270,16 +297,16 @@ export default function HomePage() {
                     <div className="flex items-center gap-2.5 min-w-0">
                       <CategoryIcon category={catKey} className="w-3.5 h-3.5" showBackground={true} />
                       <div className="min-w-0">
-                        <span className={`font-semibold text-xs truncate block ${isVibrant ? 'text-white' : 'text-japandi-text'}`}>
+                        <span className={`font-semibold text-xs truncate block ${isVibrant ? 'text-indigo-950 font-bold' : 'text-japandi-text'}`}>
                           {t(`categories.${catKey}` as any) || catKey}
                         </span>
-                        <span className={`text-[10px] ${isVibrant ? 'text-slate-400' : 'text-japandi-muted'}`}>
+                        <span className={`text-[10px] ${isVibrant ? 'text-purple-600 font-medium' : 'text-japandi-muted'}`}>
                           {cat.count} service{cat.count > 1 ? 's' : ''} ({percentage.toFixed(0)}%)
                         </span>
                       </div>
                     </div>
 
-                    <span className={`font-bold text-xs ${isVibrant ? 'text-teal-300' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+                    <span className={`font-bold text-xs ${isVibrant ? 'text-pink-600 font-black' : 'text-japandi-text'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
                       {format(cat.total)}
                     </span>
                   </button>
@@ -293,19 +320,19 @@ export default function HomePage() {
       {/* 4. Upcoming Renewals Widget */}
       <div className={`rounded-japandi-2xl border p-5 sm:p-6 flex flex-col gap-4 ${
         isVibrant
-          ? 'glass-card bg-[#121020]/70 border-pink-500/20 shadow-xl'
+          ? 'pop-card border-2 border-purple-200/90 shadow-lg shadow-purple-500/10'
           : 'bg-japandi-surface border-japandi-border shadow-japandi-sm'
       }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Calendar className={`w-4 h-4 ${isVibrant ? 'text-teal-400' : 'text-japandi-pine'}`} />
-            <h3 className={`font-bold text-sm ${isVibrant ? 'text-white font-black' : 'text-japandi-text'}`}>
+            <Calendar className={`w-4 h-4 ${isVibrant ? 'text-purple-600' : 'text-japandi-pine'}`} />
+            <h3 className={`font-bold text-sm ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>
               {t('home.upcomingTitle')}
             </h3>
           </div>
           <Link
             href="/schedule"
-            className={`text-xs font-bold flex items-center gap-1 ${isVibrant ? 'text-pink-400 hover:text-pink-300' : 'text-japandi-pine hover:underline'}`}
+            className={`text-xs font-bold flex items-center gap-1 ${isVibrant ? 'text-pink-600 hover:text-pink-700 font-black' : 'text-japandi-pine hover:underline'}`}
           >
             <span>{t('home.seeAllRenewals')}</span>
             <ChevronRight className="w-3.5 h-3.5" />
@@ -323,30 +350,33 @@ export default function HomePage() {
                 key={sub.id}
                 className={`p-3.5 rounded-japandi-xl border flex items-center justify-between shadow-2xs transition-all ${
                   isVibrant
-                    ? 'bg-white/5 border-white/10 hover:border-pink-500/40 text-white'
+                    ? idx === 0
+                      ? 'bg-rose-50/70 border-rose-200'
+                      : idx === 1
+                      ? 'bg-cyan-50/70 border-cyan-200'
+                      : 'bg-purple-50/70 border-purple-200'
                     : 'bg-japandi-elevated border-japandi-border'
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <SubscriptionLogo name={sub.name} logoUrl={sub.logoUrl} category={sub.category} size={44} />
                   <div className="min-w-0">
-
                     <div className="flex items-center gap-1.5">
-                      <h4 className={`font-bold text-xs truncate ${isVibrant ? 'text-white font-black' : 'text-japandi-text'}`}>{sub.name}</h4>
+                      <h4 className={`font-bold text-xs truncate ${isVibrant ? 'text-indigo-950 font-black' : 'text-japandi-text'}`}>{sub.name}</h4>
                       {isVibrant && (
                         <span className={`text-[8px] font-black px-1.5 py-0.2 rounded border ${
-                          idx === 0 ? 'bg-red-500/20 text-red-300 border-red-500/30' : idx === 1 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                          idx === 0 ? 'bg-rose-100 text-rose-700 border-rose-300' : idx === 1 ? 'bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-purple-100 text-purple-700 border-purple-300'
                         }`}>
                           {idx === 0 ? '🔴 Élevé' : idx === 1 ? '🟢 Rentabilisé' : '⚡ Pro'}
                         </span>
                       )}
                     </div>
-                    <span className={`text-[10px] ${isVibrant ? 'text-slate-400' : 'text-japandi-muted'}`}>
+                    <span className={`text-[10px] ${isVibrant ? 'text-purple-600 font-medium' : 'text-japandi-muted'}`}>
                       {t(`categories.${sub.category}` as any) || sub.category}
                     </span>
                   </div>
                 </div>
-                <span className={`font-extrabold text-xs ${isVibrant ? 'text-pink-400 font-black' : 'text-japandi-terracotta'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+                <span className={`font-extrabold text-xs ${isVibrant ? 'text-pink-600 font-black' : 'text-japandi-terracotta'} ${isAmountBlurred ? 'privacy-blur' : ''}`}>
                   {format(sub.amount)}
                 </span>
               </div>
@@ -354,6 +384,7 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
 
       {/* Goal Setting Dialog */}
       <GoalDialog

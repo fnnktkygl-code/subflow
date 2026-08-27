@@ -158,19 +158,19 @@ export const ActionableInsightHeader: React.FC = () => {
               <div>
                 {isEditingName ? (
                   <form onSubmit={handleSaveInlineName} className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-white">{greetingTime},</span>
+                    <span className="text-xl font-bold text-indigo-950">{greetingTime},</span>
                     <input
                       type="text"
                       autoFocus
                       value={nameInput}
                       onChange={(e) => setNameInput(e.target.value)}
                       onBlur={() => handleSaveInlineName()}
-                      className="px-2 py-0.5 rounded-lg bg-white/10 border border-teal-400 text-white text-xl font-extrabold focus:outline-none w-36"
+                      className="px-2 py-0.5 rounded-lg bg-purple-100 border border-purple-400 text-indigo-950 text-xl font-extrabold focus:outline-none w-36"
                       maxLength={25}
                     />
                     <button
                       type="submit"
-                      className="p-1 rounded-lg bg-teal-400 text-black hover:scale-105 transition-transform"
+                      className="p-1 rounded-lg bg-purple-600 text-white hover:scale-105 transition-transform"
                       aria-label="Enregistrer"
                     >
                       <Check className="w-4 h-4 stroke-[3]" />
@@ -180,7 +180,7 @@ export const ActionableInsightHeader: React.FC = () => {
                   <div className="flex items-center gap-2 group">
                     <h1
                       onClick={() => setIsEditingName(true)}
-                      className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-sans cursor-pointer hover:text-teal-300 transition-colors"
+                      className="text-2xl sm:text-3xl font-extrabold tracking-tight text-indigo-950 font-sans cursor-pointer hover:text-purple-600 transition-colors"
                       style={{ lineHeight: 1.15, letterSpacing: '-0.6px' }}
                       title="Cliquer pour modifier votre prénom"
                     >
@@ -190,25 +190,26 @@ export const ActionableInsightHeader: React.FC = () => {
                       type="button"
                       onClick={() => setIsEditingName(true)}
                       aria-label="Modifier mon prénom"
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-slate-400 hover:text-teal-300 hover:bg-white/10 transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded-md text-purple-400 hover:text-purple-700 hover:bg-purple-100 transition-all"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 )}
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <span className="text-[10px] font-extrabold text-amber-400">🔥 18j streak</span>
-                  <span className="text-[10px] text-slate-400">• {subscriptions.length} abonnements</span>
+                  <span className="text-[10px] font-extrabold text-amber-600">🔥 18j streak</span>
+                  <span className="text-[10px] text-purple-600 font-medium">• {subscriptions.length} abonnements</span>
                 </div>
               </div>
             </div>
           </div>
 
           {speechBubble && (
-            <div className="px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-bold text-amber-300 animate-in fade-in">
+            <div className="px-3.5 py-2 rounded-xl bg-purple-100/90 border border-purple-300 text-xs font-bold text-indigo-950 animate-in fade-in">
               {speechBubble}
             </div>
           )}
+
 
           <div className="flex items-center mt-1">
             <div

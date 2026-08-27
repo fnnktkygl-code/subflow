@@ -77,28 +77,27 @@
   }
 
   .vibrant, [data-theme="vibrant"] {
-    --color-accent-pine: #00F5D4;
-    --color-accent-pine-light: #52FFEE;
-    --color-accent-terracotta: #FF2E63;
-    --color-accent-terracotta-light: #FF5E87;
-    --color-accent-clay: #FF9F1C;
-    --color-accent-sand: #18142A;
-    --color-accent-slate: #7B2CBF;
-    --color-accent-akane: #FF2E63;
+    --color-accent-pine: #8B5CF6; /* Electric Violet */
+    --color-accent-pine-light: #A78BFA;
+    --color-accent-terracotta: #FF2A6D; /* Neon Coral Pink */
+    --color-accent-terracotta-light: #FF6584;
+    --color-accent-clay: #F59E0B; /* Cyber Tangerine */
+    --color-accent-sand: #F3E8FF; /* Soft Lilac */
+    --color-accent-slate: #06B6D4; /* Electric Cyan */
+    --color-accent-akane: #EF4444;
 
-    --color-bg-canvas: #090812;
-    --color-bg-surface: #131122;
-    --color-bg-elevated: #1B1830;
+    --color-bg-canvas: #FAF7FD;
+    --color-bg-surface: #FFFFFF;
+    --color-bg-elevated: #F8F5FE;
 
-    --color-text-primary: #F8FAFC;
-    --color-text-secondary: #CBD5E1;
-    --color-text-tertiary: #94A3B8;
+    --color-text-primary: #1E1B4B; /* Deep Indigo AAA Contrast */
+    --color-text-secondary: #4C1D95; /* Rich Violet */
+    --color-text-tertiary: #6D28D9; /* Bright Violet */
 
-    --color-border-subtle: #24203D;
-    --color-border-strong: #363057;
-    --color-border-faint: #18152B;
+    --color-border-subtle: #E9D5FF;
+    --color-border-strong: #C084FC;
+    --color-border-faint: #F3E8FF;
   }
-
 
   * {
     border-color: var(--color-border-subtle);
@@ -110,6 +109,17 @@
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Vibrant Aurora Background for 4th Theme */
+  [data-theme="vibrant"] body {
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(255, 182, 193, 0.45) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(196, 181, 253, 0.5) 0px, transparent 50%),
+      radial-gradient(at 50% 50%, rgba(167, 243, 208, 0.3) 0px, transparent 60%),
+      radial-gradient(at 100% 100%, rgba(254, 215, 170, 0.4) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(186, 230, 253, 0.45) 0px, transparent 50%);
+    background-attachment: fixed;
   }
 
   /* Japandi Themed Scrollbars */
@@ -148,46 +158,70 @@
     display: inline-block;
   }
 
-
   /* 3D Tactile Buttons & Pop Effects */
   .btn-3d-coral {
     background: linear-gradient(180deg, #FF2E63 0%, #E60040 100%);
-    box-shadow: 0 5px 0 #9E002B, 0 10px 20px rgba(255, 46, 99, 0.4);
+    box-shadow: 0 5px 0 #9E002B, 0 10px 20px rgba(255, 46, 99, 0.3);
     transition: all 0.08s ease;
   }
   .btn-3d-coral:active {
     transform: translateY(3px);
-    box-shadow: 0 2px 0 #9E002B, 0 4px 10px rgba(255, 46, 99, 0.3);
+    box-shadow: 0 2px 0 #9E002B, 0 4px 10px rgba(255, 46, 99, 0.2);
   }
   .btn-3d-gold {
-    background: linear-gradient(180deg, #FF9F1C 0%, #E07D00 100%);
-    box-shadow: 0 5px 0 #8F4F00, 0 10px 20px rgba(255, 159, 28, 0.35);
+    background: linear-gradient(180deg, #FFB703 0%, #FB8500 100%);
+    box-shadow: 0 5px 0 #B85B00, 0 10px 20px rgba(251, 133, 0, 0.3);
     color: #1A0E00;
     transition: all 0.08s ease;
   }
   .btn-3d-gold:active {
     transform: translateY(3px);
-    box-shadow: 0 2px 0 #8F4F00, 0 4px 10px rgba(255, 159, 28, 0.25);
+    box-shadow: 0 2px 0 #B85B00, 0 4px 10px rgba(251, 133, 0, 0.2);
   }
   .btn-3d-mint {
-    background: linear-gradient(180deg, #00F5D4 0%, #00C4AA 100%);
-    box-shadow: 0 5px 0 #007A6A, 0 10px 20px rgba(0, 245, 212, 0.35);
-    color: #002923;
+    background: linear-gradient(180deg, #10B981 0%, #059669 100%);
+    box-shadow: 0 5px 0 #047857, 0 10px 20px rgba(16, 185, 129, 0.3);
+    color: #FFFFFF;
     transition: all 0.08s ease;
   }
   .btn-3d-mint:active {
     transform: translateY(3px);
-    box-shadow: 0 2px 0 #007A6A, 0 4px 10px rgba(0, 245, 212, 0.25);
+    box-shadow: 0 2px 0 #047857, 0 4px 10px rgba(16, 185, 129, 0.2);
   }
   .btn-3d-purple {
-    background: linear-gradient(180deg, #7B2CBF 0%, #5A189A 100%);
-    box-shadow: 0 5px 0 #3C096C, 0 10px 20px rgba(123, 44, 191, 0.35);
+    background: linear-gradient(180deg, #8B5CF6 0%, #7C3AED 100%);
+    box-shadow: 0 5px 0 #5B21B6, 0 10px 20px rgba(139, 92, 246, 0.35);
     color: #FFFFFF;
     transition: all 0.08s ease;
   }
   .btn-3d-purple:active {
     transform: translateY(3px);
-    box-shadow: 0 2px 0 #3C096C, 0 4px 10px rgba(123, 44, 191, 0.25);
+    box-shadow: 0 2px 0 #5B21B6, 0 4px 10px rgba(139, 92, 246, 0.25);
+  }
+
+  /* Pop Candy Glows for Vibrant Mode */
+  .pop-card {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(224, 206, 255, 0.8);
+    box-shadow: 0 10px 25px -4px rgba(139, 92, 246, 0.12), 0 4px 10px -2px rgba(236, 72, 153, 0.08);
+  }
+  .pop-card-pink {
+    border-color: #FBCFE8;
+    box-shadow: 0 10px 25px -4px rgba(244, 63, 94, 0.15);
+  }
+  .pop-card-cyan {
+    border-color: #BAE6FD;
+    box-shadow: 0 10px 25px -4px rgba(6, 182, 212, 0.15);
+  }
+  .pop-card-yellow {
+    border-color: #FEF08A;
+    box-shadow: 0 10px 25px -4px rgba(234, 179, 8, 0.15);
+  }
+  .pop-card-mint {
+    border-color: #A7F3D0;
+    box-shadow: 0 10px 25px -4px rgba(16, 185, 129, 0.15);
   }
 }
+
 

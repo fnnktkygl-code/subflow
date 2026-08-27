@@ -50,7 +50,7 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
         aria-label="Navigation principale"
         className={`w-full max-w-[580px] h-[68px] rounded-japandi-xl pointer-events-auto flex items-center justify-around px-3 transition-all ${
           isVibrant
-            ? 'bg-[#121020]/90 backdrop-blur-xl border border-pink-500/20 shadow-[0_12px_40px_rgba(0,0,0,0.6)]'
+            ? 'bg-white/90 backdrop-blur-2xl border-2 border-purple-200/90 shadow-[0_16px_40px_rgba(139,92,246,0.22)] rounded-3xl'
             : 'bg-japandi-surface/95 backdrop-blur-xl border border-japandi-border shadow-japandi-lg'
         }`}
       >
@@ -60,8 +60,8 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
           aria-label={t('nav.home')}
           className={`flex flex-col items-center justify-center w-16 h-12 rounded-japandi-md transition-colors ${
             pathname === '/'
-              ? isVibrant ? 'text-pink-400 font-extrabold' : 'text-japandi-pine font-bold'
-              : isVibrant ? 'text-slate-400 hover:text-white' : 'text-japandi-muted hover:text-japandi-text'
+              ? isVibrant ? 'text-pink-600 font-black' : 'text-japandi-pine font-bold'
+              : isVibrant ? 'text-purple-400 hover:text-purple-900 font-semibold' : 'text-japandi-muted hover:text-japandi-text'
           }`}
         >
           <Home className="w-5 h-5" />
@@ -74,8 +74,8 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
           aria-label={t('nav.schedule')}
           className={`flex flex-col items-center justify-center w-16 h-12 rounded-japandi-md transition-colors ${
             pathname === '/schedule'
-              ? isVibrant ? 'text-pink-400 font-extrabold' : 'text-japandi-pine font-bold'
-              : isVibrant ? 'text-slate-400 hover:text-white' : 'text-japandi-muted hover:text-japandi-text'
+              ? isVibrant ? 'text-pink-600 font-black' : 'text-japandi-pine font-bold'
+              : isVibrant ? 'text-purple-400 hover:text-purple-900 font-semibold' : 'text-japandi-muted hover:text-japandi-text'
           }`}
         >
           <Calendar className="w-5 h-5" />
@@ -87,9 +87,9 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
           <button
             type="button"
             onClick={onOpenAddModal}
-            className={`w-12 h-12 rounded-japandi-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform ${
               isVibrant
-                ? 'btn-3d-mint text-[#002923]'
+                ? 'btn-3d-coral text-white shadow-lg'
                 : 'bg-japandi-pine text-white shadow-japandi-md'
             }`}
             aria-label={t('modal.addTitle')}
@@ -104,8 +104,8 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
           aria-label={t('nav.subscriptions')}
           className={`flex flex-col items-center justify-center w-16 h-12 rounded-japandi-md transition-colors ${
             pathname === '/subs'
-              ? isVibrant ? 'text-pink-400 font-extrabold' : 'text-japandi-pine font-bold'
-              : isVibrant ? 'text-slate-400 hover:text-white' : 'text-japandi-muted hover:text-japandi-text'
+              ? isVibrant ? 'text-pink-600 font-black' : 'text-japandi-pine font-bold'
+              : isVibrant ? 'text-purple-400 hover:text-purple-900 font-semibold' : 'text-japandi-muted hover:text-japandi-text'
           }`}
         >
           <List className="w-5 h-5" />
@@ -118,14 +118,15 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
           aria-label={t('nav.settings')}
           className={`flex flex-col items-center justify-center w-16 h-12 rounded-japandi-md transition-colors ${
             pathname === '/settings'
-              ? isVibrant ? 'text-pink-400 font-extrabold' : 'text-japandi-pine font-bold'
-              : isVibrant ? 'text-slate-400 hover:text-white' : 'text-japandi-muted hover:text-japandi-text'
+              ? isVibrant ? 'text-pink-600 font-black' : 'text-japandi-pine font-bold'
+              : isVibrant ? 'text-purple-400 hover:text-purple-900 font-semibold' : 'text-japandi-muted hover:text-japandi-text'
           }`}
         >
           <Settings className="w-5 h-5" />
           <span className="text-[10px] mt-0.5 tracking-tight">{t('nav.settings')}</span>
         </Link>
       </nav>
+
     </div>
   );
 };
