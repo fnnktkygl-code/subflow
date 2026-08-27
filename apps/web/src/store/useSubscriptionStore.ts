@@ -156,3 +156,8 @@ export const useSubscriptionStore = create<SubFlowState>()(
     }
   )
 );
+
+if (typeof window !== 'undefined') {
+  (window as any).__store = useSubscriptionStore;
+}
+

@@ -146,15 +146,17 @@
     scrollbar-color: var(--color-border-strong) transparent;
   }
 
-  /* Amount Privacy Mode Blur - Balanced, unreadable numbers but clearly visible as a blurred amount chip */
+  /* Amount Privacy Mode Blur - Proportional em-based blur: completely obscures digits on both huge hero headers and small chips */
   .privacy-blur {
-    filter: blur(6px) !important;
-    opacity: 0.88 !important;
+    filter: blur(0.32em) !important;
+    opacity: 0.92 !important;
     user-select: none !important;
     pointer-events: none !important;
     display: inline-block;
     transition: filter 0.2s ease, opacity 0.2s ease;
   }
+
+
 
 
   /* 3D Tactile Buttons & Pop Effects */

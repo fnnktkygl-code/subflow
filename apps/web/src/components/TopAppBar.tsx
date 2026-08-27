@@ -47,7 +47,16 @@ export const TopAppBar: React.FC = () => {
     } else {
       root.setAttribute('data-theme', 'light');
     }
-  }, [currentTheme]);
+
+    if (typeof window !== 'undefined') {
+      (window as any).__store = useSubscriptionStore;
+      (window as any).__toggleBlur = toggleAmountBlur;
+      (window as any).__cycleTheme = cycleTheme;
+      (window as any).__updateProfile = updateProfile;
+    }
+  }, [currentTheme, toggleAmountBlur, updateProfile]);
+
+
 
   const cycleTheme = () => {
     let nextTheme: ThemeMode = 'light';
