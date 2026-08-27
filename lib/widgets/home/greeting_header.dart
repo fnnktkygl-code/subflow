@@ -67,44 +67,40 @@ class _GreetingHeaderState extends State<GreetingHeader>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Greeting with gradient overlay effect (subtle)
-            ShaderMask(
-              shaderCallback: (bounds) => LinearGradient(
-                colors: [
-                  colorScheme.primary,
-                  colorScheme.primary.withOpacity(0.8),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ).createShader(bounds),
-              child: Text(
-                greeting,
-                style: textTheme.displayMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white, // Shader mask will apply gradient
-                  height: 1.1,
-                  letterSpacing: -0.5,
-                ),
+            // Greeting with tranquil Japandi Sumi typography
+            Text(
+              greeting,
+              style: textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+                height: 1.15,
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: DesignSystem.spacing4),
+            const SizedBox(height: DesignSystem.spacing3),
 
-            // Subtitle with enhanced styling
+            // Subtitle with delicate organic pill styling
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: DesignSystem.spacing8,
-                vertical: DesignSystem.spacing4,
+                vertical: DesignSystem.spacing3,
               ),
               decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(isDark ? 0.12 : 0.08),
+                color: isDark
+                    ? colorScheme.surfaceContainerHigh
+                    : colorScheme.surfaceContainer,
                 borderRadius: BorderRadius.circular(DesignSystem.radiusFull),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+                  width: 1,
+                ),
               ),
               child: Text(
                 subtitle,
                 style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.1,
+                  color: colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.1,
                 ),
               ),
             ),

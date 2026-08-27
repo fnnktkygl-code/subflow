@@ -2,28 +2,27 @@
 
 import 'package:flutter/material.dart';
 import '/theme/custom_colors.dart';
-import '/theme/design_system.dart'; // ✅ IMPORTED DESIGN SYSTEM
 
 // 耳 MODERN TYPOGRAPHY SYSTEM
 // Using Inter for body text (excellent readability) and SF Pro Display for headlines
 const TextTheme appTextTheme = TextTheme(
   // Display styles - Bold, impactful headlines
   displayLarge: TextStyle(
-    fontFamily: 'SF Pro Display',
+    fontFamily: 'SF_Pro',
     fontWeight: FontWeight.w700,
     fontSize: 57,
     letterSpacing: -0.25,
     height: 1.12,
   ),
   displayMedium: TextStyle(
-    fontFamily: 'SF Pro Display',
+    fontFamily: 'SF_Pro',
     fontWeight: FontWeight.w700,
     fontSize: 45,
     letterSpacing: 0,
     height: 1.16,
   ),
   displaySmall: TextStyle(
-    fontFamily: 'SF Pro Display',
+    fontFamily: 'SF_Pro',
     fontWeight: FontWeight.w600,
     fontSize: 36,
     letterSpacing: 0,
@@ -32,21 +31,21 @@ const TextTheme appTextTheme = TextTheme(
 
   // Headlines - Section headers
   headlineLarge: TextStyle(
-    fontFamily: 'SF Pro Display',
+    fontFamily: 'SF_Pro',
     fontWeight: FontWeight.w600,
     fontSize: 32,
     letterSpacing: 0,
     height: 1.25,
   ),
   headlineMedium: TextStyle(
-    fontFamily: 'SF Pro Display',
+    fontFamily: 'SF_Pro',
     fontWeight: FontWeight.w600,
     fontSize: 28,
     letterSpacing: 0,
     height: 1.29,
   ),
   headlineSmall: TextStyle(
-    fontFamily: 'SF Pro Display',
+    fontFamily: 'SF_Pro',
     fontWeight: FontWeight.w600,
     fontSize: 24,
     letterSpacing: 0,
@@ -55,21 +54,21 @@ const TextTheme appTextTheme = TextTheme(
 
   // Titles - Card and component titles
   titleLarge: TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
     fontSize: 22,
     letterSpacing: 0,
     height: 1.27,
   ),
   titleMedium: TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
     fontSize: 16,
     letterSpacing: 0.15,
     height: 1.5,
   ),
   titleSmall: TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
     fontSize: 14,
     letterSpacing: 0.1,
@@ -78,21 +77,21 @@ const TextTheme appTextTheme = TextTheme(
 
   // Body - Main content text
   bodyLarge: TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
     fontSize: 16,
     letterSpacing: 0.5,
     height: 1.5,
   ),
   bodyMedium: TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
     fontSize: 14,
     letterSpacing: 0.25,
     height: 1.43,
   ),
   bodySmall: TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w400,
     fontSize: 12,
     letterSpacing: 0.4,
@@ -101,21 +100,21 @@ const TextTheme appTextTheme = TextTheme(
 
   // Labels - Buttons and UI elements
   labelLarge: TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
     fontSize: 14,
     letterSpacing: 0.1,
     height: 1.43,
   ),
   labelMedium: TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
     fontSize: 12,
     letterSpacing: 0.5,
     height: 1.33,
   ),
   labelSmall: TextStyle(
-    fontFamily: 'Inter',
+    fontFamily: 'Poppins',
     fontWeight: FontWeight.w600,
     fontSize: 11,
     letterSpacing: 0.5,
@@ -123,112 +122,109 @@ const TextTheme appTextTheme = TextTheme(
   ),
 );
 
-// 耳 MODERN COLOR PALETTE
-// Based on contemporary design systems (Radix, Tailwind, Shadcn)
-const Color primaryGreen = Color(0xFF10B981); // Emerald-500
-const Color primaryGreenDark = Color(0xFF059669); // Emerald-600
-const Color secondaryTeal = Color(0xFF06B6D4); // Cyan-500
-const Color accentBlue = Color(0xFF3B82F6); // Blue-500
-const Color warningAmber = Color(0xFFF59E0B); // Amber-500
-const Color errorRed = Color(0xFFEF4444); // Red-500
+// 🌿 JAPANDI COLOR PALETTE & BOTANICAL ACCENTS
+// Fusion of Japanese Wabi-Sabi organic earth tones and Scandinavian functional clarity
+const Color japandiMatcha = Color(0xFF3B4D3C);      // Deep Kuro-Matsu Matcha
+const Color japandiMatchaLight = Color(0xFF8FA88C); // Luminous Sage / Matcha Mist
+const Color japandiTerracotta = Color(0xFFB87D56);  // Bizen Warm Clay
+const Color japandiTerracottaLight = Color(0xFFD99B72); // Warm Terracotta Glow
+const Color japandiAizome = Color(0xFF6B7F8E);      // Aizome Indigo Mist
+const Color japandiYuzu = Color(0xFFC4823F);        // Yuzu Amber
+const Color japandiAkane = Color(0xFFB84E3A);       // Akane Red Ochre
 
-// ✅ NEW: Purple-ish colors for the light theme
-const Color primaryPurple = Color(0xFF6366F1); // Indigo-500
-const Color secondaryViolet = Color(0xFF8B5CF6); // Violet-500
+// Backward-compatible semantic constants
+const Color warningAmber = japandiYuzu;
+const Color errorRed = japandiAkane;
+const Color primaryGreen = Color(0xFF477A56);
 
-// 笘 ｸLIGHT THEME - Clean, modern, accessible (NOW PURPLE)
+// 🌿 LIGHT THEME - Japandi Washi & Hinoki
 final ThemeData lightThemeData = ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
 
   extensions: const <ThemeExtension<dynamic>>[
     CustomColors(
-      // Semantic colors
-      successGradient: [Color(0xFF10B981), Color(0xFF059669)],
-      errorGradient: [Color(0xFFEF4444), Color(0xFFF59E0B)],
-      heatmapExpense: Color(0xFFF87171), // Red-400
-      heatmapIncome: Color(0xFF34D399), // Emerald-400
+      successGradient: [Color(0xFF477A56), Color(0xFF355E42)],
+      errorGradient: [Color(0xFFB84E3A), Color(0xFFC4823F)],
+      heatmapExpense: Color(0xFFB84E3A),
+      heatmapIncome: Color(0xFF477A56),
       categoryColors: {},
-      // ✅ ADDED: Health colors for Light Theme
-      healthy: primaryGreen,
-      warning: warningAmber,
-      danger: errorRed,
     ),
   ],
 
   colorScheme: const ColorScheme.light(
-    // ✅ Primary - Indigo
-    primary: primaryPurple,
+    // Primary - Deep Matcha
+    primary: japandiMatcha,
     onPrimary: Color(0xFFFFFFFF),
-    primaryContainer: Color(0xFFE0E7FF), // Indigo-100
-    onPrimaryContainer: Color(0xFF3730A3), // Indigo-900
+    primaryContainer: Color(0xFFE2EADF),
+    onPrimaryContainer: Color(0xFF1E2B1F),
 
-    // ✅ Secondary - Violet
-    secondary: secondaryViolet,
+    // Secondary - Warm Terracotta
+    secondary: japandiTerracotta,
     onSecondary: Color(0xFFFFFFFF),
-    secondaryContainer: Color(0xFFEDE9FE), // Violet-100
-    onSecondaryContainer: Color(0xFF4C1D95), // Violet-900
+    secondaryContainer: Color(0xFFF5E8DE),
+    onSecondaryContainer: Color(0xFF5C351B),
 
-    // ✅ Tertiary - Blue (complements purple well)
-    tertiary: accentBlue,
+    // Tertiary - Indigo Mist
+    tertiary: japandiAizome,
     onTertiary: Color(0xFFFFFFFF),
-    tertiaryContainer: Color(0xFFDBEAFE), // Blue-100
-    onTertiaryContainer: Color(0xFF1E3A8A), // Blue-900
+    tertiaryContainer: Color(0xFFE0E8EE),
+    onTertiaryContainer: Color(0xFF1F313E),
 
-    // Error - Red
-    error: Color(0xFFEF4444),
+    // Error - Akane Ochre
+    error: japandiAkane,
     onError: Color(0xFFFFFFFF),
-    errorContainer: Color(0xFFFEE2E2), // Red-100
-    onErrorContainer: Color(0xFF7F1D1D), // Red-900
+    errorContainer: Color(0xFFFCEBE8),
+    onErrorContainer: Color(0xFF6E1E0F),
 
-    // ✅ Surface - Neutral grays from Indigo family for a purple-ish tint
+    // Surface - Warm Washi Paper & Hinoki Neutral
     surface: Color(0xFFFFFFFF),
-    onSurface: Color(0xFF1E1B4B), // Indigo-950
+    onSurface: Color(0xFF1F1E1B), // Sumi Ink Charcoal
     surfaceContainerLowest: Color(0xFFFFFFFF),
-    surfaceContainerLow: Color(0xFFEEF2FF), // Indigo-50
-    surfaceContainer: Color(0xFFE0E7FF), // Indigo-100
-    surfaceContainerHigh: Color(0xFFC7D2FE), // Indigo-200
-    surfaceContainerHighest: Color(0xFFA5B4FC), // Indigo-300
+    surfaceContainerLow: Color(0xFFFBF9F5), // Alabaster
+    surfaceContainer: Color(0xFFF4F1EA),    // Warm Linen
+    surfaceContainerHigh: Color(0xFFEAE5DB), // Warm Stone
+    surfaceContainerHighest: Color(0xFFDFD8CC),
 
-    // ✅ Outline - Borders and dividers from Indigo family
-    outline: Color(0xFFC7D2FE), // Indigo-200
-    outlineVariant: Color(0xFFE0E7FF), // Indigo-100
-    shadow: Color(0xFF000000), // Note: We override this in the card
+    // Outline - Tatami & Straw Fine Dividers
+    outline: Color(0xFFD8D2C4),
+    outlineVariant: Color(0xFFE8E3D8),
+    shadow: Color(0x0A000000),
 
     // Inverse
-    inverseSurface: Color(0xFF1E1B4B), // Indigo-950
-    onInverseSurface: Color(0xFFEEF2FF), // Indigo-50
-    inversePrimary: Color(0xFF818CF8), // Indigo-400
+    inverseSurface: Color(0xFF1F1E1B),
+    onInverseSurface: Color(0xFFF7F5F0),
+    inversePrimary: japandiMatchaLight,
   ),
 
-  scaffoldBackgroundColor: const Color(0xFFEEF2FF), // ✅ Indigo-50
+  scaffoldBackgroundColor: const Color(0xFFF7F5F0), // Natural Washi Paper Base
   textTheme: appTextTheme,
 
-  // Card theme - Elevated, modern
-  cardTheme: CardTheme(
+  // Card theme - Tactile, minimal, gentle radius
+  cardTheme: const CardThemeData(
     elevation: 0,
     shadowColor: Colors.transparent,
     surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.radiusMedium)),
+      borderRadius: BorderRadius.all(Radius.circular(16)),
     ),
     clipBehavior: Clip.antiAlias,
     margin: EdgeInsets.zero,
   ),
 
-  // Elevated button - Primary actions
+  // Elevated button - Primary earthy button
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       elevation: 0,
       shadowColor: Colors.transparent,
+      backgroundColor: japandiMatcha,
+      foregroundColor: Colors.white,
       shape: RoundedRectangleBorder(
-        // ✅ UPDATED: Use DesignSystem
-        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+        borderRadius: BorderRadius.circular(14),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       textStyle: const TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: 'Poppins',
         fontWeight: FontWeight.w600,
         fontSize: 14,
         letterSpacing: 0.1,
@@ -236,143 +232,135 @@ final ThemeData lightThemeData = ThemeData(
     ),
   ),
 
-  // Filled button (alternative style)
+  // Filled button
   filledButtonTheme: FilledButtonThemeData(
     style: FilledButton.styleFrom(
       elevation: 0,
+      backgroundColor: japandiTerracotta,
+      foregroundColor: Colors.white,
       shape: RoundedRectangleBorder(
-        // ✅ UPDATED: Use DesignSystem
-        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+        borderRadius: BorderRadius.circular(14),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     ),
   ),
 
-  // Chip theme
-  chipTheme: ChipThemeData(
-    backgroundColor: const Color(0xFFE0E7FF), // ✅ Indigo-100
-    selectedColor: const Color(0xFFC7D2FE), // ✅ Indigo-200
+  // Chip theme - Organic Pill Style
+  chipTheme: const ChipThemeData(
+    backgroundColor: Color(0xFFF4F1EA),
+    selectedColor: Color(0xFFE2EADF),
     shape: RoundedRectangleBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.spacing4)),
+      borderRadius: BorderRadius.all(Radius.circular(10)),
+      side: BorderSide(color: Color(0xFFE8E3D8), width: 0.8),
     ),
-    labelStyle: const TextStyle(
-      fontFamily: 'Inter',
+    labelStyle: TextStyle(
+      fontFamily: 'Poppins',
       fontSize: 13,
       fontWeight: FontWeight.w500,
+      color: Color(0xFF1F1E1B),
     ),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
 
   // Divider
   dividerTheme: const DividerThemeData(
-    color: Color(0xFFE0E7FF), // ✅ Indigo-100
+    color: Color(0xFFE8E3D8),
     thickness: 1,
     space: 1,
   ),
 
-  // Input decoration
+  // Input decoration - Washi tactile fields
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
-    fillColor: const Color(0xFFE0E7FF), // ✅ Indigo-100
+    fillColor: const Color(0xFFFFFFFF),
     border: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-      borderSide: BorderSide.none,
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFFE8E3D8), width: 1),
     ),
     enabledBorder: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-      borderSide: BorderSide.none,
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFFE8E3D8), width: 1),
     ),
     focusedBorder: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-      borderSide: const BorderSide(color: primaryPurple, width: 2),
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: japandiMatcha, width: 1.5),
     ),
     errorBorder: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-      borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: japandiAkane, width: 1.5),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
   ),
 );
 
-// 嫌 DARK THEME - Rich, comfortable, OLED-friendly
+// 🌿 DARK THEME - Japandi Sumi Charcoal & Night Cedar
 final ThemeData darkThemeData = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
 
   extensions: const <ThemeExtension<dynamic>>[
     CustomColors(
-      successGradient: [Color(0xFF34D399), Color(0xFF10B981)],
-      errorGradient: [Color(0xFFF87171), Color(0xFFFBBF24)],
-      heatmapExpense: Color(0xFFF87171), // Red-400
-      heatmapIncome: Color(0xFF34D399), // Emerald-400
+      successGradient: [Color(0xFF6E9C7B), Color(0xFF477A56)],
+      errorGradient: [Color(0xFFE06D53), Color(0xFFC4823F)],
+      heatmapExpense: Color(0xFFE06D53),
+      heatmapIncome: Color(0xFF6E9C7B),
       categoryColors: {},
-      // ✅ ADDED: Health colors for Dark Theme
-      healthy: Color(0xFF34D399), // Primary color
-      warning: Color(0xFFFBBF24), // Amber-400
-      danger: Color(0xFFF87171), // Error color
     ),
   ],
 
   colorScheme: const ColorScheme.dark(
-    // Primary - Emerald green (lighter for dark mode)
-    primary: Color(0xFF34D399),
-    onPrimary: Color(0xFF064E3B),
-    primaryContainer: Color(0xFF065F46), // Emerald-800
-    onPrimaryContainer: Color(0xFFD1FAE5),
+    // Primary - Luminous Sage Matcha
+    primary: japandiMatchaLight,
+    onPrimary: Color(0xFF182419),
+    primaryContainer: Color(0xFF2C3A2D),
+    onPrimaryContainer: Color(0xFFDDE8DB),
 
-    // Secondary - Cyan
-    secondary: Color(0xFF22D3EE),
-    onSecondary: Color(0xFF164E63),
-    secondaryContainer: Color(0xFF155E75), // Cyan-800
-    onSecondaryContainer: Color(0xFFCFFAFE),
+    // Secondary - Terracotta Glow
+    secondary: japandiTerracottaLight,
+    onSecondary: Color(0xFF3D200E),
+    secondaryContainer: Color(0xFF4A2F1B),
+    onSecondaryContainer: Color(0xFFF8E3D5),
 
-    // Tertiary - Blue
-    tertiary: Color(0xFF60A5FA),
-    onTertiary: Color(0xFF1E3A8A),
-    tertiaryContainer: Color(0xFF1E40AF), // Blue-800
-    onTertiaryContainer: Color(0xFFDBEAFE),
+    // Tertiary - Soft Indigo
+    tertiary: Color(0xFF93A8B8),
+    onTertiary: Color(0xFF1B2A34),
+    tertiaryContainer: Color(0xFF2E404D),
+    onTertiaryContainer: Color(0xFFD8E4EC),
 
-    // Error - Red
-    error: Color(0xFFF87171),
-    onError: Color(0xFF7F1D1D),
-    errorContainer: Color(0xFF991B1B), // Red-800
-    onErrorContainer: Color(0xFFFEE2E2),
+    // Error - Terracotta Red
+    error: Color(0xFFE06D53),
+    onError: Color(0xFF451006),
+    errorContainer: Color(0xFF5C1C11),
+    onErrorContainer: Color(0xFFFBDAD5),
 
-    // Surface - Rich dark surfaces
-    surface: Color(0xFF0F172A), // Slate-900
-    onSurface: Color(0xFFF1F5F9), // Slate-100
-    surfaceContainerLowest: Color(0xFF020617), // Slate-950
-    surfaceContainerLow: Color(0xFF1E293B), // Slate-800
-    surfaceContainer: Color(0xFF334155), // Slate-700
-    surfaceContainerHigh: Color(0xFF475569), // Slate-600
-    surfaceContainerHighest: Color(0xFF64748B), // Slate-500
+    // Surface - Sumi Slate & Kuroshio Cedar
+    surface: Color(0xFF1C1C19),
+    onSurface: Color(0xFFEDEAE2), // Warm Washi White
+    surfaceContainerLowest: Color(0xFF121210),
+    surfaceContainerLow: Color(0xFF181815),
+    surfaceContainer: Color(0xFF22221E),
+    surfaceContainerHigh: Color(0xFF2C2C27),
+    surfaceContainerHighest: Color(0xFF383832),
 
-    // Outline
-    outline: Color(0xFF475569), // Slate-600
-    outlineVariant: Color(0xFF334155), // Slate-700
+    // Outline - Charcoal Bamboo
+    outline: Color(0xFF3D3D36),
+    outlineVariant: Color(0xFF2B2B26),
     shadow: Color(0xFF000000),
 
     // Inverse
-    inverseSurface: Color(0xFFF1F5F9), // Slate-100
-    onInverseSurface: Color(0xFF1E293B), // Slate-800
-    inversePrimary: Color(0xFF10B981),
+    inverseSurface: Color(0xFFEDEAE2),
+    onInverseSurface: Color(0xFF181815),
+    inversePrimary: japandiMatcha,
   ),
 
-  scaffoldBackgroundColor: const Color(0xFF020617),
+  scaffoldBackgroundColor: const Color(0xFF141412), // Deep Charcoal Ink Base
   textTheme: appTextTheme,
 
-  cardTheme: CardTheme(
+  cardTheme: const CardThemeData(
     elevation: 0,
-    shadowColor: Colors.transparent,
     surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.radiusMedium)),
+      borderRadius: BorderRadius.all(Radius.circular(16)),
     ),
     clipBehavior: Clip.antiAlias,
     margin: EdgeInsets.zero,
@@ -382,13 +370,14 @@ final ThemeData darkThemeData = ThemeData(
     style: ElevatedButton.styleFrom(
       elevation: 0,
       shadowColor: Colors.transparent,
+      backgroundColor: japandiMatchaLight,
+      foregroundColor: const Color(0xFF182419),
       shape: RoundedRectangleBorder(
-        // ✅ UPDATED: Use DesignSystem
-        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+        borderRadius: BorderRadius.circular(14),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       textStyle: const TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: 'Poppins',
         fontWeight: FontWeight.w600,
         fontSize: 14,
         letterSpacing: 0.1,
@@ -399,57 +388,55 @@ final ThemeData darkThemeData = ThemeData(
   filledButtonTheme: FilledButtonThemeData(
     style: FilledButton.styleFrom(
       elevation: 0,
+      backgroundColor: japandiTerracottaLight,
+      foregroundColor: const Color(0xFF3D200E),
       shape: RoundedRectangleBorder(
-        // ✅ UPDATED: Use DesignSystem
-        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+        borderRadius: BorderRadius.circular(14),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     ),
   ),
 
-  chipTheme: ChipThemeData(
-    backgroundColor: const Color(0xFF1E293B),
-    selectedColor: const Color(0xFF065F46),
+  chipTheme: const ChipThemeData(
+    backgroundColor: Color(0xFF22221E),
+    selectedColor: Color(0xFF2C3A2D),
     shape: RoundedRectangleBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.spacing4)),
+      borderRadius: BorderRadius.all(Radius.circular(10)),
+      side: BorderSide(color: Color(0xFF2B2B26), width: 0.8),
     ),
-    labelStyle: const TextStyle(
-      fontFamily: 'Inter',
+    labelStyle: TextStyle(
+      fontFamily: 'Poppins',
       fontSize: 13,
       fontWeight: FontWeight.w500,
+      color: Color(0xFFEDEAE2),
     ),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
 
   dividerTheme: const DividerThemeData(
-    color: Color(0xFF334155),
+    color: Color(0xFF2B2B26),
     thickness: 1,
     space: 1,
   ),
 
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
-    fillColor: const Color(0xFF1E293B),
+    fillColor: const Color(0xFF1C1C19),
     border: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-      borderSide: BorderSide.none,
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFF2B2B26), width: 1),
     ),
     enabledBorder: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-      borderSide: BorderSide.none,
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFF2B2B26), width: 1),
     ),
     focusedBorder: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-      borderSide: const BorderSide(color: Color(0xFF34D399), width: 2),
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: japandiMatchaLight, width: 1.5),
     ),
     errorBorder: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-      borderSide: const BorderSide(color: Color(0xFFF87171), width: 2),
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFFE06D53), width: 1.5),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
   ),
@@ -467,10 +454,6 @@ final ThemeData barbieThemeData = ThemeData(
       heatmapExpense: Color(0xFFF472B6), // Pink-400
       heatmapIncome: Color(0xFFFBBF24), // Amber-400
       categoryColors: {},
-      // ✅ ADDED: Health colors for Barbie Theme
-      healthy: Color(0xFFEC4899), // Primary color
-      warning: Color(0xFFFBBF24), // Tertiary color
-      danger: Color(0xFFEF4444), // Error color
     ),
   ],
 
@@ -517,13 +500,11 @@ final ThemeData barbieThemeData = ThemeData(
   scaffoldBackgroundColor: const Color(0xFFFFFBFE), // Custom near-white base
   textTheme: appTextTheme,
 
-  cardTheme: CardTheme(
+  cardTheme: const CardThemeData(
     elevation: 0,
     shadowColor: Colors.transparent,
-    surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.radiusMedium)),
+      borderRadius: BorderRadius.all(Radius.circular(16)),
     ),
     clipBehavior: Clip.antiAlias,
     margin: EdgeInsets.zero,
@@ -534,12 +515,11 @@ final ThemeData barbieThemeData = ThemeData(
       elevation: 0,
       shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        // ✅ UPDATED: Use DesignSystem
-        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+        borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       textStyle: const TextStyle(
-        fontFamily: 'Inter',
+        fontFamily: 'Poppins',
         fontWeight: FontWeight.w600,
         fontSize: 14,
         letterSpacing: 0.1,
@@ -551,26 +531,24 @@ final ThemeData barbieThemeData = ThemeData(
     style: FilledButton.styleFrom(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        // ✅ UPDATED: Use DesignSystem
-        borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+        borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
     ),
   ),
 
-  chipTheme: ChipThemeData(
-    backgroundColor: const Color(0xFFFFE4E6), // Rose-100
-    selectedColor: const Color(0xFFFECDD3), // Rose-200
+  chipTheme: const ChipThemeData(
+    backgroundColor: Color(0xFFFFE4E6), // Rose-100
+    selectedColor: Color(0xFFFECDD3), // Rose-200
     shape: RoundedRectangleBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.all(Radius.circular(DesignSystem.spacing4)),
+      borderRadius: BorderRadius.all(Radius.circular(8)),
     ),
-    labelStyle: const TextStyle(
-      fontFamily: 'Inter',
+    labelStyle: TextStyle(
+      fontFamily: 'Poppins',
       fontSize: 13,
       fontWeight: FontWeight.w500,
     ),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
 
   dividerTheme: const DividerThemeData(
@@ -583,23 +561,19 @@ final ThemeData barbieThemeData = ThemeData(
     filled: true,
     fillColor: const Color(0xFFFFE4E6), // Rose-100
     border: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+      borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide.none,
     ),
     enabledBorder: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+      borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide.none,
     ),
     focusedBorder: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+      borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(color: Color(0xFFEC4899), width: 2),
     ),
     errorBorder: OutlineInputBorder(
-      // ✅ UPDATED: Use DesignSystem
-      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+      borderRadius: BorderRadius.circular(12),
       borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),

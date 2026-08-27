@@ -1,8 +1,8 @@
 // lib/widgets/home/spending_card.dart
-import 'package:aada_app/provider/user_profile_provider.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../theme/custom_colors.dart';
+import '../../provider/user_profile_provider.dart';
 import '../../theme/design_system.dart';
 
 class SpendingCard extends StatelessWidget {
@@ -27,547 +27,273 @@ class SpendingCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    // ✅ FIX: Get custom colors from the theme
-    final customColors = Theme.of(context).extension<CustomColors>();
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final incomePercentage = monthlyIncome != null && monthlyIncome! > 0
-        ? (monthlyCost / monthlyIncome!) * 100
-        : null;
     final yearly = monthlyCost * 12;
-
-    // ✅ FIX: Helper method to get income color from customColors
-    Color getIncomeColor(double percentage) {
-      if (percentage < 10) {
-        return customColors?.healthy ?? const Color(0xFF10B981);
-      }
-      if (percentage < 15) {
-        return customColors?.warning ?? const Color(0xFFF59E0B);
-      }
-      return customColors?.danger ?? const Color(0xFFEF4444);
-    }
 
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: isDark
-              ? [colorScheme.surface, colorScheme.surface.withOpacity(0.8)]
-              : [colorScheme.surface, colorScheme.surfaceContainerLow],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: isDark ? colorScheme.surface : Colors.white,
         borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
         border: Border.all(
-          color: colorScheme.outlineVariant,
-          width: 1,
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.35 : 0.7),
+          width: 1.0,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.2)
+                : const Color(0xFF20201E).withValues(alpha: 0.03),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(DesignSystem.spacing10),
-            child: Row(
+      child: Padding(
+        padding: const EdgeInsets.all(DesignSystem.spacing10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Row: Title & Yearly Projection + Action Button
+            Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Text(
-                            '💰',
-                            style: TextStyle(fontSize: DesignSystem.iconLarge),
-                          ),
-                          const SizedBox(width: DesignSystem.spacing4),
-                          Text(
-                            'Monthly Spending',
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: -0.3,
-                            ),
-                          ),
-                        ],
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Monthly Spending',
+                      style: textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurfaceVariant,
+                        letterSpacing: 0.2,
                       ),
-                      const SizedBox(height: DesignSystem.spacing2),
-                      if (incomePercentage != null)
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: DesignSystem.spacing4,
-                                vertical: DesignSystem.spacing2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: getIncomeColor(incomePercentage)
-                                    .withOpacity(0.15),
-                                borderRadius:
-                                BorderRadius.circular(DesignSystem.radiusSmall),
-                              ),
-                              child: Text(
-                                '${incomePercentage.toStringAsFixed(1)}% of income',
-                                style: textTheme.labelMedium?.copyWith(
-                                  color: getIncomeColor(incomePercentage),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: DesignSystem.spacing4),
-                            Text(
-                              '• €${yearly.toStringAsFixed(0)}/year',
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        )
-                      else
-                        InkWell(
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            onEditIncome();
-                          },
-                          borderRadius:
-                          BorderRadius.circular(DesignSystem.radiusSmall),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: DesignSystem.spacing4,
-                              vertical: DesignSystem.spacing2,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Add income for insights',
-                                  style: textTheme.labelMedium?.copyWith(
-                                    color: colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(width: DesignSystem.spacing2),
-                                Icon(
-                                  Icons.arrow_forward_rounded,
-                                  size: DesignSystem.iconXSmall,
-                                  color: colorScheme.primary,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '≈ €${yearly.toStringAsFixed(0)} / year',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
                 IconButton(
                   onPressed: () {
-                    HapticFeedback.mediumImpact();
-                    _showSettingsMenu(context);
+                    HapticFeedback.lightImpact();
+                    onEditGoal();
                   },
                   icon: Icon(
                     Icons.tune_rounded,
                     size: DesignSystem.iconMedium,
                     color: colorScheme.onSurfaceVariant,
                   ),
+                  tooltip: 'Adjust Spend Target',
                   style: IconButton.styleFrom(
-                    backgroundColor: colorScheme.surfaceContainer,
+                    backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                      BorderRadius.circular(DesignSystem.radiusSmall),
+                      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
                     ),
                     padding: const EdgeInsets.all(DesignSystem.spacing4),
-                    minimumSize: const Size(
-                        DesignSystem.minTouchTarget, DesignSystem.minTouchTarget),
+                    minimumSize: const Size(DesignSystem.minTouchTarget, DesignSystem.minTouchTarget),
                   ),
                 ),
               ],
             ),
-          ),
-          Divider(
-            height: 1,
-            color: colorScheme.outlineVariant,
-          ),
-          Padding(
-            padding: const EdgeInsets.all(DesignSystem.spacing10),
-            child: goal != null
-                ? _GoalProgress(
-              monthlyCost: monthlyCost,
-              goal: goal!,
-            )
-                : _PromptToSetGoal(
-              onTap: onEditGoal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: DesignSystem.spacing8),
 
-  // ❌ REMOVED: _getIncomeColor method, as its logic is moved inline into build()
-  // to access `customColors` from the theme.
-
-  void _showSettingsMenu(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(DesignSystem.spacing10),
-        decoration: BoxDecoration(
-          color: colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(DesignSystem.radiusXXL),
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: DesignSystem.spacing10),
-                decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: colorScheme.primaryContainer,
-                    borderRadius:
-                    BorderRadius.circular(DesignSystem.radiusSmall),
-                  ),
-                  child: Icon(
-                    Icons.track_changes_rounded,
-                    color: colorScheme.onPrimaryContainer,
-                    size: DesignSystem.iconMedium,
+            // Large Japandi Spend Display
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '€${monthlyCost.toStringAsFixed(0)}',
+                  style: textTheme.displayMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: colorScheme.onSurface,
+                    letterSpacing: -1.0,
+                    height: 1.0,
                   ),
                 ),
-                title: const Text(
-                  'Set Spend Limit',
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                Text(
+                  '.${(monthlyCost % 1 * 100).toStringAsFixed(0).padLeft(2, '0')}',
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                  ),
                 ),
-                subtitle: Text(
-                  goal != null
-                      ? 'Currently €${goal!.toStringAsFixed(0)}/month'
-                      : 'Not set',
-                  style: TextStyle(
-                    fontSize: 13,
+                const SizedBox(width: DesignSystem.spacing4),
+                Text(
+                  '/ month',
+                  style: textTheme.bodyMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  onEditGoal();
-                },
-              ),
-              const SizedBox(height: DesignSystem.spacing4),
-              ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: colorScheme.secondaryContainer,
-                    borderRadius:
-                    BorderRadius.circular(DesignSystem.radiusSmall),
-                  ),
-                  child: Icon(
-                    Icons.account_balance_wallet_rounded,
-                    color: colorScheme.onSecondaryContainer,
-                    size: DesignSystem.iconMedium,
-                  ),
-                ),
-                title: Text(
-                  monthlyIncome != null ? 'Update Income' : 'Add Income',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  monthlyIncome != null
-                      ? '€${monthlyIncome!.toStringAsFixed(0)}/month'
-                      : 'Get personalized insights',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  onEditIncome();
-                },
-              ),
-              const Divider(height: DesignSystem.spacing8),
-              ListTile(
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: colorScheme.errorContainer.withOpacity(0.5),
-                    borderRadius:
-                    BorderRadius.circular(DesignSystem.radiusSmall),
-                  ),
-                  child: Icon(
-                    Icons.restart_alt_rounded,
-                    color: colorScheme.onErrorContainer,
-                    size: DesignSystem.iconMedium,
-                  ),
-                ),
-                title: Text(
-                  'Reset to Default',
-                  style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onErrorContainer),
-                ),
-                subtitle: Text(
-                  'Removes income and resets spend limit',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: colorScheme.onErrorContainer.withOpacity(0.7),
-                  ),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showResetConfirmationDialog(context);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showResetConfirmationDialog(BuildContext context) async {
-    final colorScheme = Theme.of(context).colorScheme;
-    final messenger = ScaffoldMessenger.of(context);
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(DesignSystem.radiusXL)), // Updated
-        title: const Text('Reset Financials?'),
-        content: const Text(
-            'This will remove your monthly income and reset your spending goal to the default. Are you sure?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-                backgroundColor: colorScheme.error),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Reset'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await profileProvider.resetIncomeAndGoal();
-      messenger.showSnackBar(
-        SnackBar(
-          content: const Text('Income and spending goal have been reset.'),
-          backgroundColor: Colors.green, // Consider using customColors.healthy
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(DesignSystem.radiusMedium)), // Updated
-          margin: const EdgeInsets.all(DesignSystem.spacing8), // Updated
-        ),
-      );
-    }
-  }
-}
-
-// ✅ UPDATED WIDGET
-
-/// Displays the progress towards a spending goal.
-class _GoalProgress extends StatelessWidget {
-  final double monthlyCost;
-  final double goal;
-
-  const _GoalProgress({required this.monthlyCost, required this.goal});
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
-    // ✅ FIX: Get custom colors from the theme
-    final customColors = Theme.of(context).extension<CustomColors>();
-    final isUnderLimit = monthlyCost <= goal;
-
-    final double progressBarValue =
-    goal > 0 ? (monthlyCost / goal).clamp(0.0, 1.0) : 0.0;
-    final String statusText;
-    final IconData statusIcon;
-    final List<Color> progressGradient;
-
-    if (isUnderLimit) {
-      final amountLeft = goal - monthlyCost;
-      statusIcon = Icons.check_circle_rounded;
-      statusText = '€${amountLeft.toStringAsFixed(0)} under limit';
-      progressGradient = customColors?.successGradient ??
-          [colorScheme.primary, colorScheme.secondary];
-    } else {
-      final amountOver = monthlyCost - goal;
-      final percentOver = goal > 0 ? (amountOver / goal * 100) : 100;
-      statusIcon = Icons.warning_rounded;
-      statusText =
-      '€${amountOver.toStringAsFixed(0)} over (+${percentOver.toStringAsFixed(0)}%)';
-      // ✅ FIX: Use theme-aware warning color
-      progressGradient = customColors?.errorGradient ??
-          [colorScheme.error, customColors?.warning ?? const Color(0xFFF59E0B)];
-    }
-
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '€${monthlyCost.toStringAsFixed(0)}',
-              style: textTheme.displayLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: isUnderLimit ? colorScheme.primary : colorScheme.error,
-                height: 1,
-              ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: DesignSystem.spacing4),
-              child: Text(
-                '.${(monthlyCost % 1 * 100).toStringAsFixed(0).padLeft(2, '0')}',
-                style: textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: (isUnderLimit
-                      ? colorScheme.primary
-                      : colorScheme.error)
-                      .withOpacity(0.6),
-                  height: 1,
-                ),
-              ),
-            ),
+            const SizedBox(height: DesignSystem.spacing10),
+
+            // Target Buffer Gauge or Prompt
+            if (goal != null && goal! > 0)
+              _buildTargetGauge(context, monthlyCost, goal!)
+            else
+              _buildSetTargetPrompt(context),
           ],
         ),
-        const SizedBox(height: DesignSystem.spacing4),
-        Text(
-          'of €${goal.toStringAsFixed(0)} limit',
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: DesignSystem.spacing12),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-          child: SizedBox(
-            height: 12,
-            child: Stack(
-              children: [
-                Container(color: colorScheme.surfaceContainerHighest),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 800),
-                      curve: Curves.easeOutCubic,
-                      width: constraints.maxWidth * progressBarValue,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: progressGradient),
-                      ),
-                    );
-                  },
-                ),
-              ],
+      ),
+    );
+  }
+
+  Widget _buildTargetGauge(BuildContext context, double cost, double target) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final isUnderTarget = cost <= target;
+    final progress = (cost / target).clamp(0.0, 1.0);
+    final diff = (target - cost).abs();
+
+    final Color statusColor = isUnderTarget
+        ? colorScheme.primary
+        : colorScheme.error;
+    final Color statusBg = isUnderTarget
+        ? colorScheme.primaryContainer.withValues(alpha: 0.4)
+        : colorScheme.errorContainer.withValues(alpha: 0.4);
+
+    final String statusText = isUnderTarget
+        ? '€${diff.toStringAsFixed(0)} buffer remaining'
+        : '€${diff.toStringAsFixed(0)} over target';
+
+    return InkWell(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onEditGoal();
+      },
+      borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Minimalist Progress Track
+          ClipRRect(
+            borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+            child: SizedBox(
+              height: 8,
+              child: Stack(
+                children: [
+                  Container(
+                    color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.6),
+                  ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 600),
+                        curve: Curves.easeOutCubic,
+                        width: constraints.maxWidth * progress,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        const SizedBox(height: DesignSystem.spacing6),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: DesignSystem.spacing6,
-            vertical: DesignSystem.spacing4,
-          ),
-          decoration: BoxDecoration(
-            color: (isUnderLimit
-                ? colorScheme.primaryContainer
-                : colorScheme.errorContainer)
-                .withOpacity(0.5),
-            borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+          const SizedBox(height: DesignSystem.spacing6),
+
+          // Status & Target Metadata
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(statusIcon,
-                  size: DesignSystem.iconXSmall,
-                  color: isUnderLimit
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onErrorContainer),
-              const SizedBox(width: DesignSystem.spacing2),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: DesignSystem.spacing6,
+                  vertical: DesignSystem.spacing2,
+                ),
+                decoration: BoxDecoration(
+                  color: statusBg,
+                  borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      isUnderTarget ? Icons.check_rounded : Icons.info_outline_rounded,
+                      size: 14,
+                      color: statusColor,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      statusText,
+                      style: textTheme.labelSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: statusColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Text(
-                statusText,
-                style: textTheme.labelMedium?.copyWith(
-                  color: isUnderLimit
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onErrorContainer,
+                'Target: €${target.toStringAsFixed(0)}/mo',
+                style: textTheme.labelSmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
-}
 
-/// Displays an invitation to set a spending goal.
-class _PromptToSetGoal extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _PromptToSetGoal({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildSetTargetPrompt(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onEditGoal();
+      },
+      borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
       child: Container(
-        padding: const EdgeInsets.all(DesignSystem.spacing10),
-        decoration: BoxDecoration(
-          color: colorScheme.primaryContainer.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
-          border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
+        padding: const EdgeInsets.symmetric(
+          horizontal: DesignSystem.spacing8,
+          vertical: DesignSystem.spacing6,
         ),
-        child: Column(
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+            style: BorderStyle.solid,
+          ),
+        ),
+        child: Row(
           children: [
             Icon(
               Icons.track_changes_rounded,
-              size: DesignSystem.iconXLarge,
+              size: DesignSystem.iconSmall,
               color: colorScheme.primary,
             ),
-            const SizedBox(height: DesignSystem.spacing6),
-            Text(
-              'Set a Spend Limit',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
+            const SizedBox(width: DesignSystem.spacing6),
+            Expanded(
+              child: Text(
+                'Set a monthly spend target',
+                style: textTheme.labelMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
               ),
             ),
-            const SizedBox(height: DesignSystem.spacing2),
-            Text(
-              'Track your spending against a monthly goal to stay on budget.',
-              textAlign: TextAlign.center,
-              style: textTheme.bodyMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
+            Icon(
+              Icons.add_rounded,
+              size: DesignSystem.iconSmall,
+              color: colorScheme.primary,
             ),
           ],
         ),

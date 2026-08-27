@@ -45,15 +45,26 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
     with TickerProviderStateMixin {
   late DateTime _currentMonth;
   DateTime? _selectedDay;
-  final DateTime _today = DateTime.now();
+  late final DateTime _today;
   bool _isAmountBlurred = false;
   int _swipeDirection = 0;
 
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    _today = DateTime(now.year, now.month, now.day);
     _currentMonth = DateTime(_today.year, _today.month, 1);
     _selectedDay = _today;
+  }
+
+  List<Subscription> _getSubscriptionsForDay(
+    Map<DateTime, List<Subscription>> groupedSubs,
+    DateTime? day,
+  ) {
+    if (day == null) return [];
+    final normalized = DateTime(day.year, day.month, day.day);
+    return groupedSubs[normalized] ?? [];
   }
 
   void _changeMonth(int direction) {
@@ -68,6 +79,7 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
   void _jumpToToday() {
     HapticFeedback.mediumImpact();
     final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final todayMonth = DateTime(now.year, now.month, 1);
 
     setState(() {
@@ -79,14 +91,14 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
         _swipeDirection = 0;
       }
       _currentMonth = todayMonth;
-      _selectedDay = now;
+      _selectedDay = today;
     });
   }
 
-
   void _selectDay(DateTime date) {
     HapticFeedback.lightImpact();
-    setState(() => _selectedDay = (_selectedDay != null && DateUtils.isSameDay(_selectedDay!, date)) ? null : date);
+    final normalized = DateTime(date.year, date.month, date.day);
+    setState(() => _selectedDay = (_selectedDay != null && DateUtils.isSameDay(_selectedDay!, normalized)) ? null : normalized);
   }
 
   void _toggleBlur() {
@@ -99,22 +111,305 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
     final provider = context.watch<SimplifiedSubscriptionProvider>();
     final groupedSubs = provider.groupByDate();
 
-    return Column(
-      children: [
-        _buildModernMonthSelector(),
-        const _WeekdayHeaderWidget(),
-        _buildMonthPages(groupedSubs),
-        _buildMonthlyTotal(provider),
-        AnimatedSize(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          child: _selectedDay != null
-              ? _buildSelectedDayDetails(groupedSubs[_selectedDay!] ?? [])
-              : const SizedBox.shrink(),
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWideScreen = constraints.maxWidth >= 768;
+
+        if (isWideScreen) {
+          return _buildDesktopLayout(provider, groupedSubs);
+        }
+
+        return _buildMobileLayout(provider, groupedSubs);
+      },
     );
   }
+
+  Widget _buildDesktopLayout(
+    SimplifiedSubscriptionProvider provider,
+    Map<DateTime, List<Subscription>> groupedSubs,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selectedDate = _selectedDay ?? _today;
+    final selectedDaySubs = _getSubscriptionsForDay(groupedSubs, selectedDate);
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1100),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: DesignSystem.spacing16,
+            vertical: DesignSystem.spacing12,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left Column: Calendar Card + Monthly Cash Flow
+              Expanded(
+                flex: 6,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? colorScheme.surface : Colors.white,
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark
+                            ? Colors.black.withValues(alpha: 0.25)
+                            : const Color(0xFF20201E).withValues(alpha: 0.04),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(DesignSystem.spacing12),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildModernMonthSelector(),
+                      const _WeekdayHeaderWidget(),
+                      _buildMonthPages(groupedSubs),
+                      const SizedBox(height: DesignSystem.spacing8),
+                      _buildSevenDayForecastBanner(provider),
+                      _buildMonthlyTotal(provider),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: DesignSystem.spacing20),
+
+              // Right Column: Dedicated Selected Day Agenda Pane
+              Expanded(
+                flex: 5,
+                child: _buildDesktopAgendaPanel(
+                  selectedDate,
+                  selectedDaySubs,
+                  colorScheme,
+                  isDark,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDesktopAgendaPanel(
+    DateTime selectedDate,
+    List<Subscription> subs,
+    ColorScheme colorScheme,
+    bool isDark,
+  ) {
+    final totalDue = subs.fold<double>(0.0, (sum, sub) => sum + sub.amount);
+    final isToday = DateUtils.isSameDay(selectedDate, _today);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surface : Colors.white,
+        borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.25)
+                : const Color(0xFF20201E).withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(DesignSystem.spacing16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header: Date & Status Badge
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            DateFormat('EEEE, d MMMM').format(selectedDate),
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: colorScheme.onSurface,
+                              letterSpacing: -0.2,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (isToday) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(DesignSystem.radiusFull),
+                            ),
+                            child: Text(
+                              'TODAY',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.6,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subs.isEmpty
+                          ? 'No payments scheduled'
+                          : '${subs.length} ${subs.length == 1 ? 'payment' : 'payments'} scheduled • €${totalDue.toStringAsFixed(2)}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: () {
+                  showAddSubscriptionPopup(
+                    context,
+                    (newSub) => context.read<SimplifiedSubscriptionProvider>().addSubscription(newSub),
+                    defaultStartDate: selectedDate,
+                  );
+                },
+                icon: const Icon(Icons.add_rounded, size: 16),
+                label: const Text('Add'),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  side: BorderSide(
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.8),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: DesignSystem.spacing16),
+          const Divider(height: 1),
+          const SizedBox(height: DesignSystem.spacing16),
+
+          // Content
+          if (subs.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 40),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B4D3C).withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.spa_rounded,
+                        size: 40,
+                        color: Color(0xFF3B4D3C),
+                      ),
+                    ),
+                    const SizedBox(height: DesignSystem.spacing16),
+                    Text(
+                      'Serene Day',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: DesignSystem.spacing6),
+                    Text(
+                      'No renewals or charges on this day.',
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: subs.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final sub = subs[index];
+                return SubscriptionCardWrapper(
+                  subscription: sub,
+                  displayDate: selectedDate,
+                  isAmountBlurred: _isAmountBlurred,
+                  onEdit: widget.onEdit,
+                  onDelete: widget.onDelete,
+                  isSelectionMode: widget.isSelectionMode,
+                  isSnoozed: widget.isSubscriptionSnoozed(sub.id),
+                  onLongPress: () => widget.onLongPress(sub.id),
+                  onTap: () => widget.onTap(sub.id),
+                  onSnoozeChanged: (_) => widget.onSnoozeChanged(sub.id),
+                  interactionsEnabled: true,
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileLayout(
+    SimplifiedSubscriptionProvider provider,
+    Map<DateTime, List<Subscription>> groupedSubs,
+  ) {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
+        child: Column(
+          children: [
+            _buildModernMonthSelector(),
+            const _WeekdayHeaderWidget(),
+            _buildMonthPages(groupedSubs),
+            _buildSevenDayForecastBanner(provider),
+            _buildMonthlyTotal(provider),
+            AnimatedSize(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              child: _selectedDay != null
+                  ? _buildSelectedDayDetails(_getSubscriptionsForDay(groupedSubs, _selectedDay))
+                  : const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
 
   Widget _buildModernMonthSelector() {
     final colorScheme = Theme.of(context).colorScheme;
@@ -279,32 +574,26 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
 
   Widget _buildMonthlyTotal(SimplifiedSubscriptionProvider provider) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final monthlyTotal = provider.calculateCashFlowForMonth(widget.snoozedIds, _currentMonth);
-    // ✅ FIX 1: Pass the full context, not the colorScheme
     final amountColor = CalendarHelpers.getAmountColor(monthlyTotal, context);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(
-        DesignSystem.spacing12,
-        DesignSystem.spacing12,
-        DesignSystem.spacing12,
-        DesignSystem.spacing12,
+      margin: const EdgeInsets.symmetric(
+        vertical: DesignSystem.spacing6,
+        horizontal: DesignSystem.spacing4,
       ),
-      padding: const EdgeInsets.all(DesignSystem.spacing12),
+      padding: const EdgeInsets.symmetric(
+        vertical: DesignSystem.spacing10,
+        horizontal: DesignSystem.spacing12,
+      ),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainer.withOpacity(0.8),
-        borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
+        color: isDark ? colorScheme.surfaceContainerLow : const Color(0xFFFBF9F5),
+        borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
         border: Border.all(
-          color: colorScheme.outlineVariant.withOpacity(0.5),
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
           width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: Column(
         children: [
@@ -365,6 +654,67 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
     );
   }
 
+  Widget _buildSevenDayForecastBanner(SimplifiedSubscriptionProvider provider) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final subs = provider.subscriptions.where((s) => !widget.isSubscriptionSnoozed(s.id)).toList();
+    final sevenDayTotal = CalendarHelpers.getNext7DaysTotal(subs);
+    final count = CalendarHelpers.getNext7DaysCount(subs);
+
+    if (count == 0 && sevenDayTotal == 0) return const SizedBox.shrink();
+
+    final formattedAmount = _isAmountBlurred ? '••••' : '€${sevenDayTotal.toStringAsFixed(2)}';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: DesignSystem.spacing8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark ? colorScheme.surfaceContainerHigh : const Color(0xFFF3EFEA),
+        borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.6),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                Icon(
+                  Icons.schedule_rounded,
+                  size: 16,
+                  color: colorScheme.primary,
+                ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    'Next 7 Days ($count):',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            formattedAmount,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: colorScheme.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSelectedDayDetails(List<Subscription> subs) {
     final colorScheme = Theme.of(context).colorScheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -379,24 +729,21 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
         ),
         padding: const EdgeInsets.all(DesignSystem.spacing20),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: isDark
-                ? [
-              colorScheme.surfaceContainer.withOpacity(0.5),
-              colorScheme.surfaceContainerLow.withOpacity(0.3)
-            ]
-                : [
-              colorScheme.surfaceContainer,
-              colorScheme.surfaceContainerLow,
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: isDark ? colorScheme.surface : Colors.white,
           borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
           border: Border.all(
-            color: colorScheme.outlineVariant.withOpacity(0.5),
+            color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
             width: 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.25)
+                  : const Color(0xFF20201E).withValues(alpha: 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Center(
           child: Column(
@@ -405,27 +752,27 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: colorScheme.primary.withOpacity(0.1),
+                  color: const Color(0xFF3B4D3C).withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.event_available_rounded,
-                  size: 40,
-                  color: colorScheme.primary,
+                child: const Icon(
+                  Icons.spa_rounded,
+                  size: 36,
+                  color: Color(0xFF3B4D3C),
                 ),
               ),
               const SizedBox(height: DesignSystem.spacing12),
               Text(
-                'All clear!',
+                'Serene Day',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   letterSpacing: -0.3,
-                  color: colorScheme.primary,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: DesignSystem.spacing4),
               Text(
-                'No payments due on this day.',
+                'No payments scheduled for this date.',
                 style: TextStyle(
                   color: colorScheme.onSurfaceVariant,
                   fontSize: 14,
@@ -453,7 +800,7 @@ class _ModernCalendarViewState extends State<ModernCalendarView>
               Container(
                 padding: const EdgeInsets.all(DesignSystem.spacing6),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
                 ),
                 child: Icon(
@@ -658,7 +1005,7 @@ class _CalendarDayWidget extends StatelessWidget {
     final heatmapOpacity = CalendarHelpers.getHeatmapOpacity(dailyTotal);
     // ✅ FIX 2: Pass the full context here as well
     final baseHeatmapColor = CalendarHelpers.getAmountColor(dailyTotal, context);
-    final heatmapColor = baseHeatmapColor.withOpacity(heatmapOpacity);
+    final heatmapColor = baseHeatmapColor.withValues(alpha: heatmapOpacity);
 
     return GestureDetector(
       onTap: onTap,
@@ -676,32 +1023,35 @@ class _CalendarDayWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(14.0),
                 gradient: isSelected
                     ? LinearGradient(
-                  colors: [colorScheme.primary, colorScheme.secondary],
+                  colors: [
+                    colorScheme.primary,
+                    colorScheme.primary.withValues(alpha: 0.85),
+                  ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
                     : null,
                 color: isSelected ? null : heatmapColor,
                 border: isToday && !isSelected
-                    ? Border.all(width: 2.5, color: colorScheme.primary)
+                    ? Border.all(width: 2.0, color: colorScheme.primary)
                     : subscriptions.isNotEmpty && !isSelected
                     ? Border.all(
                   width: 1,
-                  color: colorScheme.outline.withOpacity(0.2),
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                 )
                     : null,
                 boxShadow: isSelected
                     ? [
                   BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.4),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+                    color: colorScheme.primary.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
                 ]
                     : subscriptions.isNotEmpty
                     ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.04),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -733,11 +1083,11 @@ class _CalendarDayWidget extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildMiniLogo(subscriptions[0].logoUrl, 18, colorScheme, isSelected),
+                      _buildMiniLogo(subscriptions[0].effectiveLogoUrl, 18, colorScheme, isSelected),
                       if (subscriptions.length > 1) ...[
                         const SizedBox(width: 3),
                         if (subscriptions.length == 2)
-                          _buildMiniLogo(subscriptions[1].logoUrl, 18, colorScheme, isSelected)
+                          _buildMiniLogo(subscriptions[1].effectiveLogoUrl, 18, colorScheme, isSelected)
                         else
                           Container(
                             width: 20,
@@ -746,12 +1096,12 @@ class _CalendarDayWidget extends StatelessWidget {
                               gradient: LinearGradient(
                                 colors: isSelected
                                     ? [
-                                  colorScheme.onPrimary.withOpacity(0.9),
-                                  colorScheme.onPrimary.withOpacity(0.7),
+                                  colorScheme.onPrimary.withValues(alpha: 0.95),
+                                  colorScheme.onPrimary.withValues(alpha: 0.8),
                                 ]
                                     : [
-                                  colorScheme.primary.withOpacity(0.9),
-                                  colorScheme.secondary.withOpacity(0.9),
+                                  colorScheme.primary,
+                                  colorScheme.primary.withValues(alpha: 0.85),
                                 ],
                               ),
                               shape: BoxShape.circle,
@@ -761,7 +1111,7 @@ class _CalendarDayWidget extends StatelessWidget {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
+                                  color: Colors.black.withValues(alpha: 0.2),
                                   blurRadius: 4,
                                 ),
                               ],
@@ -798,13 +1148,14 @@ class _CalendarDayWidget extends StatelessWidget {
         border: Border.all(color: borderColor, width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: Colors.black.withValues(alpha: 0.25),
             blurRadius: 4,
           ),
         ],
       ),
       child: ClipOval(
-        child: Image.network(
+        child: url.isNotEmpty
+            ? Image.network(
           url,
           fit: BoxFit.cover,
           width: size,
@@ -826,13 +1177,21 @@ class _CalendarDayWidget extends StatelessWidget {
                   width: size * 0.5,
                   height: size * 0.5,
                   child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: colorScheme.primary.withOpacity(0.5),
+                    strokeWidth: 1.5,
+                    color: colorScheme.primary.withValues(alpha: 0.5),
                   ),
                 ),
               ),
             );
           },
+        )
+            : Container(
+          color: colorScheme.surfaceContainerHighest,
+          child: Icon(
+            Icons.subscriptions_rounded,
+            size: size * 0.6,
+            color: colorScheme.onSurfaceVariant,
+          ),
         ),
       ),
     );
@@ -869,7 +1228,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
         color: colorScheme.surfaceContainerLow,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         border: Border(
-          top: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5), width: 1),
+          top: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1),
         ),
       ),
       child: ListView(
@@ -887,7 +1246,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
               height: 5,
               margin: const EdgeInsets.only(bottom: DesignSystem.spacing8),
               decoration: BoxDecoration(
-                color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(3),
               ),
             ),
@@ -964,21 +1323,21 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
-        splashColor: textColor.withOpacity(0.1),
-        highlightColor: textColor.withOpacity(0.05),
+        splashColor: textColor.withValues(alpha: 0.1),
+        highlightColor: textColor.withValues(alpha: 0.05),
         child: Container(
           padding: const EdgeInsets.all(DesignSystem.spacing10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
             boxShadow: [
               BoxShadow(
-                color: colorScheme.shadow.withOpacity(0.08),
+                color: colorScheme.shadow.withValues(alpha: 0.08),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
             ],
             border: Border.all(
-              color: colorScheme.outlineVariant.withOpacity(0.3),
+              color: colorScheme.outlineVariant.withValues(alpha: 0.3),
               width: 0.5,
             ),
           ),
@@ -1061,7 +1420,7 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
               itemCount: subscriptions.length,
               separatorBuilder: (_, __) => Divider(
                 height: DesignSystem.spacing12,
-                color: colorScheme.outlineVariant.withOpacity(0.5),
+                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
               ),
               itemBuilder: (_, index) {
                 final sub = subscriptions[index];
@@ -1075,8 +1434,8 @@ class _CalendarActionsBottomSheet extends StatelessWidget {
                       Navigator.of(dialogContext).pop();
                       onSelected(sub);
                     },
-                    splashColor: colorScheme.primary.withOpacity(0.1),
-                    highlightColor: colorScheme.primary.withOpacity(0.05),
+                    splashColor: colorScheme.primary.withValues(alpha: 0.1),
+                    highlightColor: colorScheme.primary.withValues(alpha: 0.05),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: DesignSystem.spacing8),
                       child: Row(

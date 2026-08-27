@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../utils/home_helpers.dart';
 import '../shared/category_bottom_sheet.dart';
+import '../subscription_popup.dart';
 import 'package:provider/provider.dart';
 import '../../provider/simplified_subscription_provider.dart';
 import '../../theme/design_system.dart';
@@ -62,7 +63,7 @@ class _CategoryChartState extends State<CategoryChart>
     } else {
       setState(() {
         _selectedCategory = category;
-        _showDetails = false;
+        _showDetails = true;
       });
       _expandController.forward(from: 0);
     }
@@ -98,8 +99,13 @@ class _CategoryChartState extends State<CategoryChart>
         category: category,
         subscriptions: categorySubscriptions,
         onEdit: (subscription) {
-          provider.updateSubscription(subscription);
-          Navigator.pop(context);
+          showAddSubscriptionPopup(
+            context,
+            (updatedSub) {
+              provider.updateSubscription(updatedSub);
+            },
+            subscriptionToEdit: subscription,
+          );
         },
         onDelete: (subscription) async {
           final confirmed = await showDialog<bool>(
@@ -205,8 +211,8 @@ class _CategoryChartState extends State<CategoryChart>
         ],
         TweenAnimationBuilder<double>(
           tween: Tween(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 1200),
-          curve: Curves.easeOutExpo,
+          duration: const Duration(milliseconds: 900),
+          curve: Curves.easeOutCubic,
           builder: (context, anim, _) {
             return _buildPieChart(
                 context, topSpending, total, chartColors, anim, isDark, colorScheme);
@@ -220,7 +226,7 @@ class _CategoryChartState extends State<CategoryChart>
             crossFadeState: _showDetails
                 ? CrossFadeState.showFirst
                 : CrossFadeState.showSecond,
-            duration: const Duration(milliseconds: 300),
+            duration: const Duration(milliseconds: 250),
           ),
         if (_selectedCategory != null)
           SizedBox(height: DesignSystem.spacing8),
@@ -245,24 +251,28 @@ class _CategoryChartState extends State<CategoryChart>
           Positioned.fill(
             child: AnimatedOpacity(
               opacity: _selectedCategory != null ? 1 : 0,
-              duration: const Duration(milliseconds: 300),
+              duration: const Duration(milliseconds: 250),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.03),
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.15)
+                      : const Color(0xFF20201E).withValues(alpha: 0.02),
                   borderRadius: BorderRadius.circular(200),
                 ),
               ),
             ),
           ),
         SizedBox(
-          height: 280,
+          height: 270,
           child: PieChart(
             PieChartData(
               pieTouchData: PieTouchData(
                 enabled: true,
                 touchCallback: (FlTouchEvent event, pieTouchResponse) {
                   if (pieTouchResponse == null ||
-                      pieTouchResponse.touchedSection == null) return;
+                      pieTouchResponse.touchedSection == null) {
+                    return;
+                  }
 
                   final touchedIndex =
                       pieTouchResponse.touchedSection!.touchedSectionIndex;
@@ -275,8 +285,8 @@ class _CategoryChartState extends State<CategoryChart>
                 },
               ),
               startDegreeOffset: -90,
-              sectionsSpace: 4,
-              centerSpaceRadius: 75,
+              sectionsSpace: 4.5,
+              centerSpaceRadius: 84,
               borderData: FlBorderData(show: false),
               sections: topSpending.asMap().entries.map((entry) {
                 final i = entry.key;
@@ -285,22 +295,22 @@ class _CategoryChartState extends State<CategoryChart>
                 final isOtherSelected = _selectedCategory != null && !isSelected;
 
                 final color = chartColors[i];
-                final expandScale = Tween<double>(begin: 1, end: 1.18)
+                final expandScale = Tween<double>(begin: 1, end: 1.15)
                     .animate(_expandController);
 
                 return PieChartSectionData(
-                  color: isOtherSelected ? color.withOpacity(0.25) : color,
+                  color: isOtherSelected ? color.withValues(alpha: 0.22) : color,
                   value: data.value * anim,
-                  radius: isSelected ? 65 + (expandScale.value - 1) * 20 : 65,
+                  radius: isSelected ? 48 + (expandScale.value - 1) * 16 : 46,
                   title: '',
                   borderSide: isSelected
                       ? BorderSide(
                     color: isDark ? colorScheme.surface : Colors.white,
-                    width: 4,
+                    width: 3.5,
                   )
                       : BorderSide(
-                    color: colorScheme.outlineVariant.withOpacity(0.3),
-                    width: 0.5,
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    width: 0.8,
                   ),
                 );
               }).toList(),
@@ -308,9 +318,9 @@ class _CategoryChartState extends State<CategoryChart>
           ),
         ),
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 400),
-          switchInCurve: Curves.easeOutBack,
-          switchOutCurve: Curves.easeInBack,
+          duration: const Duration(milliseconds: 300),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
           child: _selectedCategory != null
               ? _buildSelectedInfo(
             context,
@@ -330,24 +340,27 @@ class _CategoryChartState extends State<CategoryChart>
     final textTheme = Theme.of(context).textTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final categoryColor = HomeHelpers.getCategoryColor(_selectedCategory!);
-    final details = widget.categoryDetails?[_selectedCategory] ?? [];
+    if (_selectedCategory == null) return const SizedBox.shrink();
 
-    double categoryTotal = 0;
-    if (details.isNotEmpty) {
-      categoryTotal = details.fold(0, (sum, item) {
-        return sum + (item['amount'] as double? ?? 0);
-      });
-    }
+    final categoryColor = HomeHelpers.getCategoryColor(_selectedCategory!);
+    final provider = context.watch<SimplifiedSubscriptionProvider>();
+    final categorySubs = provider.subscriptions
+        .where((sub) => sub.category == _selectedCategory)
+        .toList();
+
+    final double categoryTotal = categorySubs.fold(
+      0.0,
+      (sum, sub) => sum + sub.monthlyCost,
+    );
 
     return Container(
       decoration: BoxDecoration(
         color: isDark
             ? colorScheme.surfaceContainerLow
-            : colorScheme.surfaceContainerLow.withOpacity(0.5),
+            : colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
         border: Border.all(
-          color: categoryColor.withOpacity(0.2),
+          color: categoryColor.withValues(alpha: 0.3),
           width: 1.5,
         ),
       ),
@@ -358,16 +371,23 @@ class _CategoryChartState extends State<CategoryChart>
             child: Row(
               children: [
                 Container(
-                  width: 10,
-                  height: 10,
+                  width: 24,
+                  height: 24,
                   decoration: BoxDecoration(
-                    color: categoryColor,
-                    shape: BoxShape.circle,
+                    color: categoryColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      HomeHelpers.getCategoryIcon(_selectedCategory!),
+                      size: 14,
+                      color: categoryColor,
+                    ),
                   ),
                 ),
                 SizedBox(width: DesignSystem.spacing4),
                 Text(
-                  'Transactions',
+                  '$_selectedCategory Subscriptions',
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: colorScheme.onSurface,
@@ -375,7 +395,7 @@ class _CategoryChartState extends State<CategoryChart>
                 ),
                 const Spacer(),
                 Text(
-                  '${details.length} items',
+                  '${categorySubs.length} item${categorySubs.length != 1 ? 's' : ''}',
                   style: textTheme.labelMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                     fontWeight: FontWeight.w600,
@@ -386,13 +406,13 @@ class _CategoryChartState extends State<CategoryChart>
           ),
           Divider(
             height: 1,
-            color: colorScheme.outlineVariant.withOpacity(0.2),
+            color: colorScheme.outlineVariant.withValues(alpha: 0.2),
           ),
-          if (details.isEmpty)
+          if (categorySubs.isEmpty)
             Padding(
               padding: EdgeInsets.all(DesignSystem.spacing12),
               child: Text(
-                'No transaction details available',
+                'No subscriptions in $_selectedCategory',
                 style: textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w500,
@@ -406,72 +426,99 @@ class _CategoryChartState extends State<CategoryChart>
                 constraints: const BoxConstraints(maxHeight: 280),
                 child: ListView.separated(
                   shrinkWrap: true,
-                  itemCount: details.length,
+                  itemCount: categorySubs.length,
                   separatorBuilder: (_, __) => Divider(
                     height: 1,
                     indent: DesignSystem.spacing8,
                     endIndent: DesignSystem.spacing8,
-                    color: colorScheme.outlineVariant.withOpacity(0.1),
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.1),
                   ),
                   itemBuilder: (context, index) {
-                    final item = details[index];
-                    final name = item['name'] as String? ?? 'Unknown';
-                    final amount = item['amount'] as double? ?? 0;
-                    final date = item['date'] as String?;
-                    final percentage =
-                    categoryTotal > 0 ? (amount / categoryTotal * 100) : 0;
+                    final sub = categorySubs[index];
+                    final monthlyCost = sub.monthlyCost;
+                    final percentage = categoryTotal > 0
+                        ? (monthlyCost / categoryTotal * 100)
+                        : 0.0;
 
-                    return Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: DesignSystem.spacing8,
-                        vertical: DesignSystem.spacing4,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  name,
-                                  style: textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    color: colorScheme.onSurface,
+                    return InkWell(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        showAddSubscriptionPopup(
+                          context,
+                          (updated) => provider.updateSubscription(updated),
+                          subscriptionToEdit: sub,
+                        );
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: DesignSystem.spacing8,
+                          vertical: DesignSystem.spacing6,
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 32,
+                              height: 32,
+                              decoration: BoxDecoration(
+                                color: categoryColor.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  sub.name.isNotEmpty ? sub.name[0].toUpperCase() : '?',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: categoryColor,
+                                    fontSize: 14,
                                   ),
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                if (date != null)
+                              ),
+                            ),
+                            SizedBox(width: DesignSystem.spacing6),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
                                   Text(
-                                    date,
+                                    sub.name,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    '${sub.cycle.toUpperCase()} • €${sub.amount.abs().toStringAsFixed(2)}',
                                     style: textTheme.labelSmall?.copyWith(
                                       color: colorScheme.onSurfaceVariant,
-                                      fontWeight: FontWeight.w600,
+                                      fontWeight: FontWeight.w500,
                                     ),
                                   ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(width: DesignSystem.spacing6),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  '€${monthlyCost.toStringAsFixed(2)}/mo',
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: colorScheme.onSurface,
+                                  ),
+                                ),
+                                Text(
+                                  '${percentage.toStringAsFixed(0)}% of category',
+                                  style: textTheme.labelSmall?.copyWith(
+                                    color: categoryColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ],
                             ),
-                          ),
-                          SizedBox(width: DesignSystem.spacing6),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                '€${amount.toStringAsFixed(2)}',
-                                style: textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  color: colorScheme.onSurface,
-                                ),
-                              ),
-                              Text(
-                                '${percentage.toStringAsFixed(0)}%',
-                                style: textTheme.labelSmall?.copyWith(
-                                  color: categoryColor,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -501,18 +548,18 @@ class _CategoryChartState extends State<CategoryChart>
         vertical: DesignSystem.spacing6,
       ),
       decoration: BoxDecoration(
-        color: colorScheme.surface.withOpacity(0.98),
+        color: colorScheme.surface.withValues(alpha: 0.98),
         borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.2),
+            color: color.withValues(alpha: 0.2),
             blurRadius: 20,
             spreadRadius: 2,
             offset: const Offset(0, 6),
           ),
         ],
         border: Border.all(
-          color: color.withOpacity(0.2),
+          color: color.withValues(alpha: 0.2),
           width: 1.5,
         ),
       ),
@@ -523,11 +570,18 @@ class _CategoryChartState extends State<CategoryChart>
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 8,
-                height: 8,
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
+                  color: color.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Center(
+                  child: Icon(
+                    HomeHelpers.getCategoryIcon(category),
+                    size: 14,
+                    color: color,
+                  ),
                 ),
               ),
               SizedBox(width: DesignSystem.spacing4),
@@ -556,6 +610,36 @@ class _CategoryChartState extends State<CategoryChart>
               color: colorScheme.onSurfaceVariant,
             ),
           ),
+          const SizedBox(height: 6),
+          InkWell(
+            key: Key('view_subs_$category'),
+            onTap: () {
+              _openCategoryBottomSheet(context, category);
+            },
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: color.withValues(alpha: 0.4)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'View Subscriptions',
+                    style: textTheme.labelSmall?.copyWith(
+                      color: color,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Icon(Icons.arrow_forward_rounded, size: 12, color: color),
+                ],
+              ),
+            ),
+          ),
           if (hasDetails) ...[
             SizedBox(height: DesignSystem.spacing4),
             InkWell(
@@ -573,7 +657,7 @@ class _CategoryChartState extends State<CategoryChart>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      _showDetails ? 'Hide' : 'Show',
+                      _showDetails ? 'Hide Details' : 'Show Details',
                       style: textTheme.labelSmall?.copyWith(
                         color: color,
                         fontWeight: FontWeight.w600,
@@ -624,7 +708,7 @@ class _CategoryChartState extends State<CategoryChart>
         Text(
           'Tap a slice',
           style: textTheme.labelSmall?.copyWith(
-            color: colorScheme.onSurfaceVariant.withOpacity(0.65),
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.65),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -639,6 +723,7 @@ class _CategoryChartState extends State<CategoryChart>
       ) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final legendItems = sortedSpending.take(6);
 
     return Container(
@@ -647,8 +732,12 @@ class _CategoryChartState extends State<CategoryChart>
         horizontal: DesignSystem.spacing8,
       ),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerLow,
+        color: isDark ? colorScheme.surface : Colors.white,
         borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+          width: 1.0,
+        ),
       ),
       child: Column(
         children: legendItems.map((data) {
@@ -664,6 +753,7 @@ class _CategoryChartState extends State<CategoryChart>
                 onTap: () {
                   HapticFeedback.selectionClick();
                   _selectCategory(data.key);
+                  _openCategoryBottomSheet(context, data.key);
                 },
                 onLongPress: () {
                   _openCategoryBottomSheet(context, data.key);
@@ -676,35 +766,36 @@ class _CategoryChartState extends State<CategoryChart>
                   ),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? color.withOpacity(0.12)
+                        ? color.withValues(alpha: 0.12)
                         : Colors.transparent,
                     borderRadius:
                     BorderRadius.circular(DesignSystem.radiusSmall),
                     border: isSelected
                         ? Border.all(
-                      color: color.withOpacity(0.3),
+                      color: color.withValues(alpha: 0.3),
                       width: 1,
                     )
                         : null,
                   ),
                   child: Row(
                     children: [
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: isSelected ? 12 : 10,
-                        height: isSelected ? 12 : 10,
+                      Container(
+                        width: 26,
+                        height: 26,
                         decoration: BoxDecoration(
-                          color: color,
-                          shape: BoxShape.circle,
-                          boxShadow: isSelected
-                              ? [
-                            BoxShadow(
-                              color: color.withOpacity(0.35),
-                              blurRadius: 8,
-                              spreadRadius: 1,
-                            ),
-                          ]
-                              : [],
+                          color: color.withValues(alpha: isSelected ? 0.22 : 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: color.withValues(alpha: isSelected ? 0.7 : 0.25),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Center(
+                          child: Icon(
+                            HomeHelpers.getCategoryIcon(data.key),
+                            size: 14,
+                            color: color,
+                          ),
                         ),
                       ),
                       SizedBox(width: DesignSystem.spacing6),
@@ -734,7 +825,7 @@ class _CategoryChartState extends State<CategoryChart>
                           vertical: DesignSystem.spacing2,
                         ),
                         decoration: BoxDecoration(
-                          color: color.withOpacity(0.15),
+                          color: color.withValues(alpha: 0.15),
                           borderRadius:
                           BorderRadius.circular(DesignSystem.spacing2),
                         ),
@@ -750,7 +841,7 @@ class _CategoryChartState extends State<CategoryChart>
                       Icon(
                         Icons.arrow_forward_ios_rounded,
                         size: DesignSystem.iconXSmall,
-                        color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                       ),
                     ],
                   ),

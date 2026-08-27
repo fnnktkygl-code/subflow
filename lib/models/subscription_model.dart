@@ -1,5 +1,8 @@
 import 'package:hive/hive.dart';
 
+import 'billing_cycle.dart';
+import '../utils/logo_utils.dart';
+
 part 'subscription_model.g.dart';
 
 @HiveType(typeId: 1)
@@ -47,19 +50,46 @@ class Subscription {
     this.reminderDays = 2,
   });
 
-  // ✅ FIX: The new getter to calculate the monthly cost.
-  double get monthlyCost {
-    switch (cycle.toLowerCase()) {
-      case 'monthly':
-        return amount;
-      case 'quarterly':
-        return amount / 3.0;
-      case 'annually':
-        return amount / 12.0;
-      case 'weekly':
-        return amount * 4.0; // Approximation
-      default:
-        return amount;
+  /// Canonical BillingCycle enum representation
+  BillingCycle get cycleEnum => BillingCycle.fromString(cycle);
+
+  /// Canonical monthly cost calculation using unified domain rules
+  double get monthlyCost => cycleEnum.toMonthly(amount);
+
+  /// Canonical annual cost calculation
+  double get annualCost => cycleEnum.toAnnual(amount);
+
+  /// Dynamically resolved logo URL, sanitizing legacy broken URLs and empty fields
+  String get effectiveLogoUrl {
+    if (logoUrl.isNotEmpty && !logoUrl.contains('demo.dev')) {
+      return logoUrl;
     }
+    return fetchLogo(name);
+  }
+
+  Subscription copyWith({
+    String? id,
+    String? name,
+    double? amount,
+    DateTime? startDate,
+    String? cycle,
+    String? logoUrl,
+    DateTime? endDate,
+    String? category,
+    bool? areNotificationsEnabled,
+    int? reminderDays,
+  }) {
+    return Subscription(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      amount: amount ?? this.amount,
+      startDate: startDate ?? this.startDate,
+      cycle: cycle ?? this.cycle,
+      logoUrl: logoUrl ?? this.logoUrl,
+      endDate: endDate ?? this.endDate,
+      category: category ?? this.category,
+      areNotificationsEnabled: areNotificationsEnabled ?? this.areNotificationsEnabled,
+      reminderDays: reminderDays ?? this.reminderDays,
+    );
   }
 }

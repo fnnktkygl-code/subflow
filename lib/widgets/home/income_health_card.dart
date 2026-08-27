@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme/custom_colors.dart'; // ✅ IMPORTED CUSTOM COLORS
 import '../../theme/design_system.dart';
 import '../../provider/user_profile_provider.dart';
 
@@ -41,9 +40,7 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // ✅ FIX: Get custom colors from the theme
-    final customColors = Theme.of(context).extension<CustomColors>();
-    final statusColor = _getStatusColor(context, customColors);
+    final statusColor = _getStatusColor(context);
     final statusIcon = _getStatusIcon();
 
     return AnimatedBuilder(
@@ -51,22 +48,22 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
       builder: (context, child) {
         return Container(
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(isDark ? 0.12 : 0.06),
+            color: statusColor.withValues(alpha: isDark ? 0.12 : 0.06),
             border: Border.all(
-              color: statusColor.withOpacity(0.25),
+              color: statusColor.withValues(alpha: 0.25),
               width: 1.5,
             ),
             borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
             boxShadow: [
               BoxShadow(
-                color: statusColor.withOpacity(0.08 * _pulseController.value),
+                color: statusColor.withValues(alpha: 0.08 * _pulseController.value),
                 blurRadius: 16,
                 spreadRadius: 2,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
-          padding: const EdgeInsets.all(DesignSystem.spacing12),
+          padding: EdgeInsets.all(DesignSystem.spacing12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -80,13 +77,12 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.18),
-                        borderRadius:
-                        BorderRadius.circular(DesignSystem.radiusSmall), // Updated
+                        color: statusColor.withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: statusColor
-                                .withOpacity(0.15 * _pulseController.value),
+                            color: statusColor.withValues(
+                                alpha: 0.15 * _pulseController.value),
                             blurRadius: 12,
                             spreadRadius: 1,
                           ),
@@ -99,7 +95,7 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
                       ),
                     ),
                   ),
-                  const SizedBox(width: DesignSystem.spacing12),
+                  SizedBox(width: DesignSystem.spacing12),
                   Expanded(
                     child: Text(
                       widget.title,
@@ -112,7 +108,7 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
                   ),
                 ],
               ),
-              const SizedBox(height: DesignSystem.spacing12),
+              SizedBox(height: DesignSystem.spacing12),
               // Message with improved spacing
               Text(
                 widget.message,
@@ -129,12 +125,11 @@ class _IncomeHealthCardState extends State<IncomeHealthCard>
     );
   }
 
-  // ✅ FIX: Pass customColors and use fallbacks
-  Color _getStatusColor(BuildContext context, CustomColors? customColors) {
+  Color _getStatusColor(BuildContext context) {
     if (widget.status == IncomeHealthStatus.healthy) {
-      return customColors?.healthy ?? const Color(0xFF10B981); // Emerald
+      return const Color(0xFF477A56); // Japandi Matcha Leaf
     } else if (widget.status == IncomeHealthStatus.warning) {
-      return customColors?.warning ?? const Color(0xFFF59E0B); // Amber
+      return const Color(0xFFC4823F); // Japandi Yuzu Amber
     }
     return Theme.of(context).colorScheme.outline;
   }

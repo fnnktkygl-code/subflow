@@ -31,21 +31,36 @@ class CategoryBottomSheet {
           maxHeight: MediaQuery.of(context).size.height * 0.85,
         ),
         decoration: BoxDecoration(
-          color: colorScheme.surface,
+          color: isDark ? colorScheme.surface : Colors.white,
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(32),
+            top: Radius.circular(28),
           ),
+          border: Border(
+            top: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+              width: 1.0,
+            ),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.35)
+                  : const Color(0xFF20201E).withValues(alpha: 0.06),
+              blurRadius: 24,
+              offset: const Offset(0, -6),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Handle bar
             Container(
-              width: 40,
+              width: 36,
               height: 4,
-              margin: const EdgeInsets.only(top: 12, bottom: 24),
+              margin: const EdgeInsets.only(top: 12, bottom: 20),
               decoration: BoxDecoration(
-                color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.25),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -60,28 +75,27 @@ class CategoryBottomSheet {
                   Row(
                     children: [
                       Container(
-                        width: 56,
-                        height: 56,
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              categoryColor,
-                              categoryColor.withOpacity(0.7),
-                            ],
-                          ),
+                          color: categoryColor,
                           borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 1,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: categoryColor.withOpacity(0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
+                              color: categoryColor.withValues(alpha: 0.25),
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
                             ),
                           ],
                         ),
                         child: Icon(
                           categoryIcon,
                           color: Colors.white,
-                          size: 28,
+                          size: 26,
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -121,17 +135,17 @@ class CategoryBottomSheet {
                       gradient: LinearGradient(
                         colors: isDark
                             ? [
-                          categoryColor.withOpacity(0.2),
-                          categoryColor.withOpacity(0.1),
+                          categoryColor.withValues(alpha: 0.2),
+                          categoryColor.withValues(alpha: 0.1),
                         ]
                             : [
-                          categoryColor.withOpacity(0.1),
-                          categoryColor.withOpacity(0.05),
+                          categoryColor.withValues(alpha: 0.1),
+                          categoryColor.withValues(alpha: 0.05),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: categoryColor.withOpacity(0.3),
+                        color: categoryColor.withValues(alpha: 0.3),
                         width: 1,
                       ),
                     ),
@@ -170,17 +184,17 @@ class CategoryBottomSheet {
                         gradient: LinearGradient(
                           colors: isDark
                               ? [
-                            const Color(0xFFF59E0B).withOpacity(0.2),
-                            const Color(0xFFF59E0B).withOpacity(0.1),
+                            const Color(0xFFF59E0B).withValues(alpha: 0.2),
+                            const Color(0xFFF59E0B).withValues(alpha: 0.1),
                           ]
                               : [
-                            const Color(0xFFF59E0B).withOpacity(0.1),
-                            const Color(0xFFF59E0B).withOpacity(0.05),
+                            const Color(0xFFF59E0B).withValues(alpha: 0.1),
+                            const Color(0xFFF59E0B).withValues(alpha: 0.05),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: const Color(0xFFF59E0B).withOpacity(0.3),
+                          color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -190,7 +204,7 @@ class CategoryBottomSheet {
                             width: 32,
                             height: 32,
                             decoration: BoxDecoration(
-                              color: const Color(0xFFF59E0B).withOpacity(0.2),
+                              color: const Color(0xFFF59E0B).withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
@@ -253,7 +267,7 @@ class CategoryBottomSheet {
                       isAmountBlurred: false,
                       isSelectionMode: false,
                       isSnoozed: false,
-                      interactionsEnabled: false,
+                      interactionsEnabled: true,
                       onSnoozeChanged: (_) {},
                     ),
                   );

@@ -1,8 +1,8 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/subscription_model.dart';
-import '../../theme/custom_colors.dart'; // ✅ Import your custom colors file
+import '../models/billing_cycle.dart';
+import 'custom_colors.dart'; // ✅ Import your custom colors file
 
 // ======================================================================
 // Subscription Occurrence - links a subscription to a specific date
@@ -41,29 +41,7 @@ class CalendarHelpers {
   // ===================================================================
   /// Calculate the next subscription date based on cycle
   static DateTime calculateNextDate(DateTime current, String cycle) {
-    switch (cycle) {
-      case 'Weekly':
-        return current.add(const Duration(days: 7));
-      case 'Monthly':
-        var newMonth = current.month + 1;
-        var newYear = current.year;
-        if (newMonth > 12) {
-          newMonth = 1;
-          newYear++;
-        }
-        final daysInNextMonth = DateUtils.getDaysInMonth(newYear, newMonth);
-        final day = min(current.day, daysInNextMonth);
-        return DateTime(newYear, newMonth, day);
-      case 'Yearly':
-        final isLeap = current.month == 2 && current.day == 29;
-        return DateTime(
-          current.year + 1,
-          current.month,
-          isLeap ? 28 : current.day,
-        );
-      default:
-        return DateTime.now().add(const Duration(days: 365 * 10));
-    }
+    return BillingCycle.fromString(cycle).nextDate(current);
   }
 
   /// Get all upcoming subscription occurrences for the next 2 months
@@ -127,7 +105,7 @@ class CalendarHelpers {
     final customColors = Theme.of(context).extension<CustomColors>();
 
     if (amount == 0) {
-      return colorScheme.onSurface.withOpacity(0.4);
+      return colorScheme.onSurface.withValues(alpha: 0.4);
     } else if (amount < 0) {
       return customColors?.heatmapExpense ?? colorScheme.error;
     } else {

@@ -23,7 +23,6 @@ class HomeHelpers {
     // Weekend vibes (Saturday = 6, Sunday = 7)
     if (dayOfWeek >= 6) {
       final isSaturday = dayOfWeek == 6;
-      final isSunday = dayOfWeek == 7;
 
       if (hour >= 5 && hour < 12) return "weekend mode 🌅";
       if (hour >= 12 && hour < 17) {
@@ -109,28 +108,28 @@ class HomeHelpers {
   }
 
   // =======================================================================
-  // CATEGORY STYLING (MODERN)
+  // CATEGORY STYLING (JAPANDI EARTH & BOTANICAL PALETTE)
   // =======================================================================
 
   static Map<String, Map<String, dynamic>> getCategoryMap() {
     return {
-      'Home': {'color': const Color(0xFFEC4899), 'icon': Icons.home_rounded},
-      'Utilities': {'color': const Color(0xFF3B82F6), 'icon': Icons.bolt_rounded},
-      'Telecom': {'color': const Color(0xFF8B5CF6), 'icon': Icons.phone_iphone_rounded},
-      'Media & Entertainment': {'color': const Color(0xFFF59E0B), 'icon': Icons.play_circle_outline_rounded},
-      'Health & Wellness': {'color': const Color(0xFF10B981), 'icon': Icons.favorite_rounded},
-      'Transport': {'color': const Color(0xFF06B6D4), 'icon': Icons.directions_car_rounded},
-      'Insurance': {'color': const Color(0xFF6366F1), 'icon': Icons.shield_rounded},
-      'Financial': {'color': const Color(0xFF22C55E), 'icon': Icons.account_balance_rounded},
-      'Shopping': {'color': const Color(0xFFD946EF), 'icon': Icons.shopping_bag_rounded},
-      'Gaming': {'color': const Color(0xFF64748B), 'icon': Icons.sports_esports_rounded},
-      'Software': {'color': const Color(0xFF0EA5E9), 'icon': Icons.code_rounded},
-      'General': {'color': const Color(0xFF78716C), 'icon': Icons.category_rounded},
+      'Home': {'color': const Color(0xFFB87D56), 'icon': Icons.home_rounded},                   // Terracotta Clay
+      'Utilities': {'color': const Color(0xFFC4823F), 'icon': Icons.bolt_rounded},              // Yuzu Amber
+      'Telecom': {'color': const Color(0xFF6B7F8E), 'icon': Icons.phone_iphone_rounded},        // Aizome Indigo
+      'Media & Entertainment': {'color': const Color(0xFF9E6B55), 'icon': Icons.play_circle_outline_rounded}, // Sandalwood
+      'Health & Wellness': {'color': const Color(0xFF477A56), 'icon': Icons.favorite_rounded},  // Matcha Green
+      'Transport': {'color': const Color(0xFF5A7B88), 'icon': Icons.directions_car_rounded},    // River Slate
+      'Insurance': {'color': const Color(0xFF4A5844), 'icon': Icons.shield_rounded},            // Deep Cedar
+      'Financial': {'color': const Color(0xFF3B4D3C), 'icon': Icons.account_balance_rounded},    // Kuro-Matsu
+      'Shopping': {'color': const Color(0xFFC49A6C), 'icon': Icons.shopping_bag_rounded},       // Hinoki Warm Wood
+      'Gaming': {'color': const Color(0xFF7A6B88), 'icon': Icons.sports_esports_rounded},       // Muted Plum / Wisteria
+      'Software': {'color': const Color(0xFF5F8278), 'icon': Icons.code_rounded},               // Bamboo Sage
+      'General': {'color': const Color(0xFF8C867A), 'icon': Icons.category_rounded},            // Tatami Ash
     };
   }
 
   static Color getCategoryColor(String category) {
-    return getCategoryMap()[category]?['color'] as Color? ?? const Color(0xFF78716C);
+    return getCategoryMap()[category]?['color'] as Color? ?? const Color(0xFF8C867A);
   }
 
   static IconData getCategoryIcon(String category) {
@@ -139,17 +138,17 @@ class HomeHelpers {
   }
 
   // =======================================================================
-  // CHART & UI HELPERS
+  // CHART & UI HELPERS (JAPANDI HARMONY)
   // =======================================================================
 
   static List<Color> generateChartColors(BuildContext context) {
     return [
-      const Color(0xFF10B981),
-      const Color(0xFF06B6D4),
-      const Color(0xFF3B82F6),
-      const Color(0xFFF59E0B),
-      const Color(0xFFEF4444),
-      const Color(0xFF8B5CF6),
+      const Color(0xFF477A56), // Matcha Green
+      const Color(0xFFB87D56), // Terracotta
+      const Color(0xFF6B7F8E), // Aizome Indigo
+      const Color(0xFFC4823F), // Yuzu Amber
+      const Color(0xFF5F8278), // Bamboo Sage
+      const Color(0xFFC49A6C), // Hinoki Ochre
     ];
   }
 

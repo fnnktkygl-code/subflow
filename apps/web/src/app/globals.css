@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root, [data-theme="light"] {
+    /* Accent colors — Japandi Earth Palette */
+    --color-accent-pine: #3B4D3C;
+    --color-accent-pine-light: #8FA88C;
+    --color-accent-terracotta: #B87D56;
+    --color-accent-terracotta-light: #D99B72;
+    --color-accent-clay: #8C7355;
+    --color-accent-sand: #F4F1EA;
+    --color-accent-slate: #6B7F8E;
+    --color-accent-akane: #B84E3A;
+
+    /* Background surfaces */
+    --color-bg-canvas: #F7F5F0;
+    --color-bg-surface: #FFFFFF;
+    --color-bg-elevated: #FBF9F5;
+
+    /* Text */
+    --color-text-primary: #1F1E1B;
+    --color-text-secondary: #736B5E;
+    --color-text-tertiary: #A39B8B;
+
+    /* Borders */
+    --color-border-subtle: #E8E3D8;
+    --color-border-strong: #D8D2C4;
+    --color-border-faint: #F0ECE4;
+  }
+
+  .dark, [data-theme="dark"] {
+    --color-accent-pine: #8FA88C;
+    --color-accent-pine-light: #B4C7B1;
+    --color-accent-terracotta: #E06D53;
+    --color-accent-terracotta-light: #EAA896;
+    --color-accent-clay: #A3937B;
+    --color-accent-sand: #22221E;
+    --color-accent-slate: #93A8B8;
+    --color-accent-akane: #E06D53;
+
+    --color-bg-canvas: #141412;
+    --color-bg-surface: #1C1C19;
+    --color-bg-elevated: #22221E;
+
+    --color-text-primary: #EDEAE2;
+    --color-text-secondary: #9E998E;
+    --color-text-tertiary: #6E6A61;
+
+    --color-border-subtle: #2B2B26;
+    --color-border-strong: #3D3D36;
+    --color-border-faint: #1F1F1B;
+  }
+
+  .barbie, [data-theme="barbie"] {
+    --color-accent-pine: #EC4899;
+    --color-accent-pine-light: #F472B6;
+    --color-accent-terracotta: #F43F5E;
+    --color-accent-terracotta-light: #FB7185;
+    --color-accent-clay: #DB2777;
+    --color-accent-sand: #FFE4E6;
+    --color-accent-slate: #FBBF24;
+    --color-accent-akane: #EF4444;
+
+    --color-bg-canvas: #FFF1F2;
+    --color-bg-surface: #FFFFFF;
+    --color-bg-elevated: #FFF5F6;
+
+    --color-text-primary: #500724;
+    --color-text-secondary: #9F1239;
+    --color-text-tertiary: #BE123C;
+
+    --color-border-subtle: #FECDD3;
+    --color-border-strong: #FDA4AF;
+    --color-border-faint: #FFE4E6;
+  }
+
+  * {
+    border-color: var(--color-border-subtle);
+  }
+
+  body {
+    background-color: var(--color-bg-canvas);
+    color: var(--color-text-primary);
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Japandi Themed Scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-strong);
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent-pine-light);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+  }
+}

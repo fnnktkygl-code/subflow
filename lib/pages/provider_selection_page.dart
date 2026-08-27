@@ -1,8 +1,7 @@
 // lib/pages/provider_selection_page.dart
 
-import 'package:aada_app/widgets/shared/page_layout.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import '../widgets/shared/page_layout.dart';
 import '../models/truelayer_provider.dart';
 import '../services/truelayer_service.dart';
 import '../theme/design_system.dart';
@@ -184,7 +183,7 @@ class _ProviderSelectionPageState extends State<ProviderSelectionPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withOpacity(0.5),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
           width: 1,
         ),
       ),
@@ -200,7 +199,7 @@ class _ProviderSelectionPageState extends State<ProviderSelectionPage> {
           decoration: BoxDecoration(
             color: colorScheme.surface,
             borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-            border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+            border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(DesignSystem.radiusSmall - 2),

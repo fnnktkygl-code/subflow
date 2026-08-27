@@ -1,30 +1,34 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:aada_app/main.dart';
+import 'package:subflow_app/models/subscription_model.dart';
+import 'package:subflow_app/widgets/subscription_card.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp(initialThemeIndex: 0));
+  testWidgets('SubscriptionCard displays name and amount formatted', (WidgetTester tester) async {
+    final sub = Subscription(
+      id: 'sub-1',
+      name: 'Netflix Premium',
+      amount: -17.99,
+      startDate: DateTime(2026, 1, 1),
+      cycle: 'Monthly',
+      category: 'Entertainment',
+      logoUrl: '',
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SubscriptionCard(
+            subscription: sub,
+            displayDate: DateTime(2026, 1, 1),
+            isAmountBlurred: false,
+          ),
+        ),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Netflix Premium'), findsOneWidget);
+    expect(find.text('-17.99 €'), findsOneWidget);
+    expect(find.text('MONTHLY'), findsOneWidget);
   });
 }

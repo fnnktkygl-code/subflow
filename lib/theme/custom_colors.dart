@@ -7,24 +7,18 @@ class CustomColors extends ThemeExtension<CustomColors> {
   final List<Color>? successGradient;
   final List<Color>? errorGradient;
   final Map<String, Color>? categoryColors;
+  // ✅ ADDED: New properties for our theme-aware heatmap
   final Color? heatmapExpense;
   final Color? heatmapIncome;
 
-  // ✅ ADDED: Health status colors, now theme-aware
-  final Color? healthy;
-  final Color? warning;
-  final Color? danger;
 
   const CustomColors({
     required this.successGradient,
     required this.errorGradient,
     required this.categoryColors,
+    // ✅ ADDED: Add new properties to the constructor
     required this.heatmapExpense,
     required this.heatmapIncome,
-    // ✅ ADDED: Add new health properties to the constructor
-    required this.healthy,
-    required this.warning,
-    required this.danger,
   });
 
   @override
@@ -32,23 +26,17 @@ class CustomColors extends ThemeExtension<CustomColors> {
     List<Color>? successGradient,
     List<Color>? errorGradient,
     Map<String, Color>? categoryColors,
+    // ✅ ADDED
     Color? heatmapExpense,
     Color? heatmapIncome,
-    // ✅ ADDED
-    Color? healthy,
-    Color? warning,
-    Color? danger,
   }) {
     return CustomColors(
       successGradient: successGradient ?? this.successGradient,
       errorGradient: errorGradient ?? this.errorGradient,
       categoryColors: categoryColors ?? this.categoryColors,
+      // ✅ ADDED
       heatmapExpense: heatmapExpense ?? this.heatmapExpense,
       heatmapIncome: heatmapIncome ?? this.heatmapIncome,
-      // ✅ ADDED
-      healthy: healthy ?? this.healthy,
-      warning: warning ?? this.warning,
-      danger: danger ?? this.danger,
     );
   }
 
@@ -59,7 +47,6 @@ class CustomColors extends ThemeExtension<CustomColors> {
       return this;
     }
     // For simplicity, we'll just switch colors at the halfway point during theme transitions.
-    // A more complex lerp could be implemented here if needed.
     return t < 0.5 ? this : other;
   }
 }

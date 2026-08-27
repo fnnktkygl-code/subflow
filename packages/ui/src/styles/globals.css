@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Japandi Light Theme */
+  --color-bg-canvas: #F7F5F0;
+  --color-bg-surface: #FDFCF9;
+  --color-bg-elevated: #FFFFFF;
+  --color-border-subtle: #E8E5DE;
+  --color-border-strong: #D5D0C5;
+  
+  --color-text-primary: #1C1C19;
+  --color-text-secondary: #5C5B56;
+  --color-text-tertiary: #8C8B85;
+  
+  --color-accent-pine: #3B4D3C;
+  --color-accent-terracotta: #B55337;
+  --color-accent-clay: #8C7355;
+  --color-accent-sand: #E5E0D8;
+  
+  --font-geist-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-geist-mono: 'Geist Mono', monospace;
+}
+
+.dark {
+  /* Japandi Dark Theme */
+  --color-bg-canvas: #121210;
+  --color-bg-surface: #1C1C19;
+  --color-bg-elevated: #262622;
+  --color-border-subtle: #2E2E29;
+  --color-border-strong: #3D3D36;
+  
+  --color-text-primary: #EDEBE6;
+  --color-text-secondary: #A6A49E;
+  --color-text-tertiary: #6E6D67;
+  
+  --color-accent-pine: #6B8E6F;
+  --color-accent-terracotta: #D97459;
+  --color-accent-clay: #BFA688;
+  --color-accent-sand: #363530;
+}
+
+body {
+  background-color: var(--color-bg-canvas);
+  color: var(--color-text-primary);
+}

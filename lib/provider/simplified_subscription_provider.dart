@@ -1,16 +1,23 @@
 // lib/provider/simplified_subscription_provider.dart
 
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'dart:math';
 import '../models/subscription_model.dart';
-import '../../services/notification_service.dart';
+import '../models/billing_cycle.dart';
+import '../services/notification_service.dart';
+import '../core/domain/repositories/subscription_repository.dart';
+import '../core/data/repositories/hive_subscription_repository.dart';
 
 class SimplifiedSubscriptionProvider with ChangeNotifier {
-  late Box<Subscription> _box;
-  final NotificationService _notifications = NotificationService();
+  final SubscriptionRepository _repository;
+  final NotificationService _notifications;
 
   List<Subscription> _subscriptions = [];
+
+  SimplifiedSubscriptionProvider({
+    SubscriptionRepository? repository,
+    NotificationService? notifications,
+  })  : _repository = repository ?? HiveSubscriptionRepository(),
+        _notifications = notifications ?? NotificationService();
 
   List<Subscription> get subscriptions => List.unmodifiable(_subscriptions);
 
@@ -58,59 +65,79 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
   }
 
   double getMonthlyAmount(Subscription sub) {
-    switch (sub.cycle) {
-      case 'Monthly':
-        return sub.amount.abs();
-      case 'Yearly':
-        return sub.amount.abs() / 12;
-      case 'Weekly':
-        return sub.amount.abs() * 4.348; // Approximation for 52/12
-      default:
-        return sub.amount.abs();
-    }
+    return sub.monthlyCost;
   }
 
   Future<void> init() async {
-    _box = await Hive.openBox<Subscription>('subscriptions_box');
-    _subscriptions = _box.values.toList()
-      ..sort((a, b) => a.startDate.compareTo(b.startDate));
-    notifyListeners();
+    final result = await _repository.getSubscriptions();
+    result.fold(
+      onSuccess: (subs) {
+        _subscriptions = subs;
+        notifyListeners();
+      },
+      onFailure: (failure) {
+        debugPrint('Failed to load subscriptions: $failure');
+      },
+    );
   }
 
   Future<void> addSubscription(Subscription sub) async {
-    await _box.put(sub.id, sub);
-    _subscriptions = _box.values.toList()
-      ..sort((a, b) => a.startDate.compareTo(b.startDate));
-    _notifications.scheduleNotification(sub);
-    notifyListeners();
+    final result = await _repository.saveSubscription(sub);
+    result.fold(
+      onSuccess: (_) {
+        _subscriptions = [..._subscriptions, sub]
+          ..sort((a, b) => a.startDate.compareTo(b.startDate));
+        _notifications.scheduleNotification(sub);
+        notifyListeners();
+      },
+      onFailure: (failure) {
+        debugPrint('Failed to add subscription: $failure');
+      },
+    );
   }
 
   Future<void> updateSubscription(Subscription sub) async {
-    await _box.put(sub.id, sub);
-    _subscriptions = _box.values.toList()
-      ..sort((a, b) => a.startDate.compareTo(b.startDate));
-    _notifications.scheduleNotification(sub);
-    notifyListeners();
+    final result = await _repository.updateSubscription(sub);
+    result.fold(
+      onSuccess: (_) {
+        _subscriptions = _subscriptions.map((s) => s.id == sub.id ? sub : s).toList()
+          ..sort((a, b) => a.startDate.compareTo(b.startDate));
+        _notifications.scheduleNotification(sub);
+        notifyListeners();
+      },
+      onFailure: (failure) {
+        debugPrint('Failed to update subscription: $failure');
+      },
+    );
   }
 
   Future<void> deleteSubscription(String id) async {
-    await _box.delete(id);
-    _subscriptions = _box.values.toList()
-      ..sort((a, b) => a.startDate.compareTo(b.startDate));
-    _notifications.cancelNotification(id);
-    notifyListeners();
+    final result = await _repository.deleteSubscription(id);
+    result.fold(
+      onSuccess: (_) {
+        _subscriptions = _subscriptions.where((s) => s.id != id).toList();
+        _notifications.cancelNotification(id);
+        notifyListeners();
+      },
+      onFailure: (failure) {
+        debugPrint('Failed to delete subscription: $failure');
+      },
+    );
   }
 
   Future<void> clearAllSubscriptions() async {
     for (var sub in _subscriptions) {
       _notifications.cancelNotification(sub.id);
     }
-    await _box.clear();
+    await _repository.clearAllData();
     _subscriptions = [];
     notifyListeners();
   }
 
-  // --- METHODS MOVED INSIDE THE CLASS ---
+  Future<String?> exportData() async {
+    final result = await _repository.exportDataAsJson();
+    return result.dataOrNull;
+  }
 
   Map<DateTime, List<Subscription>> groupByDate([List<Subscription>? subs]) {
     final subscriptions = subs ?? _subscriptions;
@@ -125,8 +152,9 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
         final key = DateTime(current.year, current.month, current.day);
         map.putIfAbsent(key, () => []).add(sub);
 
-        current = _getNextDate(current, sub.cycle);
-        if (current == sub.startDate) break; // Avoid infinite loops
+        final next = BillingCycle.fromString(sub.cycle).nextDate(current);
+        if (next == current || next.isBefore(current)) break;
+        current = next;
       }
     }
     return map;
@@ -138,12 +166,13 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
     double total = 0.0;
 
     for (var sub in activeSubs) {
+      final cycle = BillingCycle.fromString(sub.cycle);
       DateTime current = sub.startDate;
 
       // Fast-forward to the relevant period
       while (current.year < targetMonth.year ||
           (current.year == targetMonth.year && current.month < targetMonth.month)) {
-        DateTime next = _getNextDate(current, sub.cycle);
+        DateTime next = cycle.nextDate(current);
         if (next.isBefore(current) || next == current) break;
         current = next;
       }
@@ -154,33 +183,11 @@ class SimplifiedSubscriptionProvider with ChangeNotifier {
         if (sub.endDate != null && current.isAfter(sub.endDate!)) break;
         total += sub.amount;
 
-        DateTime next = _getNextDate(current, sub.cycle);
+        DateTime next = cycle.nextDate(current);
         if (next.isBefore(current) || next == current) break;
         current = next;
       }
     }
     return total;
-  }
-
-  DateTime _getNextDate(DateTime current, String cycle) {
-    switch (cycle) {
-      case 'Weekly':
-        return current.add(const Duration(days: 7));
-      case 'Monthly':
-        var newMonth = current.month + 1;
-        var newYear = current.year;
-        if (newMonth > 12) {
-          newMonth = 1;
-          newYear++;
-        }
-        final daysInNextMonth = DateUtils.getDaysInMonth(newYear, newMonth);
-        final day = min(current.day, daysInNextMonth);
-        return DateTime(newYear, newMonth, day);
-      case 'Yearly':
-        final isLeapDay = current.month == 2 && current.day == 29;
-        return DateTime(current.year + 1, current.month, isLeapDay ? 28 : current.day);
-      default:
-        return current.add(const Duration(days: 365 * 10)); // Far-future date
-    }
   }
 }

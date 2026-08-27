@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../provider/simplified_subscription_provider.dart';
-import 'package:aada_app/provider/simplified_gamification.dart';
+import 'package:subflow_app/provider/simplified_gamification.dart';
 import '../pages/home_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/schedule_page.dart';
@@ -15,6 +15,7 @@ import '../mixins/selection_mode_mixin.dart';
 import '../theme/theme.dart';
 import 'subscription_popup.dart' as subs_popup;
 import 'smooth_scroll_behavior.dart';
+import 'shared/japandi_svg_icons.dart';
 
 // Global key for accessing the bottom nav state
 final GlobalKey<BottomNavBarState> bottomNavBarKey =
@@ -284,44 +285,49 @@ class BottomNavBarState extends State<BottomNavBar>
               bottom: 12,
             ),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLow.withOpacity(backgroundOpacity),
+              color: colorScheme.surfaceContainerLow.withValues(alpha: backgroundOpacity),
               border: Border(
                 bottom: BorderSide(
-                  color: colorScheme.outlineVariant.withOpacity(0.1),
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.1),
                   width: 1,
                 ),
               ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      widget.onToggleTheme();
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainer.withOpacity(0.6),
-                        borderRadius: BorderRadius.circular(12),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1120),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                        color: colorScheme.onSurface,
                       ),
-                      child: themeIcon(context),
                     ),
-                  ),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          widget.onToggleTheme();
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainer.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: themeIcon(context),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -334,7 +340,7 @@ class BottomNavBarState extends State<BottomNavBar>
     final isDarkMode = colorScheme.brightness == Brightness.dark;
 
     Color iconBgColor = colorScheme.primaryContainer
-        .withOpacity(isDarkMode ? 0.4 : 0.6);
+        .withValues(alpha: isDarkMode ? 0.4 : 0.6);
     IconData themeIconData =
     isDarkMode ? Icons.dark_mode_outlined : Icons.wb_sunny_outlined;
     Widget iconWidget = Icon(themeIconData,
@@ -343,7 +349,7 @@ class BottomNavBarState extends State<BottomNavBar>
     if (!isDarkMode && isBarbieTheme(context)) {
       iconWidget =
           Image.asset('assets/icons/barbie.png', height: 22, width: 22);
-      iconBgColor = colorScheme.secondaryContainer.withOpacity(0.6);
+      iconBgColor = colorScheme.secondaryContainer.withValues(alpha: 0.6);
     }
 
     return Container(
@@ -362,110 +368,154 @@ class BottomNavBarState extends State<BottomNavBar>
       SimplifiedSubscriptionProvider provider,
       double bottomPadding,
       ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return RepaintBoundary(
       child: Padding(
-        padding: EdgeInsets.fromLTRB(12.0, 16.0, 12.0, 16.0 + bottomPadding),
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.bottomCenter,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(28),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18.0, sigmaY: 18.0),
-                child: Container(
-                  height: 65,
-                  decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerLow.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(
-                      color: colorScheme.outlineVariant.withOpacity(0.15),
-                      width: 1,
+        padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 16.0 + bottomPadding),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 580),
+            child: SizedBox(
+              height: 80,
+              child: Stack(
+                alignment: Alignment.bottomCenter,
+                clipBehavior: Clip.none,
+                children: [
+                  // WHAT IF BAR (pinned above nav bar)
+                  if (isSelectionMode)
+                    Positioned(
+                      bottom: 82,
+                      left: 0,
+                      right: 0,
+                      child: buildWhatIfActionBar(
+                        provider: provider,
+                        colorScheme: colorScheme,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildModernNavItem(
-                        icon: Icons.home_rounded,
-                        label: 'Home',
-                        index: 0,
-                        colorScheme: colorScheme,
+
+                  // MODERN FLOATING NAV BAR
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(28),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: Container(
+                          height: 68,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1C1C19).withValues(alpha: 0.90)
+                                : const Color(0xFFFDFCF9).withValues(alpha: 0.92),
+                            borderRadius: BorderRadius.circular(28),
+                      border: Border.all(
+                        color: colorScheme.outlineVariant
+                            .withValues(alpha: isDark ? 0.4 : 0.8),
+                        width: 1.0,
                       ),
-                      _buildModernNavItem(
-                        icon: Icons.calendar_month_rounded,
-                        label: 'Schedule',
-                        index: 1,
-                        colorScheme: colorScheme,
-                      ),
-                      const SizedBox(width: 65), // Space for FAB
-                      _buildModernNavItem(
-                        icon: Icons.view_list_rounded,
-                        label: 'Subs',
-                        index: 2,
-                        colorScheme: colorScheme,
-                      ),
-                      _buildModernNavItem(
-                        icon: Icons.settings_rounded,
-                        label: 'Settings',
-                        index: 3,
-                        colorScheme: colorScheme,
-                      ),
-                    ],
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black.withValues(alpha: 0.35)
+                              : const Color(0xFF20201E).withValues(alpha: 0.06),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildModernNavItem(
+                          svgType: JapandiSvgType.home,
+                          iconFallback: Icons.home_rounded,
+                          label: 'Home',
+                          index: 0,
+                          colorScheme: colorScheme,
+                        ),
+                        _buildModernNavItem(
+                          svgType: JapandiSvgType.calendar,
+                          iconFallback: Icons.calendar_month_rounded,
+                          label: 'Schedule',
+                          index: 1,
+                          colorScheme: colorScheme,
+                        ),
+                        const SizedBox(width: 65), // Space for FAB
+                        _buildModernNavItem(
+                          svgType: JapandiSvgType.subscriptions,
+                          iconFallback: Icons.view_list_rounded,
+                          label: 'Subs',
+                          index: 2,
+                          colorScheme: colorScheme,
+                        ),
+                        _buildModernNavItem(
+                          svgType: JapandiSvgType.settings,
+                          iconFallback: Icons.settings_rounded,
+                          label: 'Settings',
+                          index: 3,
+                          colorScheme: colorScheme,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-            Positioned(
-              bottom: 25,
-              child: _buildGamifiedFab(context, colorScheme, provider),
+                  Positioned(
+                    bottom: 26,
+                    child: _buildGamifiedFab(context, colorScheme, provider),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildModernNavItem({
-    required IconData icon,
+    required JapandiSvgType svgType,
+    required IconData iconFallback,
     required String label,
     required int index,
     required ColorScheme colorScheme,
   }) {
     final isSelected = _currentIndex == index;
 
-    return GestureDetector(
-      onTap: () => onNavItemTapped(index), // ✅ Use public method
-      behavior: HitTestBehavior.opaque,
+    return InkWell(
+      key: Key('nav_item_${label.toLowerCase()}'),
+      onTap: () => onNavItemTapped(index),
+      borderRadius: BorderRadius.circular(16),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        transform: Matrix4.identity()..scale(isSelected ? 1.05 : 1.0),
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
+            JapandiSvgIcon(
+              type: svgType,
               size: 22,
               color: isSelected
                   ? colorScheme.primary
-                  : colorScheme.onSurfaceVariant.withOpacity(0.7),
+                  : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
             ),
             const SizedBox(height: 3),
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              curve: Curves.easeInOut,
+            Text(
+              label,
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                 color: isSelected
                     ? colorScheme.primary
-                    : colorScheme.onSurfaceVariant.withOpacity(0.7),
-                letterSpacing: 0.2,
+                    : colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
               ),
-              child: Text(label),
             ),
           ],
         ),
@@ -480,50 +530,43 @@ class BottomNavBarState extends State<BottomNavBar>
       ) {
     return AnimatedBuilder(
       animation: Listenable.merge([_pulseController, _fabController]),
-      builder: (context, child) {
+      child: SizedBox(
+        width: 58,
+        height: 58,
+        child: FloatingActionButton(
+          onPressed: () {
+            HapticFeedback.mediumImpact();
+            _fabController.reverse().then((_) => _fabController.forward());
+            subs_popup.showAddSubscriptionPopup(
+              context,
+                  (newSub) {
+                provider.addSubscription(newSub);
+                context.read<SimplifiedGamification>().onSubscriptionAdded();
+              },
+            );
+          },
+          elevation: 2.0,
+          highlightElevation: 4.0,
+          backgroundColor: colorScheme.primary,
+          foregroundColor: colorScheme.onPrimary,
+          splashColor: colorScheme.onPrimary.withValues(alpha: 0.2),
+          shape: const CircleBorder(),
+          child: Center(
+            child: JapandiSvgIcon(
+              type: JapandiSvgType.add,
+              size: 24,
+              color: colorScheme.onPrimary,
+            ),
+          ),
+        ),
+      ),
+      builder: (context, fabChild) {
         final pulseScale = 1.0 + (_pulseController.value * 0.03);
         final tapScale = _fabController.value;
 
         return Transform.scale(
           scale: pulseScale * tapScale,
-          child: SizedBox(
-            width: 60,
-            height: 60,
-            child: FloatingActionButton(
-              onPressed: () {
-                HapticFeedback.mediumImpact();
-                _fabController.reverse().then((_) => _fabController.forward());
-                subs_popup.showAddSubscriptionPopup(
-                  context,
-                      (newSub) {
-                    provider.addSubscription(newSub);
-                    context.read<SimplifiedGamification>().onSubscriptionAdded();
-                  },
-                );
-              },
-              elevation: 4.0,
-              highlightElevation: 8.0,
-              splashColor: colorScheme.onPrimary.withOpacity(0.3),
-              shape: const CircleBorder(),
-              child: Ink(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [colorScheme.primary, colorScheme.secondary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.add_rounded,
-                    size: 30,
-                    color: colorScheme.onPrimary,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          child: fabChild,
         );
       },
     );

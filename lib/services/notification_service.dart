@@ -13,7 +13,7 @@ class NotificationService {
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
 
-    const DarwinInitializationSettings initializationSettingsIOS =
+    const DarwinInitializationSettings initializationSettingsDarwin =
     DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
@@ -23,31 +23,49 @@ class NotificationService {
     const InitializationSettings initializationSettings =
     InitializationSettings(
       android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
+      iOS: initializationSettingsDarwin,
+      macOS: initializationSettingsDarwin,
     );
 
-    await _notificationsPlugin.initialize(initializationSettings);
+    try {
+      await _notificationsPlugin.initialize(initializationSettings);
+    } catch (e) {
+      debugPrint("Notification init warning: $e");
+    }
 
     // ✅ FIX: Initialize timezone data using the 'tzdata' prefix
     tzdata.initializeTimeZones();
   }
 
   Future<void> requestPermissions() async {
-    final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-    _notificationsPlugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
+    try {
+      final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+      _notificationsPlugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
 
-    await androidImplementation?.requestNotificationsPermission();
-    await androidImplementation?.requestExactAlarmsPermission();
+      await androidImplementation?.requestNotificationsPermission();
+      await androidImplementation?.requestExactAlarmsPermission();
 
-    await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<
-        IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+      await _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      await _notificationsPlugin
+          .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+    } catch (e) {
+      debugPrint("Notification requestPermissions warning: $e");
+    }
   }
 
   DateTime? _calculateNextDueDate(Subscription sub) {
@@ -98,44 +116,51 @@ class NotificationService {
       return;
     }
 
-    final DateTime? nextDueDate = _calculateNextDueDate(sub);
-    if (nextDueDate == null) return;
+    try {
+      final DateTime? nextDueDate = _calculateNextDueDate(sub);
+      if (nextDueDate == null) return;
 
-    // 2. Use the user's custom reminder time (e.g., 1, 2, 3, or 7 days).
-    final notificationDate = nextDueDate.subtract(Duration(days: sub.reminderDays));
+      // 2. Use the user's custom reminder time (e.g., 1, 2, 3, or 7 days).
+      final notificationDate = nextDueDate.subtract(Duration(days: sub.reminderDays));
 
-    // ✅ FIX: Now 'tz' correctly refers to the timezone library
-    final scheduledDate = tz.TZDateTime.from(
-      DateTime(notificationDate.year, notificationDate.month, notificationDate.day, 10), // Schedule for 10 AM
-      tz.local,
-    );
+      final scheduledDate = tz.TZDateTime.from(
+        DateTime(notificationDate.year, notificationDate.month, notificationDate.day, 10), // Schedule for 10 AM
+        tz.local,
+      );
 
-    // Don't schedule notifications for past dates.
-    if (scheduledDate.isBefore(DateTime.now())) return;
+      // Don't schedule notifications for past dates.
+      if (scheduledDate.isBefore(DateTime.now())) return;
 
-    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'subscription_reminders', 'Subscription Reminders',
-      channelDescription: 'Notifications for upcoming subscription payments',
-      importance: Importance.max, priority: Priority.high,
-    );
-    const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
+      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+        'subscription_reminders', 'Subscription Reminders',
+        channelDescription: 'Notifications for upcoming subscription payments',
+        importance: Importance.max, priority: Priority.high,
+      );
+      const DarwinNotificationDetails iosDetails = DarwinNotificationDetails();
 
-    // 3. Personalize the notification message.
-    final String daysString = sub.reminderDays == 1 ? '1 day' : '${sub.reminderDays} days';
-    final String amountString = sub.amount.abs().toStringAsFixed(2);
+      // 3. Personalize the notification message.
+      final String daysString = sub.reminderDays == 1 ? '1 day' : '${sub.reminderDays} days';
+      final String amountString = sub.amount.abs().toStringAsFixed(2);
 
-    await _notificationsPlugin.zonedSchedule(
-      sub.id.hashCode,
-      'Upcoming Payment',
-      'Your subscription for "${sub.name}" ($amountString €) is due in $daysString.',
-      scheduledDate,
-      const NotificationDetails(android: androidDetails, iOS: iosDetails),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    );
+      await _notificationsPlugin.zonedSchedule(
+        sub.id.hashCode,
+        'Upcoming Payment',
+        'Your subscription for "${sub.name}" ($amountString €) is due in $daysString.',
+        scheduledDate,
+        const NotificationDetails(android: androidDetails, iOS: iosDetails),
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      );
+    } catch (e) {
+      debugPrint("Notification schedule notice: $e");
+    }
   }
 
   Future<void> cancelNotification(String subscriptionId) async {
-    await _notificationsPlugin.cancel(subscriptionId.hashCode);
+    try {
+      await _notificationsPlugin.cancel(subscriptionId.hashCode);
+    } catch (e) {
+      debugPrint("Notification cancel notice: $e");
+    }
   }
 
   // --- DEV TESTING METHODS ---

@@ -1,222 +1,262 @@
 // lib/pages/onboarding_page.dart
 
-import '../provider/user_profile_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import '../provider/user_profile_provider.dart';
 import '../theme/design_system.dart';
+import '../widgets/shared/japandi_svg_icons.dart';
 
-class OnboardingPage extends StatefulWidget {
+/// Serene 1-Screen Japandi Onboarding
+/// Replaces slow marketing carousels with instant, high-trust onboarding.
+class OnboardingPage extends StatelessWidget {
   const OnboardingPage({super.key});
 
-  @override
-  State<OnboardingPage> createState() => _OnboardingPageState();
-}
-
-class _OnboardingPageState extends State<OnboardingPage> {
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
-  }
-
-  void _onPageChanged(int page) {
-    setState(() {
-      _currentPage = page;
-    });
-  }
-
-  void _completeOnboarding() {
+  void _completeOnboarding(BuildContext context) {
     HapticFeedback.heavyImpact();
     context.read<UserProfileProvider>().completeOnboarding();
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final List<Widget> onboardingSteps = [
-      _buildOnboardingStep(
-        context: context,
-        icon: Icons.wallet_rounded,
-        title: "Welcome to Tr'Hack!",
-        description:
-        "Take control of your subscriptions and see where your money is going. Let's start tracking.",
-      ),
-      _buildOnboardingStep(
-        context: context,
-        icon: Icons.add_card_rounded,
-        title: "Add Subscriptions Easily",
-        description:
-        "Add subscriptions manually with the '+' button or connect your bank to import them automatically.",
-      ),
-      _buildOnboardingStep(
-        context: context,
-        icon: Icons.calendar_month_rounded,
-        title: "Visualize Your Spending",
-        description:
-        "Use the calendar to see upcoming payments at a glance and track your monthly cash flow.",
-      ),
-      _buildOnboardingStep(
-        context: context,
-        icon: Icons.insights_rounded,
-        title: "Gain Smart Insights",
-        description:
-        "Set spending limits and add your income to unlock powerful insights about your financial health.",
-      ),
-    ];
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: isDark ? colorScheme.surface : const Color(0xFFFAF8F5),
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: onboardingSteps.length,
-                onPageChanged: _onPageChanged,
-                itemBuilder: (context, index) {
-                  return onboardingSteps[index];
-                },
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(
+                horizontal: DesignSystem.spacing12,
+                vertical: DesignSystem.spacing10,
               ),
-            ),
-            _buildNavigationControls(
-              context,
-              onboardingSteps.length,
-            ),
-          ],
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - (DesignSystem.spacing10 * 2),
+                ),
+                child: IntrinsicHeight(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Top Brand Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(DesignSystem.spacing4),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                                ),
+                                child: const JapandiSvgIcon(
+                                  type: JapandiSvgType.leaf,
+                                  size: 18,
+                                ),
+                              ),
+                              const SizedBox(width: DesignSystem.spacing4),
+                              Text(
+                                'SUBFLOW',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 2.0,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          TextButton(
+                            onPressed: () => _completeOnboarding(context),
+                            child: Text(
+                              'Skip',
+                              style: TextStyle(
+                                color: colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: DesignSystem.spacing12),
+
+                      // Hero Illustration & Headline
+                      Center(
+                        child: Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? colorScheme.surfaceContainerHigh
+                                : colorScheme.surfaceContainerLowest,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.6),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isDark
+                                    ? Colors.black.withValues(alpha: 0.25)
+                                    : const Color(0xFF20201E).withValues(alpha: 0.04),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: JapandiSvgIcon(
+                              type: JapandiSvgType.sparkles,
+                              size: 36,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: DesignSystem.spacing8),
+
+                      Text(
+                        'Mindful Spending,\nTotal Clarity.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.5,
+                          height: 1.2,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: DesignSystem.spacing4),
+                      Text(
+                        'Your calm sanctuary to track recurring commitments, simulate savings, and regain control.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          height: 1.4,
+                        ),
+                      ),
+
+                      const SizedBox(height: DesignSystem.spacing12),
+
+                      // 3 Value Pillars
+                      _buildPillar(
+                        context,
+                        icon: JapandiSvgType.subscriptions,
+                        title: 'Frictionless Entry',
+                        subtitle: 'Single-view input with smart predictions and zero clutter.',
+                      ),
+                      const SizedBox(height: DesignSystem.spacing6),
+                      _buildPillar(
+                        context,
+                        icon: JapandiSvgType.chart,
+                        title: 'What-If Simulation',
+                        subtitle: 'Snooze subscriptions on the fly to see instant monthly savings.',
+                      ),
+                      const SizedBox(height: DesignSystem.spacing6),
+                      _buildPillar(
+                        context,
+                        icon: JapandiSvgType.leaf,
+                        title: '100% Private & Local',
+                        subtitle: 'No accounts required. Your financial data never leaves your device.',
+                      ),
+
+                      const Spacer(),
+                      const SizedBox(height: DesignSystem.spacing10),
+
+                      // Bottom CTA
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+                          ),
+                          elevation: 0,
+                        ),
+                        onPressed: () => _completeOnboarding(context),
+                        child: const Text(
+                          'Get Started',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: DesignSystem.spacing4),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _buildOnboardingStep({
-    required BuildContext context,
-    required IconData icon,
+  Widget _buildPillar(
+    BuildContext context, {
+    required JapandiSvgType icon,
     required String title,
-    required String description,
+    required String subtitle,
   }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-    return Padding(
-      padding: const EdgeInsets.all(DesignSystem.spacing16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return Container(
+      padding: const EdgeInsets.all(DesignSystem.spacing8),
+      decoration: BoxDecoration(
+        color: isDark
+            ? colorScheme.surfaceContainerHigh.withValues(alpha: 0.5)
+            : colorScheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.5),
+        ),
+      ),
+      child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(32),
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  colorScheme.primary.withOpacity(0.1),
-                  colorScheme.secondary.withOpacity(0.1),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              shape: BoxShape.circle,
+              color: colorScheme.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
             ),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
+            child: Center(
+              child: JapandiSvgIcon(
+                type: icon,
+                size: 18,
                 color: colorScheme.primary,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.3),
-                    blurRadius: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: DesignSystem.spacing8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
                   ),
-                ],
-              ),
-              child: Icon(icon, size: 64, color: colorScheme.onPrimary),
-            ),
-          ),
-          const SizedBox(height: DesignSystem.spacing16),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: DesignSystem.spacing8),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              height: 1.6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavigationControls(BuildContext context, int totalPages) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isLastPage = _currentPage == totalPages - 1;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: DesignSystem.spacing12,
-        vertical: DesignSystem.spacing12,
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              totalPages,
-                  (index) => AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                height: 8,
-                width: _currentPage == index ? 24 : 8,
-                decoration: BoxDecoration(
-                  color: _currentPage == index
-                      ? colorScheme.primary
-                      : colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(4),
                 ),
-              ),
-            ),
-          ),
-          const SizedBox(height: DesignSystem.spacing12),
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: FilledButton(
-              onPressed: () {
-                if (isLastPage) {
-                  _completeOnboarding();
-                } else {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 400),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    height: 1.3,
+                  ),
                 ),
-              ),
-              child: Text(
-                isLastPage ? "Get Started" : "Next",
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              ],
             ),
           ),
         ],

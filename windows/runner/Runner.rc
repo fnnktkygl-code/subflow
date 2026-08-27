@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "fr.aada" "\0"
-            VALUE "FileDescription", "aada_app" "\0"
+            VALUE "CompanyName", "com.subflow.app" "\0"
+            VALUE "FileDescription", "subflow_app" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "aada_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2024 fr.aada. All rights reserved." "\0"
-            VALUE "OriginalFilename", "aada_app.exe" "\0"
-            VALUE "ProductName", "aada_app" "\0"
+            VALUE "InternalName", "subflow_app" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 com.subflow.app. All rights reserved." "\0"
+            VALUE "OriginalFilename", "subflow_app.exe" "\0"
+            VALUE "ProductName", "subflow_app" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

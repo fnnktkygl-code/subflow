@@ -1,6 +1,6 @@
 // lib/pages/country_selection_page.dart
 
-import 'package:aada_app/widgets/shared/page_layout.dart';
+import 'package:subflow_app/widgets/shared/page_layout.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../theme/design_system.dart';
@@ -112,11 +112,11 @@ class CountrySelectionPage extends StatelessWidget {
   Widget _buildDebugCard(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      color: colorScheme.secondaryContainer.withOpacity(0.3),
+      color: colorScheme.secondaryContainer.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
         side: BorderSide(
-          color: colorScheme.secondary.withOpacity(0.4),
+          color: colorScheme.secondary.withValues(alpha: 0.4),
           width: 1,
         ),
       ),
@@ -131,7 +131,7 @@ class CountrySelectionPage extends StatelessWidget {
         ),
         subtitle: Text(
           'Skip provider selection and connect directly',
-          style: TextStyle(color: colorScheme.onSecondaryContainer.withOpacity(0.8)),
+          style: TextStyle(color: colorScheme.onSecondaryContainer.withValues(alpha: 0.8)),
         ),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
         onTap: () {
@@ -163,7 +163,7 @@ class CountrySelectionPage extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withOpacity(0.5),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
           width: 1,
         ),
       ),
@@ -199,7 +199,7 @@ class CountrySelectionPage extends StatelessWidget {
             ),
           );
         },
-        splashColor: colorScheme.primary.withOpacity(0.1),
+        splashColor: colorScheme.primary.withValues(alpha: 0.1),
       ),
     );
   }

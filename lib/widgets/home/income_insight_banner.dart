@@ -25,19 +25,19 @@ class IncomeInsightBanner extends StatelessWidget {
         gradient: LinearGradient(
           colors: isDark
               ? [
-            config.color.withOpacity(0.2),
-            config.color.withOpacity(0.1),
+            config.color.withValues(alpha: 0.2),
+            config.color.withValues(alpha: 0.1),
           ]
               : [
-            config.color.withOpacity(0.1),
-            config.color.withOpacity(0.05),
+            config.color.withValues(alpha: 0.1),
+            config.color.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: config.color.withOpacity(0.3),
+          color: config.color.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -47,7 +47,7 @@ class IncomeInsightBanner extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: config.color.withOpacity(0.2),
+              color: config.color.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(

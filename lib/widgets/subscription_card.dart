@@ -1,10 +1,12 @@
 // lib/widgets/subscription_card.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../models/subscription_model.dart'; //
 import '../utils/home_helpers.dart'; //
 import '../theme/design_system.dart'; //
 import '../theme/theme.dart'; //
+import 'shared/subscription_logo.dart';
 
 class SubscriptionCard extends StatefulWidget {
   final Subscription subscription; //
@@ -49,6 +51,7 @@ class _SubscriptionCardState extends State<SubscriptionCard>
   }
 
   Widget _buildShimmerEffect() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AnimatedBuilder(
       animation: _shimmerController,
       builder: (context, child) {
@@ -58,14 +61,14 @@ class _SubscriptionCardState extends State<SubscriptionCard>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withOpacity(0.0),
-                Colors.white.withOpacity(0.1),
-                Colors.white.withOpacity(0.0),
+                (isDark ? Colors.white : const Color(0xFFC4823F)).withValues(alpha: 0.0),
+                (isDark ? Colors.white : const Color(0xFFC4823F)).withValues(alpha: isDark ? 0.06 : 0.07),
+                (isDark ? Colors.white : const Color(0xFFC4823F)).withValues(alpha: 0.0),
               ],
               stops: [
-                _shimmerController.value - 0.3,
+                (_shimmerController.value - 0.25).clamp(0.0, 1.0),
                 _shimmerController.value,
-                _shimmerController.value + 0.3,
+                (_shimmerController.value + 0.25).clamp(0.0, 1.0),
               ],
             ),
           ),
@@ -80,14 +83,12 @@ class _SubscriptionCardState extends State<SubscriptionCard>
     final textTheme = Theme.of(context).textTheme;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    final bool isOutflow = widget.subscription.amount < 0; //
-    // Keep income color consistent green, or use tertiary if preferred
-    final Color incomeColor = const Color(0xFF10B981); // Or colorScheme.tertiary;
+    final bool isOutflow = widget.subscription.amount < 0;
+    final Color incomeColor = const Color(0xFF477A56); // Japandi Matcha Leaf
     final Color amountColor = isOutflow ? colorScheme.error : incomeColor;
 
-
-    final categoryColor = HomeHelpers.getCategoryColor(widget.subscription.category); //
-    final categoryIcon = HomeHelpers.getCategoryIcon(widget.subscription.category); //
+    final categoryColor = HomeHelpers.getCategoryColor(widget.subscription.category);
+    final categoryIcon = HomeHelpers.getCategoryIcon(widget.subscription.category);
 
     final TextDecoration textDecoration =
     widget.isSnoozed ? TextDecoration.lineThrough : TextDecoration.none;
@@ -96,44 +97,53 @@ class _SubscriptionCardState extends State<SubscriptionCard>
     final isUpcoming = daysUntil >= 0 && daysUntil <= 7;
     final isDueToday = daysUntil == 0;
 
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
-        margin: const EdgeInsets.symmetric(vertical: 4.0),
-        transform: Matrix4.identity()
-          ..scale(_isPressed ? 0.98 : 1.0), // Reduced press scale slightly
-        decoration: BoxDecoration(
-          // ✅ Use surfaceContainerLow for the base color
-          color: colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(DesignSystem.radiusXL), //
-          boxShadow: [
-            BoxShadow(
-              // ✅ Softer shadow settings
-              color: colorScheme.shadow.withOpacity(isDark ? 0.15 : 0.06), // Use shadow color with low opacity
-              blurRadius: 16, // Softer blur
-              offset: Offset(0, 4), // Smaller offset
-              spreadRadius: 0, // No spread
-            ),
-            // Optional: Add a subtle highlight for selected state if needed
-            if (widget.isSelectionMode && widget.isSnoozed)
-              BoxShadow(
-                color: colorScheme.primary.withOpacity(0.2),
-                blurRadius: 8,
-                spreadRadius: 1,
-              ),
-          ],
-          // ✅ Add a subtle border for definition
-          border: Border.all(
-            color: colorScheme.outlineVariant.withOpacity(0.5),
-            width: 0.5,
+    final semanticLabel =
+        '${widget.subscription.name}, ${widget.subscription.amount.abs().toStringAsFixed(2)} € ${widget.subscription.cycle}, category ${widget.subscription.category}';
+
+    return Semantics(
+      label: semanticLabel,
+      child: GestureDetector(
+        onTapDown: (_) {
+          HapticFeedback.selectionClick();
+          setState(() => _isPressed = true);
+        },
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          margin: const EdgeInsets.symmetric(vertical: 4.0),
+          transform: Matrix4.diagonal3Values(
+            _isPressed ? 0.985 : 1.0,
+            _isPressed ? 0.985 : 1.0,
+            1.0,
           ),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(DesignSystem.radiusXL), //
+          decoration: BoxDecoration(
+            color: isDark ? colorScheme.surface : Colors.white,
+            borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.25)
+                    : const Color(0xFF20201E).withValues(alpha: 0.035),
+                blurRadius: 12,
+                offset: const Offset(0, 2),
+                spreadRadius: 0,
+              ),
+              if (widget.isSelectionMode && widget.isSnoozed)
+                BoxShadow(
+                  color: colorScheme.primary.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  spreadRadius: 1,
+                ),
+            ],
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+              width: 1.0,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
           child: Stack(
             children: [
               // ❌ Removed solid background container, base color is set in BoxDecoration now
@@ -149,7 +159,7 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                     gradient: LinearGradient(
                       colors: [
                         categoryColor,
-                        categoryColor.withOpacity(0.6),
+                        categoryColor.withValues(alpha: 0.6),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -193,36 +203,9 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                         children: [
                           Hero(
                             tag: 'logo_${widget.subscription.id}_${widget.displayDate}',
-                            child: Container(
-                              width: 52, // Slightly smaller logo
-                              height: 52,
-                              decoration: BoxDecoration(
-                                // Use surface for the logo background for contrast
-                                color: colorScheme.surface,
-                                borderRadius: BorderRadius.circular(DesignSystem.radiusMedium), // Slightly smaller radius
-                                boxShadow: [
-                                  BoxShadow( // Subtle shadow for logo
-                                    color: colorScheme.shadow.withOpacity(isDark ? 0.1 : 0.05),
-                                    blurRadius: 6,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(DesignSystem.radiusMedium), //
-                                child: Image.network(
-                                  widget.subscription.logoUrl, //
-                                  fit: BoxFit.contain, // Use contain to prevent cropping
-                                  errorBuilder: (_, __, ___) => Container(
-                                    color: colorScheme.surfaceContainer, // Fallback color
-                                    child: Icon(
-                                      Icons.image_not_supported_outlined,
-                                      color: colorScheme.onSurfaceVariant.withOpacity(0.4),
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
+                            child: SubscriptionLogo(
+                              subscription: widget.subscription,
+                              size: 52,
                             ),
                           ),
                           // Category badge
@@ -241,7 +224,7 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: categoryColor.withOpacity(0.2), // Softer shadow
+                                    color: categoryColor.withValues(alpha: 0.2), // Softer shadow
                                     blurRadius: 4,
                                   ),
                                 ],
@@ -307,7 +290,7 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                                 Icon(
                                   Icons.calendar_today_rounded,
                                   size: 12, // Smaller icon
-                                  color: colorScheme.onSurfaceVariant.withOpacity(0.6), // Slightly less prominent
+                                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6), // Slightly less prominent
                                 ),
                                 SizedBox(width: DesignSystem.spacing2), //
                                 Expanded(
@@ -315,7 +298,7 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                                     DateFormat('EEE, d MMM').format(widget.displayDate),
                                     style: textTheme.bodySmall?.copyWith(
                                       decoration: textDecoration,
-                                      color: colorScheme.onSurfaceVariant.withOpacity(0.8), // Slightly more prominent date
+                                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8), // Slightly more prominent date
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500, // Semi-bold date
                                     ),
@@ -330,7 +313,7 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                                       vertical: DesignSystem.spacing1, //
                                     ),
                                     decoration: BoxDecoration(
-                                      color: warningAmber.withOpacity(0.15), // Use warningAmber
+                                      color: warningAmber.withValues(alpha: 0.15), // Use warningAmber
                                       borderRadius: BorderRadius.circular(DesignSystem.radiusSmall), //
                                     ),
                                     child: Text(
@@ -350,7 +333,7 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                             Container( // Wrap in container for padding
                               padding: EdgeInsets.symmetric(horizontal: DesignSystem.spacing2, vertical: DesignSystem.spacing1/2), //
                               decoration: BoxDecoration(
-                                color: categoryColor.withOpacity(0.1),
+                                color: categoryColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(DesignSystem.radiusSmall / 2), //
                               ),
                               child: Row(
@@ -417,7 +400,7 @@ class _SubscriptionCardState extends State<SubscriptionCard>
                           //       vertical: DesignSystem.spacing1 / 2,
                           //     ),
                           //     decoration: BoxDecoration(
-                          //       color: amountColor.withOpacity(0.12),
+                          //       color: amountColor.withValues(alpha: 0.12),
                           //       borderRadius: BorderRadius.circular(DesignSystem.radiusSmall / 2),
                           //     ),
                           //     child: Text(
@@ -441,8 +424,9 @@ class _SubscriptionCardState extends State<SubscriptionCard>
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 // Helper class for data structure (can be removed if defined elsewhere)

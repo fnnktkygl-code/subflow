@@ -12,15 +12,20 @@ import 'services/notification_service.dart';
 import 'models/subscription_model.dart';
 import 'provider/simplified_subscription_provider.dart';
 import 'provider/simplified_gamification.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'l10n/app_localizations.dart';
 import 'provider/user_profile_provider.dart';
-import 'pages/onboarding_page.dart'; // ✅ Import the new onboarding page
+import 'pages/onboarding_page.dart';
 
 final NotificationService notificationService = NotificationService();
 
 Future<void> main() async {
-  // ... (main function remains the same) ...
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    debugPrint("Note: .env not loaded (using secure environment configuration)");
+  }
 
   final prefs = await SharedPreferences.getInstance();
   final savedThemeIndex = prefs.getInt('themeModeIndex') ?? 0;
@@ -41,7 +46,6 @@ Future<void> main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(SubscriptionAdapter());
   await notificationService.init();
-  await notificationService.requestPermissions();
 
   final subscriptionProvider = SimplifiedSubscriptionProvider();
   await subscriptionProvider.init();
@@ -167,9 +171,15 @@ class MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Tr'Hack",
+      title: "SubFlow",
       theme: currentTheme,
-      // ✅ FIX: Conditionally show OnboardingPage or BottomNavBar
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
       home: hasCompletedOnboarding
           ? BottomNavBar(
         key: bottomNavBarKey,

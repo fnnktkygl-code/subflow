@@ -11,6 +11,7 @@ class UserProfileProvider extends ChangeNotifier {
   // ✅ GOAL: Now nullable, with no default value.
   double? _spendingGoal;
   bool _hasCompletedOnboarding = false;
+  String? _countryCode;
 
   // Getters
   double? get monthlyIncome => _monthlyIncome;
@@ -20,6 +21,20 @@ class UserProfileProvider extends ChangeNotifier {
   // ✅ GETTER: Updated to return a nullable double.
   double? get spendingGoal => _spendingGoal;
   bool get hasCompletedOnboarding => _hasCompletedOnboarding;
+  String? get countryCode => _countryCode;
+
+  /// Returns user's explicitly selected country code, or infers it from device/platform locale (fallback 'FR').
+  String get effectiveCountryCode {
+    if (_countryCode != null && _countryCode!.isNotEmpty) {
+      return _countryCode!;
+    }
+    final platformLocale = WidgetsBinding.instance.platformDispatcher.locale;
+    final detectedCountry = platformLocale.countryCode;
+    if (detectedCountry != null && detectedCountry.isNotEmpty) {
+      return detectedCountry.toUpperCase();
+    }
+    return 'FR';
+  }
 
 
   int get daysUsed {
@@ -95,6 +110,12 @@ class UserProfileProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setCountryCode(String? code) async {
+    _countryCode = code?.toUpperCase().trim();
+    await _saveProfile();
+    notifyListeners();
+  }
+
   // ✅ UPDATE: The new goal can be null to remove it.
   Future<void> updateSpendingGoal(double? newGoal) async {
     _spendingGoal = newGoal;
@@ -159,6 +180,12 @@ class UserProfileProvider extends ChangeNotifier {
       await prefs.remove('spending_goal');
     }
     await prefs.setBool('has_completed_onboarding', _hasCompletedOnboarding);
+
+    if (_countryCode != null && _countryCode!.isNotEmpty) {
+      await prefs.setString('country_code', _countryCode!);
+    } else {
+      await prefs.remove('country_code');
+    }
   }
 
   Future<void> _loadProfile() async {
@@ -185,6 +212,7 @@ class UserProfileProvider extends ChangeNotifier {
     _spendingGoal = prefs.getDouble('spending_goal');
 
     _hasCompletedOnboarding = prefs.getBool('has_completed_onboarding') ?? false;
+    _countryCode = prefs.getString('country_code');
 
     notifyListeners();
   }

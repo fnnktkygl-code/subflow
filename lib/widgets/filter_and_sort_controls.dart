@@ -291,6 +291,7 @@ class _FilterAndSortControlsState extends State<FilterAndSortControls> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isFilterActive = widget.selectedFilter.isNotEmpty;
     final bool isSortActive = widget.sortCriteria != SortCriteria.date || !widget.sortAscending;
 
@@ -304,8 +305,21 @@ class _FilterAndSortControlsState extends State<FilterAndSortControls> {
               curve: Curves.easeInOut,
               height: 48,
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainer,
+                color: isDark ? colorScheme.surface : Colors.white,
                 borderRadius: BorderRadius.circular(30.0),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+                  width: 1.0,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : const Color(0xFF20201E).withValues(alpha: 0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -324,6 +338,11 @@ class _FilterAndSortControlsState extends State<FilterAndSortControls> {
                           decoration: const InputDecoration(
                             hintText: 'Search...',
                             border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            fillColor: Colors.transparent,
+                            filled: false,
+                            contentPadding: EdgeInsets.symmetric(vertical: 12),
                           ),
                         ),
                       ),

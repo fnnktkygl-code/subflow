@@ -66,7 +66,7 @@ class _UpcomingPaymentsState extends State<UpcomingPayments>
                 Icon(
                   Icons.celebration_rounded,
                   size: 40,
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -145,7 +145,7 @@ class _UpcomingPaymentsState extends State<UpcomingPayments>
                       vertical: DesignSystem.spacing8),
                   foregroundColor: colorScheme.primary,
                   side:
-                  BorderSide(color: colorScheme.primary.withOpacity(0.3)),
+                  BorderSide(color: colorScheme.primary.withValues(alpha: 0.3)),
                   shape: RoundedRectangleBorder(
                     borderRadius:
                     BorderRadius.circular(DesignSystem.radiusMedium),

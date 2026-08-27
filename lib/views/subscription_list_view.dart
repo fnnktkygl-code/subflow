@@ -54,13 +54,13 @@ class _SubscriptionListViewState extends State<SubscriptionListView>
                   color: Theme.of(context)
                       .colorScheme
                       .primary
-                      .withOpacity(0.1),
+                      .withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
                 ),
                 child: Icon(
                   Icons.list_alt_rounded,
                   size: 56,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                 ),
               ),
               SizedBox(height: DesignSystem.spacing12),
@@ -178,8 +178,8 @@ class _SubscriptionListViewState extends State<SubscriptionListView>
         Container(
           padding: EdgeInsets.all(DesignSystem.spacing6),
           decoration: BoxDecoration(
-            color: headerColor.withOpacity(
-              Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.1,
+            color: headerColor.withValues(
+              alpha: Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.1,
             ),
             borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
           ),

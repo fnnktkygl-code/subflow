@@ -2,20 +2,22 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../provider/user_profile_provider.dart'; // Import UserProfileProvider
-import 'income_setup_dialog.dart';
+import '../../provider/user_profile_provider.dart';
+import '../../theme/design_system.dart';
+import '../../utils/security_sanitizer.dart';
 
+/// Pure Japandi Monthly Spend Target Dialog
+/// Streamlined, frictionless, zero-lock-in budget planning.
 class GoalDialog {
-  // Static show method remains the entry point
   static void show(
-      BuildContext context, {
-        required double currentGoal,
-        required double currentCost,
-        required double? monthlyIncome,
-        required UserProfileProvider profileProvider, // ✅ ADD: Pass the provider
-        required Function(double) onGoalSet,
-        required VoidCallback onAddIncome,
-      }) {
+    BuildContext context, {
+    required double? currentGoal,
+    required double currentCost,
+    required double? monthlyIncome,
+    required UserProfileProvider profileProvider,
+    required Function(double?) onGoalSet,
+    VoidCallback? onAddIncome,
+  }) {
     HapticFeedback.mediumImpact();
 
     showModalBottomSheet(
@@ -24,125 +26,22 @@ class GoalDialog {
       backgroundColor: Colors.transparent,
       builder: (context) => _GoalDialogContent(
         initialGoal: currentGoal,
-        initialIncome: monthlyIncome,
-        profileProvider: profileProvider, // ✅ PASS: Pass it to the stateful widget
+        currentCost: currentCost,
         onGoalSet: onGoalSet,
-        onAddIncome: onAddIncome,
-      ),
-    );
-  }
-
-// --- Helper methods remain static ---
-
-  // ... (no changes to _buildEnabledSlider or _buildDisabledSlider)
-  static Widget _buildEnabledSlider({
-    required BuildContext context,
-    required double percentage,
-    required double monthlyIncome,
-    required ValueChanged<double> onChanged,
-  }) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Column(
-      children: [
-        Slider(
-          value: percentage,
-          min: 0,
-          max: 100,
-          divisions: 100,
-          label: '${percentage.toStringAsFixed(0)}%',
-          onChanged: onChanged,
-        ),
-        const SizedBox(height: 4),
-        RichText(
-          text: TextSpan(
-            style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant),
-            children: [
-              const TextSpan(text: 'This is '),
-              TextSpan(
-                text: '${percentage.toStringAsFixed(0)}% of your ',
-                style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary),
-              ),
-              TextSpan(
-                text: '€${monthlyIncome.toStringAsFixed(0)} income',
-                style: TextStyle(fontWeight: FontWeight.bold, color: colorScheme.primary),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  static Widget _buildDisabledSlider({
-    required BuildContext context,
-    required VoidCallback onUnlock,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return GestureDetector(
-      onTap: onUnlock,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainer.withOpacity(0.7),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: colorScheme.outlineVariant),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(Icons.lock, color: colorScheme.onSurfaceVariant.withOpacity(0.5)),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Set limit by percentage',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface.withOpacity(0.8),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Add your income to unlock this feature.',
-                    style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Icon(Icons.arrow_forward_ios_rounded, size: 16, color: colorScheme.primary),
-          ],
-        ),
       ),
     );
   }
 }
 
-// --- Internal StatefulWidget to manage state and controller ---
 class _GoalDialogContent extends StatefulWidget {
-  final double initialGoal;
-  final double? initialIncome;
-  final UserProfileProvider profileProvider; // ✅ ADD: Receive the provider
-  final Function(double) onGoalSet;
-  final VoidCallback onAddIncome;
+  final double? initialGoal;
+  final double currentCost;
+  final Function(double?) onGoalSet;
 
   const _GoalDialogContent({
     required this.initialGoal,
-    this.initialIncome,
-    required this.profileProvider, // ✅ ADD
+    required this.currentCost,
     required this.onGoalSet,
-    required this.onAddIncome,
   });
 
   @override
@@ -151,177 +50,241 @@ class _GoalDialogContent extends StatefulWidget {
 
 class _GoalDialogContentState extends State<_GoalDialogContent> {
   late TextEditingController _controller;
-  late ValueNotifier<double?> _currentIncomeNotifier;
-  double _percentage = 15.0;
 
   @override
   void initState() {
     super.initState();
-    _controller = TextEditingController(text: widget.initialGoal.toStringAsFixed(0));
-    _currentIncomeNotifier = ValueNotifier(widget.initialIncome);
-    _recalculatePercentage();
-    _controller.addListener(_updatePercentageFromAmount);
+    final initial = widget.initialGoal ?? (widget.currentCost > 0 ? widget.currentCost : 50.0);
+    _controller = TextEditingController(
+      text: initial.toStringAsFixed(0),
+    );
   }
 
   @override
   void dispose() {
-    _controller.removeListener(_updatePercentageFromAmount);
     _controller.dispose();
-    _currentIncomeNotifier.dispose();
     super.dispose();
   }
 
-  void _recalculatePercentage() {
-    final income = _currentIncomeNotifier.value;
-    final goalAmount = double.tryParse(_controller.text) ?? widget.initialGoal;
-    if (income != null && income > 0) {
-      _percentage = (goalAmount / income * 100.0).clamp(0.0, 100.0);
-    } else {
-      _percentage = 15.0;
-    }
-  }
-
-  void _updatePercentageFromAmount() {
-    final income = _currentIncomeNotifier.value;
-    if (income != null && income > 0) {
-      final amount = double.tryParse(_controller.text) ?? 0.0;
-      final newPercentage = (amount / income * 100.0).clamp(0.0, 100.0);
-      if ((newPercentage - _percentage).abs() > 0.01) {
-        setState(() {
-          _percentage = newPercentage;
-        });
-      }
-    }
-  }
-
-  // ✅ FIX: Update the provider AND the local state
-  void _handleIncomeUpdate(double? newIncome) {
-    // 1. Persist the change to the rest of the app
-    widget.profileProvider.updateIncome(newIncome);
-
-    // 2. Update the local state for immediate UI feedback in this dialog
-    _currentIncomeNotifier.value = newIncome;
-    _recalculatePercentage();
-    if (mounted) setState(() {});
+  void _applyQuickPreset(double amount) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _controller.text = amount.toStringAsFixed(0);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
-    return ValueListenableBuilder<double?>(
-        valueListenable: _currentIncomeNotifier,
-        builder: (context, currentIncome, child) {
-          bool hasIncome = currentIncome != null && currentIncome > 0;
+    final cost = widget.currentCost;
+    final presets = <double>[];
+    if (cost > 0) {
+      presets.add((cost * 0.8).roundToDouble()); // -20% budget
+      presets.add(cost.roundToDouble());        // Match current
+      presets.add((cost * 1.2).roundToDouble()); // +20% buffer
+    } else {
+      presets.addAll([30.0, 50.0, 100.0]);
+    }
 
-          double currentPercentage = 15.0;
-          if (hasIncome) {
-            double goalValue = double.tryParse(_controller.text) ?? widget.initialGoal;
-            if (currentIncome > 0) {
-              currentPercentage = (goalValue / currentIncome * 100.0).clamp(0.0, 100.0);
-            }
-          } else {
-            currentPercentage = 15.0;
-          }
-
-          return Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(
+          DesignSystem.spacing10,
+          DesignSystem.spacing6,
+          DesignSystem.spacing10,
+          DesignSystem.spacing12,
+        ),
+        decoration: BoxDecoration(
+          color: isDark ? colorScheme.surface : const Color(0xFFFAF8F5),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(DesignSystem.radiusXXL),
+          ),
+          border: Border(
+            top: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.6),
+              width: 1.0,
+            ),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Japandi Drag Handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: DesignSystem.spacing6),
+                  decoration: BoxDecoration(
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+
+              // Title Row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Center(
-                    child: Container(
-                      width: 40, height: 4,
-                      margin: const EdgeInsets.only(bottom: 20),
-                      decoration: BoxDecoration(
-                        color: colorScheme.onSurfaceVariant.withOpacity(0.3),
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
                   Text(
-                    'Set your spend limit 🎯',
-                    style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "What's the max you want to spend on subscriptions each month?",
-                    style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurfaceVariant),
-                  ),
-                  const SizedBox(height: 32),
-                  TextField(
-                    controller: _controller,
-                    autofocus: true,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    textAlign: TextAlign.center,
-                    style: textTheme.displayMedium?.copyWith(
+                    'Monthly Spend Target',
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: DesignSystem.spacing2),
+              Text(
+                "Set a calm monthly ceiling for your recurring commitments.",
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: DesignSystem.spacing8),
+
+              // Main Numeric Target Input
+              TextField(
+                controller: _controller,
+                autofocus: true,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                textAlign: TextAlign.center,
+                style: theme.textTheme.headlineLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.primary,
+                  letterSpacing: -0.5,
+                ),
+                decoration: InputDecoration(
+                  prefixText: '€ ',
+                  prefixStyle: theme.textTheme.headlineLarge?.copyWith(
+                    color: colorScheme.primary.withValues(alpha: 0.5),
+                    fontWeight: FontWeight.w700,
+                  ),
+                  filled: true,
+                  fillColor: isDark
+                      ? colorScheme.surfaceContainerHigh
+                      : colorScheme.surfaceContainerLowest,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+                    borderSide: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+                    borderSide: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
+                    borderSide: BorderSide(
                       color: colorScheme.primary,
+                      width: 1.5,
                     ),
-                    decoration: InputDecoration(
-                      prefixText: '€ ',
-                      prefixStyle: textTheme.displayMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant.withOpacity(0.5),
+                  ),
+                ),
+              ),
+              const SizedBox(height: DesignSystem.spacing6),
+
+              // Quick Preset Chips
+              Wrap(
+                spacing: DesignSystem.spacing4,
+                alignment: WrapAlignment.center,
+                children: presets.map((preset) {
+                  return ActionChip(
+                    backgroundColor: isDark
+                        ? colorScheme.surfaceContainer
+                        : colorScheme.surface,
+                    side: BorderSide(
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                      width: 1,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
+                    ),
+                    label: Text(
+                      '€${preset.toStringAsFixed(0)}/mo',
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurfaceVariant,
                       ),
-                      border: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      enabledBorder: InputBorder.none,
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  hasIncome
-                      ? GoalDialog._buildEnabledSlider(
-                    context: context,
-                    percentage: currentPercentage,
-                    monthlyIncome: currentIncome,
-                    onChanged: (newPercentage) {
-                      final newGoal = currentIncome * (newPercentage / 100.0);
-                      setState(() {
-                        _percentage = newPercentage;
-                        _controller.text = newGoal.toStringAsFixed(0);
-                      });
-                    },
-                  )
-                      : GoalDialog._buildDisabledSlider(
-                    context: context,
-                    onUnlock: () {
-                      IncomeSetupDialog.show(
-                        context,
-                        currentIncome: currentIncome,
-                        onIncomeSaved: _handleIncomeUpdate, // This now updates the provider
-                        allowSkip: true,
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 32),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
+                    onPressed: () => _applyQuickPreset(preset),
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: DesignSystem.spacing10),
+
+              // Action Buttons: Save Target & Remove Target
+              Row(
+                children: [
+                  if (widget.initialGoal != null) ...[
+                    Expanded(
+                      flex: 1,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: colorScheme.error,
+                          side: BorderSide(color: colorScheme.error.withValues(alpha: 0.4)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+                          ),
+                        ),
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          widget.onGoalSet(null);
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          'Clear',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: DesignSystem.spacing4),
+                  ],
+                  Expanded(
+                    flex: 2,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        foregroundColor: colorScheme.onPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
+                        ),
+                        elevation: 0,
                       ),
                       onPressed: () {
-                        final newGoal = double.tryParse(_controller.text);
-                        if (newGoal != null && newGoal >= 0) {
-                          widget.onGoalSet(newGoal);
+                        HapticFeedback.lightImpact();
+                        final raw = _controller.text.replaceAll(',', '.').trim();
+                        final val = double.tryParse(raw);
+                        if (val != null && val >= 0) {
+                          final sanitized = SecuritySanitizer.sanitizeAmount(val);
+                          widget.onGoalSet(sanitized);
                         }
                         Navigator.pop(context);
                       },
-                      child: Text(
-                        'Set Limit',
-                        style: textTheme.labelLarge?.copyWith(
-                          color: Colors.white,
+                      child: const Text(
+                        'Set Target',
+                        style: TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -329,9 +292,10 @@ class _GoalDialogContentState extends State<_GoalDialogContent> {
                   ),
                 ],
               ),
-            ),
-          );
-        }
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

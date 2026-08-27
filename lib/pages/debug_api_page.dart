@@ -158,7 +158,7 @@ class _DebugApiPageState extends State<DebugApiPage> {
                 Container(
                   padding: const EdgeInsets.all(DesignSystem.spacing8),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.1),
+                    color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
                   ),
                   child: Icon(
@@ -179,7 +179,7 @@ class _DebugApiPageState extends State<DebugApiPage> {
             ),
             Divider(
               height: DesignSystem.spacing12 * 2,
-              color: colorScheme.outlineVariant.withOpacity(0.3),
+              color: colorScheme.outlineVariant.withValues(alpha: 0.3),
             ),
             _buildInfoRow('Connected Accounts', '${_accounts.length}'),
             _buildInfoRow(
@@ -233,7 +233,7 @@ class _DebugApiPageState extends State<DebugApiPage> {
     final dateFormat = DateFormat('dd/MM/yyyy');
 
     return Card(
-      color: Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+      color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.3),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -268,7 +268,7 @@ class _DebugApiPageState extends State<DebugApiPage> {
                   color: Theme.of(context)
                       .colorScheme
                       .secondaryContainer
-                      .withOpacity(0.5),
+                      .withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(

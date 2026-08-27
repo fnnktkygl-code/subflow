@@ -75,7 +75,7 @@ class _GreetingDebugPageState extends State<GreetingDebugPage> {
                     vertical: DesignSystem.spacing4,
                   ),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.1),
+                    color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(DesignSystem.radiusFull),
                   ),
                   child: Text(
@@ -339,7 +339,7 @@ class _GreetingDebugPageState extends State<GreetingDebugPage> {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: colorScheme.onSurfaceVariant.withOpacity(0.3),
+                  color: colorScheme.onSurfaceVariant.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),

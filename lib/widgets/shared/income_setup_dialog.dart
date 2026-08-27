@@ -2,8 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../theme/design_system.dart';
-
 class IncomeSetupDialog {
   static void show(
       BuildContext context, {
@@ -22,238 +20,166 @@ class IncomeSetupDialog {
       backgroundColor: Colors.transparent,
       isDismissible: allowSkip,
       enableDrag: allowSkip,
-      builder: (context) => Padding(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: Container(
-          padding: EdgeInsets.all(DesignSystem.spacing12),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(DesignSystem.radiusXXL),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(context).colorScheme.shadow.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, -5),
-              ),
-            ],
+      builder: (context) {
+        final colorScheme = Theme.of(context).colorScheme;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Handle bar
-              if (allowSkip)
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+            decoration: BoxDecoration(
+              color: isDark ? colorScheme.surface : Colors.white,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+              border: Border(
+                top: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+                  width: 1.0,
+                ),
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Handle bar
                 Center(
                   child: Container(
-                    width: 40,
+                    width: 32,
                     height: 4,
-                    margin: EdgeInsets.only(bottom: DesignSystem.spacing12),
+                    margin: const EdgeInsets.only(bottom: 12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurfaceVariant
-                          .withOpacity(0.3),
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.25),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
 
-              // Icon Container
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context).colorScheme.secondary,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                      Theme.of(context).colorScheme.primary.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Icon(
-                  Icons.account_balance_wallet_rounded,
-                  color: Colors.white,
-                  size: DesignSystem.iconLarge,
-                ),
-              ),
-              SizedBox(height: DesignSystem.spacing12),
-
-              // Title
-              Text(
-                currentIncome != null ? 'Update your income' : 'Add your monthly income',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              SizedBox(height: DesignSystem.spacing8),
-
-              // Explanation
-              Text(
-                "We'll show you what % of your income goes to subscriptions. This helps you make smarter decisions.",
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  height: 1.5,
-                ),
-              ),
-              SizedBox(height: DesignSystem.spacing10),
-
-              // Privacy assurance
-              Container(
-                padding: EdgeInsets.all(DesignSystem.spacing10),
-                decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primaryContainer
-                      .withOpacity(0.5),
-                  borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
-                  border: Border.all(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(
-                      Icons.lock_rounded,
-                      size: 18,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    SizedBox(width: DesignSystem.spacing8),
-                    Expanded(
-                      child: Text(
-                        'Private & secure. Only stored on your device.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    Text(
+                      currentIncome != null ? 'Update Monthly Income' : 'Monthly Income',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                        color: colorScheme.onSurface,
                       ),
                     ),
+                    if (allowSkip)
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded, size: 20),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        onPressed: () => Navigator.pop(context),
+                      ),
                   ],
                 ),
-              ),
-              SizedBox(height: DesignSystem.spacing12),
-
-              // Input field
-              TextField(
-                controller: controller,
-                autofocus: true,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                decoration: InputDecoration(
-                  prefixText: '€ ',
-                  prefixStyle: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  hintText: '2,500',
-                  helperText: 'Your monthly take-home pay (after taxes)',
-                  filled: true,
-                  fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  border: OutlineInputBorder(
-                    borderRadius:
-                    BorderRadius.circular(DesignSystem.radiusXL),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: DesignSystem.spacing12,
-                    vertical: DesignSystem.spacing10,
+                const SizedBox(height: 4),
+                Text(
+                  'Track what % of your income goes to subscriptions.',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
-              ),
-              SizedBox(height: DesignSystem.spacing12),
+                const SizedBox(height: 14),
 
-              // Buttons
-              Row(
-                children: [
-                  if (allowSkip)
-                    Expanded(
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            vertical: DesignSystem.spacing10,
+                // Input field
+                TextField(
+                  controller: controller,
+                  autofocus: true,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  decoration: InputDecoration(
+                    prefixText: '€ ',
+                    prefixStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    hintText: '2,500',
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(
+                        color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Action Buttons
+                Row(
+                  children: [
+                    if (allowSkip)
+                      Expanded(
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
+                          onPressed: () {
+                            if (currentIncome != null) {
+                              _showRemoveConfirmation(context, onIncomeSaved);
+                            } else {
+                              onIncomeSaved(null);
+                              Navigator.pop(context);
+                            }
+                          },
+                          child: Text(
+                            currentIncome != null ? 'Remove' : 'Skip',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    if (allowSkip) const SizedBox(width: 8),
+                    Expanded(
+                      flex: allowSkip ? 2 : 1,
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.circular(DesignSystem.radiusMedium),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         onPressed: () {
-                          if (currentIncome != null) {
-                            _showRemoveConfirmation(context, onIncomeSaved);
-                          } else {
-                            onIncomeSaved(null);
+                          final income = double.tryParse(controller.text.replaceAll(',', '.'));
+                          if (income != null && income > 0) {
+                            HapticFeedback.lightImpact();
+                            onIncomeSaved(income);
                             Navigator.pop(context);
+                          } else {
+                            HapticFeedback.mediumImpact();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please enter a valid amount'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
                           }
                         },
                         child: Text(
-                          currentIncome != null ? 'Remove' : 'Skip for now',
-                          style: const TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          currentIncome != null ? 'Update Income' : 'Save Income',
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                         ),
                       ),
                     ),
-                  if (allowSkip) SizedBox(width: DesignSystem.spacing8),
-                  Expanded(
-                    flex: allowSkip ? 2 : 1,
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        padding: EdgeInsets.symmetric(
-                          vertical: DesignSystem.spacing10,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.circular(DesignSystem.radiusMedium),
-                        ),
-                      ),
-                      onPressed: () {
-                        final income = double.tryParse(controller.text);
-                        if (income != null && income > 0) {
-                          HapticFeedback.lightImpact();
-                          onIncomeSaved(income);
-                          Navigator.pop(context);
-                        } else {
-                          HapticFeedback.mediumImpact();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please enter a valid amount'),
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                        }
-                      },
-                      child: Text(
-                        currentIncome != null ? 'Update Income' : 'Save Income',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: DesignSystem.spacing8),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

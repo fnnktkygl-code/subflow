@@ -11,17 +11,19 @@ import 'package:intl/intl.dart';
 import '../models/subscription_model.dart';
 import '../models/truelayer_provider.dart';
 import '../utils/logo_utils.dart';
+import '../utils/security_sanitizer.dart';
 
 class TruelayerService {
-  final String clientId = dotenv.env['TRUELAYER_CLIENT_ID']!;
-  final String clientSecret = dotenv.env['TRUELAYER_CLIENT_SECRET']!;
-  final String redirectUri = 'http://localhost:3000/callback';
+  final String clientId;
+  final String? clientSecret;
+  final String redirectUri;
+  final String? bffUrl;
 
   final _secureStorage = const FlutterSecureStorage();
   static const _userAccessTokenKey = 'truelayer_user_access_token';
 
-  // 🔥 Set to true when using LIVE credentials, false for SANDBOX
-  static const bool _isProduction = true;
+  // Configurable via build flags: --dart-define=TRUELAYER_ENV=production
+  static const bool _isProduction = bool.fromEnvironment('TRUELAYER_ENV', defaultValue: true);
 
   final String _authBaseUrl = _isProduction
       ? 'https://auth.truelayer.com'
@@ -31,8 +33,37 @@ class TruelayerService {
       ? 'https://api.truelayer.com'
       : 'https://api.truelayer-sandbox.com';
 
-  /// Generates the authentication URL for the user to log in.
-  String getAuthenticationUrl(String countryCode, {String? providerId}) {
+  TruelayerService({
+    String? clientId,
+    String? clientSecret,
+    String? redirectUri,
+    String? bffUrl,
+  })  : clientId = clientId ??
+            (dotenv.isInitialized ? dotenv.env['TRUELAYER_CLIENT_ID'] : null) ??
+            const String.fromEnvironment('TRUELAYER_CLIENT_ID', defaultValue: 'trhack-0b37ee'),
+        clientSecret = clientSecret ?? (dotenv.isInitialized ? dotenv.env['TRUELAYER_CLIENT_SECRET'] : null),
+        redirectUri = redirectUri ?? 'http://localhost:3000/callback',
+        bffUrl = bffUrl ?? const String.fromEnvironment('BFF_URL', defaultValue: '');
+
+  /// Checks if a valid user access token is securely stored.
+  Future<bool> isAuthenticated() async {
+    final token = await _secureStorage.read(key: _userAccessTokenKey);
+    return token != null && token.trim().isNotEmpty;
+  }
+
+  /// Wipes all stored TrueLayer OAuth tokens from secure storage (Right to Erasure / Logout).
+  Future<void> clearTokens() async {
+    await _secureStorage.delete(key: _userAccessTokenKey);
+  }
+
+  /// Generates the authentication URL for the user to log in with PKCE and State defense.
+  String getAuthenticationUrl(
+    String countryCode, {
+    String? providerId,
+    String? state,
+    String? codeChallenge,
+    String? codeChallengeMethod,
+  }) {
     final base = '$_authBaseUrl/';
     final params = {
       'response_type': 'code',
@@ -40,6 +71,15 @@ class TruelayerService {
       'scope': 'info accounts balance transactions direct_debits standing_orders offline_access',
       'redirect_uri': redirectUri,
     };
+
+    if (state != null && state.isNotEmpty) {
+      params['state'] = state;
+    }
+
+    if (codeChallenge != null && codeChallenge.isNotEmpty) {
+      params['code_challenge'] = codeChallenge;
+      params['code_challenge_method'] = codeChallengeMethod ?? 'S256';
+    }
 
     if (providerId != null && providerId.isNotEmpty) {
       params['provider_id'] = providerId;
@@ -53,9 +93,11 @@ class TruelayerService {
   /// Fetches the list of all available bank providers from TrueLayer's public API.
   Future<List<TruelayerProvider>> getProviders(String countryCode) async {
     try {
-      final response = await http.get(
-        Uri.parse('$_authBaseUrl/api/providers'),
-      );
+      final url = bffUrl != null && bffUrl!.isNotEmpty
+          ? Uri.parse('$bffUrl/api/auth/providers?country=${countryCode.toUpperCase()}')
+          : Uri.parse('$_authBaseUrl/api/providers');
+
+      final response = await http.get(url).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final List<dynamic> allProviders = json.decode(response.body);
@@ -73,26 +115,50 @@ class TruelayerService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print("❌ Error fetching providers: $e");
+        debugPrint("Error fetching providers: $e");
       }
     }
     return [];
   }
 
   /// Exchanges the user's temporary auth code for a long-lived access token.
-  Future<String?> exchangeCodeForAccessToken(String code) async {
+  Future<String?> exchangeCodeForAccessToken(String code, {String? codeVerifier}) async {
     try {
+      // 1. Prefer BFF if available
+      if (bffUrl != null && bffUrl!.isNotEmpty) {
+        final response = await http.post(
+          Uri.parse('$bffUrl/api/auth/token'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'code': code,
+            'redirect_uri': redirectUri,
+            if (codeVerifier != null) 'code_verifier': codeVerifier,
+          }),
+        ).timeout(const Duration(seconds: 15));
+
+        if (response.statusCode == 200) {
+          final accessToken = json.decode(response.body)['access_token'];
+          await _secureStorage.write(key: _userAccessTokenKey, value: accessToken);
+          return accessToken;
+        }
+      }
+
+      // 2. Direct exchange fallback
+      final body = {
+        'grant_type': 'authorization_code',
+        'client_id': clientId,
+        if (clientSecret != null && clientSecret!.isNotEmpty) 'client_secret': clientSecret!,
+        'redirect_uri': redirectUri,
+        'code': code,
+        if (codeVerifier != null) 'code_verifier': codeVerifier,
+      };
+
       final response = await http.post(
         Uri.parse('$_authBaseUrl/connect/token'),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
-          'grant_type': 'authorization_code',
-          'client_id': clientId,
-          'client_secret': clientSecret,
-          'redirect_uri': redirectUri,
-          'code': code,
-        },
-      );
+        body: body,
+      ).timeout(const Duration(seconds: 15));
+
       if (response.statusCode == 200) {
         final accessToken = json.decode(response.body)['access_token'];
         await _secureStorage.write(key: _userAccessTokenKey, value: accessToken);
@@ -100,7 +166,7 @@ class TruelayerService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print("Exception during token exchange: $e");
+        debugPrint(SecuritySanitizer.redactSensitiveLog("Exception during token exchange: $e"));
       }
     }
     return null;
@@ -233,9 +299,11 @@ class TruelayerService {
       final response = await http.get(
         Uri.parse('$_apiBaseUrl/data/v1/accounts/$accountId/direct_debits'),
         headers: {'Authorization': 'Bearer $accessToken'},
-      );
+      ).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) return json.decode(response.body)['results'] ?? [];
-    } catch (e) { /* silent fail */ }
+    } catch (e) {
+      if (kDebugMode) debugPrint("Error fetching direct debits: $e");
+    }
     return [];
   }
 
@@ -244,9 +312,11 @@ class TruelayerService {
       final response = await http.get(
         Uri.parse('$_apiBaseUrl/data/v1/accounts/$accountId/standing_orders'),
         headers: {'Authorization': 'Bearer $accessToken'},
-      );
+      ).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) return json.decode(response.body)['results'] ?? [];
-    } catch (e) { /* silent fail */ }
+    } catch (e) {
+      if (kDebugMode) debugPrint("Error fetching standing orders: $e");
+    }
     return [];
   }
 
@@ -265,16 +335,18 @@ class TruelayerService {
       final response = await http.get(
         uri,
         headers: {'Authorization': 'Bearer $accessToken'},
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final transactions = json.decode(response.body)['results'] ?? [];
         if (kDebugMode) {
-          print("    📝 Analyzing ${transactions.length} transaction(s)");
+          debugPrint("Analyzing ${transactions.length} transactions for recurring patterns");
         }
         return _findRecurringFromTransactions(transactions);
       }
-    } catch (e) { /* silent fail */ }
+    } catch (e) {
+      if (kDebugMode) debugPrint("Error analyzing transactions: $e");
+    }
     return [];
   }
 
@@ -616,13 +688,13 @@ class TruelayerService {
       final response = await http.get(
         Uri.parse('$_apiBaseUrl/data/v1/accounts'),
         headers: {'Authorization': 'Bearer $accessToken'},
-      );
+      ).timeout(const Duration(seconds: 15));
       if (response.statusCode == 200) {
         return json.decode(response.body)['results'] ?? [];
       }
     } catch (e) {
       if (kDebugMode) {
-        print("Error fetching accounts: $e");
+        debugPrint("Error fetching accounts: $e");
       }
     }
     return [];
@@ -654,14 +726,14 @@ class TruelayerService {
       final response = await http.get(
         uri,
         headers: {'Authorization': 'Bearer $accessToken'},
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         return json.decode(response.body)['results'] ?? [];
       }
     } catch (e) {
       if (kDebugMode) {
-        print("Error fetching transactions: $e");
+        debugPrint("Error fetching transactions: $e");
       }
     }
     return [];
@@ -685,14 +757,14 @@ class TruelayerService {
       final response = await http.get(
         uri,
         headers: {'Authorization': 'Bearer $accessToken'},
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         return json.decode(response.body)['results'] ?? [];
       }
     } catch (e) {
       if (kDebugMode) {
-        print("Error fetching transactions for date range: $e");
+        debugPrint("Error fetching transactions for date range: $e");
       }
     }
     return [];

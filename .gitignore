@@ -1,4 +1,46 @@
-# Flutter/Dart
+# -----------------------------------------------------------------------------
+# Security & Environment Variables (NEVER COMMIT)
+# -----------------------------------------------------------------------------
+.env
+.env*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+*.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.subflow
+
+# -----------------------------------------------------------------------------
+# Monorepo / Next.js / Node.js
+# -----------------------------------------------------------------------------
+node_modules/
+.pnpm-store/
+.next/
+out/
+.turbo/
+dist/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# -----------------------------------------------------------------------------
+# Vercel CLI (Contains deployment tokens & project IDs)
+# -----------------------------------------------------------------------------
+.vercel
+.vercel/
+**/.vercel
+**/.vercel/
+
+# -----------------------------------------------------------------------------
+# Flutter / Dart
+# -----------------------------------------------------------------------------
 .dart_tool/
 .packages
 build/
@@ -9,12 +51,31 @@ build/
 *.log
 .flutter-plugins
 .flutter-plugins-dependencies
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.framework
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
+macos/Pods/
+macos/Flutter/ephemeral/
 
-# Secrets
-/.env
-
-# IDE files
+# -----------------------------------------------------------------------------
+# OS & IDE
+# -----------------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 .idea/
 .vscode/
-*.imlcommit_message.txt
+*.iml
+*.iws
+*.ipr
 commit_message.txt
+paste_history_chrome_extension/

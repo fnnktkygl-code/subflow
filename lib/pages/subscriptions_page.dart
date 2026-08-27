@@ -1,6 +1,6 @@
 // lib/pages/subscriptions_page.dart
 
-import 'package:aada_app/widgets/shared/page_layout.dart';
+import 'package:subflow_app/widgets/shared/page_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -215,12 +215,17 @@ class _EnhancedStatsHeader extends StatelessWidget {
                     vertical: DesignSystem.spacing6, // Was spacing8
                     horizontal: DesignSystem.spacing8),
                 decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainer,
+                    color: isDark ? colorScheme.surface : Colors.white,
                     borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
-                    border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+                    border: Border.all(
+                      color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+                      width: 1.0,
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: colorScheme.shadow.withOpacity(isDark ? 0.15 : 0.08),
+                        color: isDark
+                            ? Colors.black.withValues(alpha: 0.25)
+                            : const Color(0xFF20201E).withValues(alpha: 0.035),
                         blurRadius: 16,
                         offset: const Offset(0, 4),
                       )
@@ -239,7 +244,7 @@ class _EnhancedStatsHeader extends StatelessWidget {
                     Container(
                       height: 50,
                       width: 1,
-                      color: colorScheme.outlineVariant.withOpacity(0.5),
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                       margin: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing2),
                     ),
                     Expanded(
@@ -253,7 +258,7 @@ class _EnhancedStatsHeader extends StatelessWidget {
                     Container(
                       height: 50,
                       width: 1,
-                      color: colorScheme.outlineVariant.withOpacity(0.5),
+                      color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                       margin: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing2),
                     ),
                     Expanded(
@@ -428,8 +433,8 @@ class _SubscriptionSection extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(DesignSystem.spacing6),
             decoration: BoxDecoration(
-              color: headerColor.withOpacity(
-                Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.1,
+              color: headerColor.withValues(
+                alpha: Theme.of(context).brightness == Brightness.dark ? 0.15 : 0.1,
               ),
               borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
             ),

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "fr.aada.aada_app"
+    namespace = "com.subflow.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "25.1.8937393"
     compileSdk = 35
@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "fr.aada.aada_app"
+        applicationId = "com.subflow.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -33,11 +33,25 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        release {
+            // Configurable via CI environment / keystore
+            if (System.getenv("KEYSTORE_PATH") != null) {
+                storeFile file(System.getenv("KEYSTORE_PATH"))
+                storePassword System.getenv("KEYSTORE_PASSWORD")
+                keyAlias System.getenv("KEY_ALIAS")
+                keyPassword System.getenv("KEY_PASSWORD")
+            } else {
+                signingConfig = signingConfigs.debug
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
+            signingConfig = signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
         }
     }
 }

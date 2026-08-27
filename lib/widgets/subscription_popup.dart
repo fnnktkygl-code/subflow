@@ -1,27 +1,29 @@
 // lib/widgets/subscription_popup.dart
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:provider/provider.dart';
 import '../models/subscription_model.dart';
+import '../provider/user_profile_provider.dart';
+import '../services/preset_catalog_service.dart';
 import '../utils/logo_utils.dart';
 import '../utils/home_helpers.dart';
-import '../theme/design_system.dart';
+import 'shared/japandi_svg_icons.dart';
 
-/// Shows a modern, multi-step dialog to add or edit a subscription.
+/// Shows a frictionless, single-screen zero-scroll dialog to add or edit a subscription.
 void showAddSubscriptionPopup(
     BuildContext context,
     void Function(Subscription) onAddSubscription, {
       Subscription? subscriptionToEdit,
       DateTime? defaultStartDate,
     }) {
+  HapticFeedback.lightImpact();
   showDialog(
     context: context,
     barrierDismissible: true,
-    barrierColor: Colors.black.withOpacity(0.4),
+    barrierColor: Colors.black.withValues(alpha: 0.5),
     builder: (BuildContext context) {
       return _AddSubscriptionDialog(
         onAddSubscription: onAddSubscription,
@@ -32,7 +34,6 @@ void showAddSubscriptionPopup(
   );
 }
 
-// --- The Dialog Widget ---
 class _AddSubscriptionDialog extends StatefulWidget {
   final void Function(Subscription) onAddSubscription;
   final Subscription? subscriptionToEdit;
@@ -49,21 +50,26 @@ class _AddSubscriptionDialog extends StatefulWidget {
 }
 
 class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
-  final List<GlobalKey<FormState>> _formKeys =
-  List.generate(3, (_) => GlobalKey<FormState>());
-  int _currentStep = 0;
+  final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _amountController;
-  DateTime? _selectedStartDate;
+  late DateTime _selectedStartDate;
   DateTime? _selectedEndDate;
   String? _logoUrl;
   String _selectedCycle = 'Monthly';
-  String _selectedCategory = 'General';
-  late Set<String> _revenueExpenseSelection;
-  File? _customImageFile;
+  String _selectedCategory = 'Entertainment';
+  bool _isRevenue = false;
   Timer? _debounce;
-  bool _areNotificationsEnabled = true;
-  int _reminderDays = 2;
+
+  static const List<String> _categories = [
+    'Entertainment',
+    'General',
+    'Utilities',
+    'Health & Fitness',
+    'Food & Dining',
+    'Shopping',
+    'Income',
+  ];
 
   @override
   void initState() {
@@ -73,720 +79,490 @@ class _AddSubscriptionDialogState extends State<_AddSubscriptionDialog> {
     _amountController = TextEditingController(
       text: sub != null ? sub.amount.abs().toStringAsFixed(2) : '',
     );
-    _selectedStartDate =
-        sub?.startDate ?? widget.defaultStartDate ?? DateTime.now();
+    _selectedStartDate = sub?.startDate ?? widget.defaultStartDate ?? DateTime.now();
     _selectedEndDate = sub?.endDate;
     _logoUrl = sub?.logoUrl;
     _selectedCycle = sub?.cycle ?? 'Monthly';
-    _selectedCategory = sub?.category ?? 'General';
-    bool isRevenue = (sub?.amount ?? 0) > 0;
-    _revenueExpenseSelection = {isRevenue ? 'Revenue' : 'Expense'};
-    _areNotificationsEnabled = sub?.areNotificationsEnabled ?? true;
-    _reminderDays = sub?.reminderDays ?? 2;
+    _selectedCategory = sub?.category ?? 'Entertainment';
+    _isRevenue = (sub?.amount ?? -1) > 0;
+
+    _nameController.addListener(_onNameChanged);
   }
 
   @override
   void dispose() {
+    _nameController.removeListener(_onNameChanged);
     _nameController.dispose();
     _amountController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
 
-  void _goToNextStep() {
-    if (_formKeys[_currentStep].currentState?.validate() ?? false) {
-      if (_currentStep < 2) {
-        setState(() => _currentStep++);
-      } else {
-        final isRevenue = _revenueExpenseSelection.first == 'Revenue';
-        final amount = double.tryParse(_amountController.text) ?? 0.0;
-
-        widget.onAddSubscription(
-          Subscription(
-            id: widget.subscriptionToEdit?.id ??
-                DateTime.now().millisecondsSinceEpoch.toString(),
-            name: _nameController.text.trim(),
-            amount: amount * (isRevenue ? 1 : -1),
-            startDate: _selectedStartDate!,
-            cycle: _selectedCycle,
-            logoUrl: _customImageFile?.path ?? _logoUrl ?? '',
-            endDate: _selectedEndDate,
-            category: _selectedCategory,
-            areNotificationsEnabled: _areNotificationsEnabled,
-            reminderDays: _reminderDays,
-          ),
-        );
-        Navigator.of(context).pop();
+  void _onNameChanged() {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      final name = _nameController.text.trim();
+      if (name.isNotEmpty && mounted) {
+        setState(() {
+          _logoUrl = fetchLogo(name);
+        });
       }
+    });
+  }
+
+  void _applyPreset(SubscriptionPreset preset) {
+    HapticFeedback.selectionClick();
+    setState(() {
+      _nameController.text = preset.name;
+      _amountController.text = preset.amount.toStringAsFixed(2);
+      _selectedCategory = preset.category;
+      _selectedCycle = preset.cycle;
+      _logoUrl = fetchLogo(preset.name);
+    });
+  }
+
+  Future<void> _pickDate() async {
+    HapticFeedback.selectionClick();
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedStartDate,
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 5),
+    );
+    if (picked != null) {
+      setState(() => _selectedStartDate = picked);
     }
   }
 
-  void _goToPreviousStep() {
-    if (_currentStep > 0) {
-      setState(() => _currentStep--);
+
+
+  void _save() {
+    if (_formKey.currentState?.validate() ?? false) {
+      HapticFeedback.mediumImpact();
+      final amount = double.tryParse(_amountController.text.replaceAll(',', '.')) ?? 0.0;
+      final finalAmount = _isRevenue ? amount.abs() : -amount.abs();
+      final name = _nameController.text.trim();
+      final effectiveLogo = _logoUrl?.isNotEmpty == true ? _logoUrl! : fetchLogo(name);
+
+      widget.onAddSubscription(
+        Subscription(
+          id: widget.subscriptionToEdit?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+          name: name,
+          amount: finalAmount,
+          startDate: _selectedStartDate,
+          cycle: _selectedCycle,
+          logoUrl: effectiveLogo,
+          endDate: _selectedEndDate,
+          category: _selectedCategory,
+          areNotificationsEnabled: true,
+          reminderDays: 2,
+        ),
+      );
+      Navigator.of(context).pop();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isEditing = widget.subscriptionToEdit != null;
+    final userProfile = context.watch<UserProfileProvider>();
+    final quickPresets = PresetCatalogService.getPresetsForCountry(userProfile.effectiveCountryCode);
 
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(DesignSystem.radiusXXL),
+        borderRadius: BorderRadius.circular(24),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+          width: 1.0,
+        ),
       ),
-      backgroundColor: colorScheme.surfaceContainerLow,
+      backgroundColor: isDark ? colorScheme.surface : Colors.white,
       elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
+        constraints: const BoxConstraints(maxWidth: 440),
         child: Padding(
-          padding: const EdgeInsets.all(DesignSystem.spacing12),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildStepIndicator(),
-                const SizedBox(height: DesignSystem.spacing16),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                  child: Container(
-                    key: ValueKey<int>(_currentStep),
-                    child: [
-                      _buildStep1(context),
-                      _buildStep2(context),
-                      _buildStep3(context),
-                    ][_currentStep],
-                  ),
-                ),
-                const SizedBox(height: DesignSystem.spacing16),
-                _buildNavigationButtons(context),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStepIndicator() {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(DesignSystem.spacing10),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainer.withOpacity(0.5),
-        borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(3, (index) {
-          final isActive = index == _currentStep;
-          final isCompleted = index < _currentStep;
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: DesignSystem.spacing4),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 36,
-                  width: 36,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isActive || isCompleted
-                        ? colorScheme.primary
-                        : colorScheme.surfaceContainerHighest,
-                    boxShadow: isActive
-                        ? [
-                      BoxShadow(
-                        color: colorScheme.primary.withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                        : null,
-                  ),
-                  child: Center(
-                    child: Text(
-                      (index + 1).toString(),
-                      style: TextStyle(
-                        color: isActive || isCompleted
-                            ? colorScheme.onPrimary
-                            : colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                // 1. Header with Close Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      isEditing ? 'Edit Subscription' : 'New Subscription',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.3,
+                        color: colorScheme.onSurface,
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, {IconData? icon}) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.only(
-        top: DesignSystem.spacing12,
-        bottom: DesignSystem.spacing10,
-      ),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Container(
-              padding: const EdgeInsets.all(DesignSystem.spacing6),
-              decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
-              ),
-              child: Icon(
-                icon,
-                size: DesignSystem.iconMedium,
-                color: colorScheme.primary,
-              ),
-            ),
-            const SizedBox(width: DesignSystem.spacing8),
-          ],
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              color: colorScheme.primary,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavigationButtons(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Row(
-      mainAxisAlignment: _currentStep == 0
-          ? MainAxisAlignment.end
-          : MainAxisAlignment.spaceBetween,
-      children: [
-        if (_currentStep > 0)
-          TextButton(
-            onPressed: _goToPreviousStep,
-            style: TextButton.styleFrom(
-              foregroundColor: colorScheme.onSurfaceVariant,
-              padding: const EdgeInsets.symmetric(
-                horizontal: DesignSystem.spacing12,
-                vertical: DesignSystem.spacing8,
-              ),
-            ),
-            child: const Text("Previous"),
-          ),
-        FilledButton(
-          onPressed: _goToNextStep,
-          style: FilledButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            padding: const EdgeInsets.symmetric(
-              horizontal: DesignSystem.spacing16,
-              vertical: DesignSystem.spacing10,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
-            ),
-          ),
-          child: Text(
-            _currentStep < 2 ? "Next" : "Save Subscription",
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStep1(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Form(
-      key: _formKeys[0],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildSectionHeader(
-            "Subscription Details",
-            icon: Icons.subscriptions_rounded,
-          ),
-          const SizedBox(height: DesignSystem.spacing10),
-          Center(
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: colorScheme.surface,
-                    borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
-                    border: Border.all(
-                      color: colorScheme.outlineVariant,
-                      width: 1.5,
-                    ),
-                  ),
-                  child: _customImageFile != null
-                      ? ClipRRect(
-                    borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
-                    child: Image.file(
-                      _customImageFile!,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                      : _logoUrl != null && _logoUrl!.isNotEmpty
-                      ? ClipRRect(
-                    borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
-                    child: Image.network(
-                      _logoUrl!,
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.subscriptions_outlined,
-                        size: 40,
+                    IconButton(
+                      icon: JapandiSvgIcon(
+                        type: JapandiSvgType.close,
+                        size: 18,
                         color: colorScheme.onSurfaceVariant,
                       ),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
-                  )
-                      : Icon(
-                    Icons.subscriptions_outlined,
-                    size: 40,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                  ],
                 ),
-                Positioned(
-                  bottom: -8,
-                  right: -8,
-                  child: FilledButton.icon(
-                    onPressed: () async {
-                      final pickedFile = await ImagePicker()
-                          .pickImage(source: ImageSource.gallery);
-                      if (pickedFile != null) {
-                        setState(() {
-                          _customImageFile = File(pickedFile.path);
-                          _logoUrl = '';
-                        });
-                      }
-                    },
-                    style: FilledButton.styleFrom(
-                      shape: const CircleBorder(),
-                      padding: const EdgeInsets.all(DesignSystem.spacing6),
-                      backgroundColor: colorScheme.primary,
+                const SizedBox(height: 8),
+
+                // 2. 1-Tap Quick Presets (Only when adding new)
+                if (!isEditing) ...[
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: quickPresets.map((preset) {
+                        final isSelected = _nameController.text.toLowerCase() == preset.name.toLowerCase();
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: InkWell(
+                            key: Key('preset_${preset.name}'),
+                            borderRadius: BorderRadius.circular(10),
+                            onTap: () => _applyPreset(preset),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 150),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? colorScheme.primary
+                                    : (isDark ? colorScheme.surfaceContainerHigh : colorScheme.surfaceContainer),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? colorScheme.primary
+                                      : colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.6),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    preset.name,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                      color: isSelected
+                                          ? colorScheme.onPrimary
+                                          : colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    preset.formattedPrice,
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                      color: isSelected
+                                          ? colorScheme.onPrimary.withValues(alpha: 0.85)
+                                          : colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
                     ),
-                    icon: const Icon(
-                      Icons.edit,
-                      size: DesignSystem.iconSmall,
+                  ),
+                  const SizedBox(height: 10),
+                ],
+
+                // 3. Name Field with Live Logo Preview
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Subscription Name',
+                    hintText: 'e.g. Netflix, Spotify',
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.all(10),
+                      child: _logoUrl != null && _logoUrl!.isNotEmpty
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(6),
+                              child: Image.network(
+                                _logoUrl!,
+                                width: 22,
+                                height: 22,
+                                fit: BoxFit.contain,
+                                errorBuilder: (_, __, ___) => JapandiSvgIcon(
+                                  type: JapandiSvgType.subscriptions,
+                                  size: 20,
+                                  color: colorScheme.primary,
+                                ),
+                              ),
+                            )
+                          : JapandiSvgIcon(
+                              type: JapandiSvgType.subscriptions,
+                              size: 20,
+                              color: colorScheme.primary,
+                            ),
                     ),
-                    label: const SizedBox.shrink(),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  ),
+                  validator: (val) => (val == null || val.trim().isEmpty) ? 'Please enter a name' : null,
+                ),
+                const SizedBox(height: 10),
+
+                // 4. Amount & Billing Cycle Row
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Amount Field
+                    Expanded(
+                      flex: 5,
+                      child: TextFormField(
+                        controller: _amountController,
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Amount',
+                          prefixText: '€ ',
+                          hintText: '0.00',
+                          isDense: true,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        ),
+                        validator: (val) {
+                          if (val == null || val.trim().isEmpty) return 'Enter amount';
+                          final num = double.tryParse(val.replaceAll(',', '.'));
+                          if (num == null || num <= 0) return 'Invalid';
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Segmented Billing Cycle Selector
+                    Expanded(
+                      flex: 6,
+                      child: Container(
+                        height: 48,
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Row(
+                          children: ['Monthly', 'Yearly', 'Weekly'].map((cycle) {
+                            final isSelected = _selectedCycle == cycle;
+                            return Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  HapticFeedback.selectionClick();
+                                  setState(() => _selectedCycle = cycle);
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? colorScheme.primary : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(9),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    cycle == 'Monthly' ? 'Mo' : cycle == 'Yearly' ? 'Yr' : 'Wk',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                      color: isSelected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // 5. Date Picker Pill & Category Picker Row
+                Row(
+                  children: [
+                    // Start Date Button
+                    Expanded(
+                      flex: 5,
+                      child: InkWell(
+                        onTap: _pickDate,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              JapandiSvgIcon(
+                                type: JapandiSvgType.calendar,
+                                size: 16,
+                                color: colorScheme.primary,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  DateFormat('dd MMM yyyy').format(_selectedStartDate),
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+
+                    // Category Picker Tile with Bespoke Japandi Popup Menu
+                    Expanded(
+                      flex: 6,
+                      child: PopupMenuButton<String>(
+                        key: const Key('category_picker_tile'),
+                        tooltip: 'Select Category',
+                        initialValue: _selectedCategory,
+                        offset: const Offset(0, 48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.3 : 0.6),
+                            width: 1,
+                          ),
+                        ),
+                        color: isDark ? colorScheme.surface : Colors.white,
+                        elevation: 6,
+                        onSelected: (cat) {
+                          HapticFeedback.selectionClick();
+                          setState(() => _selectedCategory = cat);
+                        },
+                        itemBuilder: (ctx) => _categories.map((cat) {
+                          final isSelected = _selectedCategory == cat;
+                          final catColor = HomeHelpers.getCategoryColor(cat);
+                          final catIcon = HomeHelpers.getCategoryIcon(cat);
+
+                          return PopupMenuItem<String>(
+                            key: Key('cat_option_$cat'),
+                            value: cat,
+                            height: 40,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: catColor.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(7),
+                                  ),
+                                  child: Icon(catIcon, size: 14, color: catColor),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    cat,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                      color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ),
+                                if (isSelected)
+                                  Icon(Icons.check_rounded, size: 16, color: colorScheme.primary),
+                              ],
+                            ),
+                          );
+                        }).toList(),
+                        child: Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 22,
+                                height: 22,
+                                decoration: BoxDecoration(
+                                  color: HomeHelpers.getCategoryColor(_selectedCategory).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Icon(
+                                  HomeHelpers.getCategoryIcon(_selectedCategory),
+                                  size: 13,
+                                  color: HomeHelpers.getCategoryColor(_selectedCategory),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  _selectedCategory,
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                size: 18,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // 6. 1-Tap Save Button
+                ElevatedButton(
+                  onPressed: _save,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    isEditing ? 'Save Changes' : 'Save Subscription',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: DesignSystem.spacing16),
-          TextFormField(
-            controller: _nameController,
-            decoration: InputDecoration(
-              labelText: "Subscription Name",
-              prefixIcon: const Icon(
-                Icons.label_rounded,
-                size: DesignSystem.iconMedium,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
-              ),
-            ),
-            validator: (v) =>
-            v == null || v.trim().isEmpty ? "Please enter a name" : null,
-            onChanged: (value) {
-              _debounce?.cancel();
-              _debounce = Timer(const Duration(milliseconds: 500), () {
-                if (value.isNotEmpty && _customImageFile == null) {
-                  setState(() => _logoUrl = fetchLogo(value.trim()));
-                }
-              });
-            },
           ),
-          const SizedBox(height: DesignSystem.spacing12),
-          TextFormField(
-            controller: _amountController,
-            decoration: InputDecoration(
-              labelText: "Amount",
-              suffixText: "€",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
-              ),
-            ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            validator: (v) => v == null || double.tryParse(v) == null
-                ? "Enter a valid amount"
-                : null,
-          ),
-        ],
+        ),
       ),
-    );
-  }
-
-  Widget _buildStep2(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Form(
-      key: _formKeys[1],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildSectionHeader(
-            "Transaction Type",
-            icon: Icons.account_balance_rounded,
-          ),
-          const SizedBox(height: DesignSystem.spacing10),
-          Container(
-            padding: const EdgeInsets.all(DesignSystem.spacing8),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainer.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
-            ),
-            child: SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(
-                    value: 'Expense',
-                    label: Text('Expense'),
-                    icon: Icon(Icons.remove_rounded),
-                  ),
-                  ButtonSegment(
-                    value: 'Revenue',
-                    label: Text('Revenue'),
-                    icon: Icon(Icons.add_rounded),
-                  ),
-                ],
-                selected: _revenueExpenseSelection,
-                onSelectionChanged: (newSelection) {
-                  setState(() => _revenueExpenseSelection = newSelection);
-                },
-              ),
-            ),
-          ),
-          _buildSectionHeader(
-            "Category",
-            icon: Icons.category_rounded,
-          ),
-          const SizedBox(height: DesignSystem.spacing10),
-          Wrap(
-            spacing: DesignSystem.spacing6,
-            runSpacing: DesignSystem.spacing6,
-            children: [
-              for (String category in HomeHelpers.getCategoryMap().keys)
-                ChoiceChip(
-                  label: Text(category),
-                  avatar: Icon(
-                    HomeHelpers.getCategoryIcon(category),
-                    size: 16,
-                    color: _selectedCategory == category
-                        ? Colors.white
-                        : HomeHelpers.getCategoryColor(category),
-                  ),
-                  selected: _selectedCategory == category,
-                  onSelected: (selected) =>
-                      setState(() => _selectedCategory = category),
-                  selectedColor: HomeHelpers.getCategoryColor(category),
-                  labelStyle: TextStyle(
-                    color: _selectedCategory == category
-                        ? Colors.white
-                        : Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  shape: StadiumBorder(
-                    side: BorderSide(
-                      color: _selectedCategory == category
-                          ? Colors.transparent
-                          : colorScheme.outlineVariant,
-                      width: 1,
-                    ),
-                  ),
-                  backgroundColor: colorScheme.surface,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: DesignSystem.spacing8,
-                    vertical: DesignSystem.spacing6,
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStep3(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Form(
-      key: _formKeys[2],
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildSectionHeader(
-            "Billing & Reminders",
-            icon: Icons.schedule_rounded,
-          ),
-          const SizedBox(height: DesignSystem.spacing10),
-          GestureDetector(
-            onTap: () => _showAgendaPopup(_selectedStartDate, (date) {
-              setState(() => _selectedStartDate = date);
-            }),
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: "Start Date",
-                prefixIcon: const Icon(
-                  Icons.calendar_today_outlined,
-                  size: DesignSystem.iconMedium,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
-                ),
-              ),
-              child: Text(
-                DateFormat('d MMMM yyyy').format(_selectedStartDate!),
-                style: const TextStyle(fontWeight: FontWeight.w500),
-              ),
-            ),
-          ),
-          const SizedBox(height: DesignSystem.spacing12),
-          GestureDetector(
-            onTap: () => _showAgendaPopup(_selectedEndDate ?? _selectedStartDate, (date) {
-              setState(() => _selectedEndDate = date);
-            }),
-            child: InputDecorator(
-              decoration: InputDecoration(
-                labelText: "End Date (Optional)",
-                prefixIcon: const Icon(
-                  Icons.event_busy_outlined,
-                  size: DesignSystem.iconMedium,
-                ),
-                suffixIcon: _selectedEndDate != null
-                    ? IconButton(
-                  icon: const Icon(Icons.clear),
-                  onPressed: () {
-                    setState(() {
-                      _selectedEndDate = null;
-                    });
-                  },
-                )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
-                ),
-              ),
-              child: Text(
-                _selectedEndDate != null
-                    ? DateFormat('d MMMM yyyy').format(_selectedEndDate!)
-                    : "Ongoing",
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: _selectedEndDate == null
-                      ? colorScheme.onSurfaceVariant.withOpacity(0.7)
-                      : colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: DesignSystem.spacing12),
-          DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              labelText: "Billing Cycle",
-              prefixIcon: const Icon(
-                Icons.repeat_rounded,
-                size: DesignSystem.iconMedium,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
-              ),
-            ),
-            value: _selectedCycle,
-            items: ['Weekly', 'Monthly', 'Yearly']
-                .map((v) => DropdownMenuItem(value: v, child: Text(v)))
-                .toList(),
-            onChanged: (v) => setState(() => _selectedCycle = v!),
-          ),
-          const SizedBox(height: DesignSystem.spacing12),
-          Container(
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainer.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
-            ),
-            child: SwitchListTile(
-              title: Text(
-                "Enable Reminders",
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              value: _areNotificationsEnabled,
-              onChanged: (bool value) {
-                setState(() => _areNotificationsEnabled = value);
-              },
-              secondary: Icon(
-                _areNotificationsEnabled
-                    ? Icons.notifications_active_rounded
-                    : Icons.notifications_off_outlined,
-                color: colorScheme.primary,
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: DesignSystem.spacing12,
-                vertical: DesignSystem.spacing4,
-              ),
-            ),
-          ),
-          const SizedBox(height: DesignSystem.spacing10),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: _areNotificationsEnabled
-                ? DropdownButtonFormField<int>(
-              decoration: InputDecoration(
-                labelText: "Remind me before",
-                prefixIcon: const Icon(
-                  Icons.alarm_rounded,
-                  size: DesignSystem.iconMedium,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius:
-                  BorderRadius.circular(DesignSystem.radiusMedium),
-                ),
-              ),
-              value: _reminderDays,
-              items: [1, 2, 3, 7]
-                  .map((days) => DropdownMenuItem(
-                value: days,
-                child: Text(
-                  days == 1
-                      ? "1 day"
-                      : days == 7
-                      ? "1 week"
-                      : "$days days",
-                ),
-              ))
-                  .toList(),
-              onChanged: (value) =>
-                  setState(() => _reminderDays = value!),
-            )
-                : const SizedBox.shrink(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAgendaPopup(DateTime? initialDate, Function(DateTime) onDateSelected) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        DateTime focusedDay = initialDate ?? DateTime.now();
-        DateTime? selectedDay = initialDate;
-        final colorScheme = Theme.of(context).colorScheme;
-
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(DesignSystem.radiusXXL),
-              ),
-              backgroundColor: colorScheme.surfaceContainerLow,
-              child: Padding(
-                padding: const EdgeInsets.all(DesignSystem.spacing12),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(DesignSystem.spacing8),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(DesignSystem.radiusXL),
-                      ),
-                      child: Text(
-                        'Select Date',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.3,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: DesignSystem.spacing12),
-                    TableCalendar(
-                      firstDay: DateTime.utc(2020, 1, 1),
-                      lastDay: DateTime.utc(2030, 12, 31),
-                      focusedDay: focusedDay,
-                      currentDay: DateTime.now(),
-                      selectedDayPredicate: (day) => isSameDay(selectedDay, day),
-                      onDaySelected: (newSelectedDay, newFocusedDay) {
-                        onDateSelected(newSelectedDay);
-                        Navigator.of(context).pop();
-                      },
-                      calendarFormat: CalendarFormat.month,
-                      headerStyle: HeaderStyle(
-                        formatButtonVisible: false,
-                        titleCentered: true,
-                        titleTextStyle:
-                        Theme.of(context).textTheme.titleMedium!,
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainer.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(DesignSystem.radiusMedium),
-                        ),
-                      ),
-                      calendarStyle: CalendarStyle(
-                        todayDecoration: BoxDecoration(
-                          color: colorScheme.primary.withOpacity(0.2),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: colorScheme.primary,
-                            width: 2,
-                          ),
-                        ),
-                        selectedDecoration: BoxDecoration(
-                          color: colorScheme.primary,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: colorScheme.primary.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        todayTextStyle:
-                        TextStyle(color: colorScheme.primary, fontWeight: FontWeight.bold),
-                        selectedTextStyle: TextStyle(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        weekendTextStyle: TextStyle(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: DesignSystem.spacing10),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
     );
   }
 }

@@ -44,16 +44,21 @@ class PageLayout extends StatelessWidget {
     finalSlivers.addAll(slivers);
 
     return Scaffold(
-      body: RefreshIndicator(
-        onRefresh: onRefresh,
-        displacement: refreshDisplacement,
-        color: Theme.of(context).colorScheme.primary,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        child: CustomScrollView(
-          physics: preventBounce
-              ? const ClampingScrollPhysics()
-              : const BouncingScrollPhysics(),
-          slivers: finalSlivers,
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 1120),
+          child: RefreshIndicator(
+            onRefresh: onRefresh,
+            displacement: refreshDisplacement,
+            color: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: CustomScrollView(
+              physics: preventBounce
+                  ? const ClampingScrollPhysics()
+                  : const BouncingScrollPhysics(),
+              slivers: finalSlivers,
+            ),
+          ),
         ),
       ),
     );

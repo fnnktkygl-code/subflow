@@ -1,6 +1,6 @@
 // lib/pages/home_page.dart
 
-import 'package:aada_app/widgets/shared/page_layout.dart';
+import 'package:subflow_app/widgets/shared/page_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Import for HapticFeedback
 import 'package:provider/provider.dart';
@@ -14,7 +14,6 @@ import '../widgets/home/empty_state.dart';
 import '../widgets/shared/goal_dialog.dart';
 import '../widgets/shared/income_setup_dialog.dart';
 import '../widgets/home/income_insight_banner.dart';
-import '../widgets/home/income_prompt_card.dart';
 import '../provider/simplified_gamification.dart';
 import '../widgets/home/section_wrapper.dart';
 import '../widgets/home/greeting_header.dart';
@@ -81,9 +80,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         ? subProvider.getFilteredTotalMonthlyCost(widget.snoozedIds)
         : subProvider.totalMonthlyCost;
     final hasCategories = subProvider.categorySpending.isNotEmpty;
-    final shouldShowIncomePrompt = profileProvider.shouldShowIncomePrompt(
-      subProvider.subscriptions.length,
-    );
     final incomeInsight = profileProvider.getIncomeInsight(monthlyCost);
     final incomeStatus = profileProvider.getHealthStatus(monthlyCost);
 
@@ -100,18 +96,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       ),
     );
     homeWidgets.add(const SizedBox(height: DesignSystem.spacing8));
-
-    if (shouldShowIncomePrompt) {
-      homeWidgets.add(
-        IncomePromptCard(
-          onAddIncome: () => _showIncomeDialog(context, profileProvider),
-          onDismiss: () async {
-            await profileProvider.dismissIncomePrompt();
-          },
-        ),
-      );
-      homeWidgets.add(const SizedBox(height: DesignSystem.spacing8));
-    }
 
     if (incomeInsight != null && incomeStatus != IncomeHealthStatus.unknown) {
       homeWidgets.add(
@@ -256,7 +240,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         Container(
           padding: const EdgeInsets.all(DesignSystem.spacing6),
           decoration: BoxDecoration(
-            color: colorScheme.primary.withOpacity(isDark ? 0.15 : 0.1),
+            color: colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.1),
             borderRadius: BorderRadius.circular(DesignSystem.radiusSmall),
           ),
           child: Icon(
@@ -284,7 +268,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   double _getBottomPadding(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final bottomViewInset = mediaQuery.viewInsets.bottom;
-    return 120.0 + (bottomViewInset > 0 ? 0 : DesignSystem.spacing12);
+    final base = widget.isSelectionMode ? 240.0 : 120.0;
+    return base + (bottomViewInset > 0 ? 0 : DesignSystem.spacing12);
   }
 
   Widget _buildEmptyStateWithAnimation() {
@@ -305,14 +290,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   void _showGoalDialog(BuildContext context, double currentCost, UserProfileProvider profileProvider) {
     GoalDialog.show(
       context,
-      currentGoal: profileProvider.spendingGoal ?? 0.0,
+      currentGoal: profileProvider.spendingGoal,
       currentCost: currentCost,
       monthlyIncome: profileProvider.monthlyIncome,
       profileProvider: profileProvider,
       onGoalSet: (newGoal) {
         profileProvider.updateSpendingGoal(newGoal);
       },
-      onAddIncome: () => _showIncomeDialog(context, profileProvider),
     );
   }
 

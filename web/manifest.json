@@ -1,11 +1,11 @@
 {
-    "name": "aada_app",
-    "short_name": "aada_app",
+    "name": "SubFlow - Subscription Manager",
+    "short_name": "SubFlow",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Smart Subscription & Recurring Payment Management",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

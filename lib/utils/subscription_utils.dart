@@ -230,7 +230,7 @@ class SubscriptionUtils {
     // ✅ ADDED: Style for the new section
     if (title == 'Paid Earlier This Month') {
       return SubscriptionHeaderStyle(
-        color: colorScheme.tertiary.withOpacity(0.8), // Use tertiary but slightly muted
+        color: colorScheme.tertiary.withValues(alpha: 0.8), // Use tertiary but slightly muted
         icon: Icons.history_rounded, // History icon
       );
     }
@@ -246,12 +246,12 @@ class SubscriptionUtils {
       );
     } else if (title == 'Later this Month') {
       return SubscriptionHeaderStyle(
-        color: colorScheme.primary.withOpacity(0.8), // Use primary but slightly muted
+        color: colorScheme.primary.withValues(alpha: 0.8), // Use primary but slightly muted
         icon: Icons.calendar_month_rounded,
       );
     } else { // Future months
       return SubscriptionHeaderStyle(
-        color: colorScheme.secondary.withOpacity(0.8), // Use secondary but slightly muted
+        color: colorScheme.secondary.withValues(alpha: 0.8), // Use secondary but slightly muted
         icon: Icons.event_rounded,
       );
     }

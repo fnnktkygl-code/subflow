@@ -3,11 +3,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/subscription_model.dart';
-import '../../provider/simplified_subscription_provider.dart';
+import '../models/subscription_model.dart';
+import '../provider/simplified_subscription_provider.dart';
 import '../widgets/shared/subscription_card_wrapper.dart';
-import '../../views/calendar_helpers.dart';
-import '../../theme/design_system.dart';
+import 'calendar_helpers.dart';
+import '../theme/design_system.dart';
 
 class UpcomingPayments extends StatefulWidget {
   final List<Subscription> subscriptions;

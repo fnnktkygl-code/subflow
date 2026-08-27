@@ -1,6 +1,6 @@
 // lib/pages/truelayer_connect_page.dart
 
-import 'package:aada_app/widgets/shared/page_layout.dart';
+import 'package:subflow_app/widgets/shared/page_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -9,6 +9,7 @@ import '../models/subscription_model.dart';
 import '../provider/simplified_subscription_provider.dart';
 import '../services/truelayer_service.dart';
 import '../theme/design_system.dart';
+import '../utils/security_sanitizer.dart';
 import '../widgets/subscription_popup.dart'; // Import the popup
 
 class TruelayerConnectPage extends StatefulWidget {
@@ -28,6 +29,9 @@ class TruelayerConnectPage extends StatefulWidget {
 class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
   final _truelayerService = TruelayerService();
   late final WebViewController _webViewController;
+  late final String _oauthState;
+  late final PkcePair _pkcePair;
+
   bool _isLoading = true;
   bool _connectionFinished = false;
   List<Subscription> _foundSubscriptions = [];
@@ -38,6 +42,8 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
   @override
   void initState() {
     super.initState();
+    _oauthState = SecuritySanitizer.generateSecureNonce(32);
+    _pkcePair = SecuritySanitizer.generatePkcePair(64);
     _connectToTruelayer();
   }
 
@@ -56,9 +62,21 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
               final uri = Uri.parse(url);
               final code = uri.queryParameters['code'];
               final error = uri.queryParameters['error'];
+              final returnedState = uri.queryParameters['state'];
+
+              // 🛡️ Security Defense: Validate OAuth State parameter against CSRF attacks
+              if (returnedState == null || returnedState != _oauthState) {
+                setState(() {
+                  _errorMessage = "Security Error: OAuth state verification failed (potential CSRF/tampering).";
+                  _connectionFinished = true;
+                  _isLoading = false;
+                });
+                return NavigationDecision.prevent;
+              }
+
               if (error != null) {
                 setState(() {
-                  _errorMessage = "Authentication failed: $error";
+                  _errorMessage = "Authentication failed: ${SecuritySanitizer.sanitizeText(error)}";
                   _connectionFinished = true;
                   _isLoading = false;
                 });
@@ -74,13 +92,19 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
       ..loadRequest(Uri.parse(_truelayerService.getAuthenticationUrl(
         widget.countryCode,
         providerId: widget.providerId,
+        state: _oauthState,
+        codeChallenge: _pkcePair.codeChallenge,
+        codeChallengeMethod: _pkcePair.codeChallengeMethod,
       )));
     setState(() {});
   }
 
   Future<void> _getSubscriptionData(String code) async {
     try {
-      final accessToken = await _truelayerService.exchangeCodeForAccessToken(code);
+      final accessToken = await _truelayerService.exchangeCodeForAccessToken(
+        code,
+        codeVerifier: _pkcePair.codeVerifier,
+      );
       if (accessToken == null) throw Exception("Failed to get access token");
 
       final subscriptions = await _truelayerService.getSubscriptions();
@@ -95,7 +119,7 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString();
+          _errorMessage = SecuritySanitizer.sanitizeText(e.toString());
           _isLoading = false;
           _connectionFinished = true;
         });
@@ -168,7 +192,7 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
           WebViewWidget(controller: _webViewController),
           if (_isLoading)
             Container(
-              color: Theme.of(context).scaffoldBackgroundColor.withOpacity(0.8),
+              color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8),
               child: const Center(child: CircularProgressIndicator()),
             ),
         ],
@@ -219,7 +243,7 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerLow,
                 borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
-                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.5)),
+                border: Border.all(color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +291,7 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
       padding: const EdgeInsets.all(DesignSystem.spacing10).copyWith(bottom: DesignSystem.spacing10 + MediaQuery.of(context).padding.bottom),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        border: Border(top: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.5), width: 1)),
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1)),
       ),
       child: SizedBox(
         width: double.infinity,
@@ -304,11 +328,11 @@ class _TruelayerConnectPageState extends State<TruelayerConnectPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(DesignSystem.radiusLarge),
         side: BorderSide(
-          color: isSelected ? colorScheme.primary : colorScheme.outlineVariant.withOpacity(0.5),
+          color: isSelected ? colorScheme.primary : colorScheme.outlineVariant.withValues(alpha: 0.5),
           width: isSelected ? 1.5 : 1,
         ),
       ),
-      color: isSelected ? colorScheme.primary.withOpacity(isDark ? 0.15 : 0.08) : colorScheme.surface,
+      color: isSelected ? colorScheme.primary.withValues(alpha: isDark ? 0.15 : 0.08) : colorScheme.surface,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
           horizontal: DesignSystem.spacing10,

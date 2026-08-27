@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'dart:math';
 import '../models/subscription_model.dart';
+import '../models/billing_cycle.dart';
 import '../theme/custom_colors.dart';
 
 // ======================================================================
@@ -45,33 +45,7 @@ class CalendarHelpers {
 
   /// Calculate the next payment date based on subscription cycle
   static DateTime calculateNextDate(DateTime current, String cycle) {
-    switch (cycle) {
-      case 'Weekly':
-        return current.add(const Duration(days: 7));
-
-      case 'Monthly':
-        var newMonth = current.month + 1;
-        var newYear = current.year;
-        if (newMonth > 12) {
-          newMonth = 1;
-          newYear++;
-        }
-        final daysInNextMonth = DateUtils.getDaysInMonth(newYear, newMonth);
-        final day = min(current.day, daysInNextMonth);
-        return DateTime(newYear, newMonth, day);
-
-      case 'Yearly':
-        final isLeap = current.month == 2 && current.day == 29;
-        return DateTime(
-          current.year + 1,
-          current.month,
-          isLeap ? 28 : current.day,
-        );
-
-      default:
-      // Return a distant future date for unknown cycles
-        return DateTime.now().add(const Duration(days: 365 * 10));
-    }
+    return BillingCycle.fromString(cycle).nextDate(current);
   }
 
   /// Get all upcoming subscription occurrences for the next 2 months
@@ -85,11 +59,12 @@ class CalendarHelpers {
     for (final sub in subs) {
       DateTime current = sub.startDate;
       while (current.isBefore(limit)) {
+        if (sub.endDate != null && current.isAfter(sub.endDate!)) break;
+
         // Include if it's today or in the future
         if (!current.isBefore(now) || DateUtils.isSameDay(current, now)) {
           occurrences.add(SubscriptionOccurrence(sub, current));
         }
-        if (sub.endDate != null && current.isAfter(sub.endDate!)) break;
 
         DateTime next = calculateNextDate(current, sub.cycle);
         if (next.isBefore(current) || next == current) break;
@@ -125,7 +100,7 @@ class CalendarHelpers {
     final customColors = Theme.of(context).extension<CustomColors>();
 
     if (amount == 0) {
-      return colorScheme.onSurface.withOpacity(0.4);
+      return colorScheme.onSurface.withValues(alpha: 0.4);
     } else if (amount < 0) {
       // Use the theme-aware color, with a fallback to the error color
       return customColors?.heatmapExpense ?? colorScheme.error;
@@ -144,5 +119,43 @@ class CalendarHelpers {
 
     final ratio = (amount.abs() / maxAmountForOpacity).clamp(0.0, 1.0);
     return minOpacity + (ratio * (maxOpacity - minOpacity));
+  }
+
+  /// Calculate upcoming 7-day total spend from active subscriptions
+  static double getNext7DaysTotal(List<Subscription> subs) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final next7Days = today.add(const Duration(days: 7));
+    final occurrences = getUpcomingOccurrences(subs);
+
+    double total = 0.0;
+    for (final occ in occurrences) {
+      final occDate = DateTime(occ.date.year, occ.date.month, occ.date.day);
+      if (!occDate.isBefore(today) && !occDate.isAfter(next7Days)) {
+        if (occ.subscription.amount < 0) {
+          total += occ.subscription.amount.abs();
+        }
+      }
+    }
+    return total;
+  }
+
+  /// Count number of renewals in next 7 days
+  static int getNext7DaysCount(List<Subscription> subs) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final next7Days = today.add(const Duration(days: 7));
+    final occurrences = getUpcomingOccurrences(subs);
+
+    int count = 0;
+    for (final occ in occurrences) {
+      final occDate = DateTime(occ.date.year, occ.date.month, occ.date.day);
+      if (!occDate.isBefore(today) && !occDate.isAfter(next7Days)) {
+        if (occ.subscription.amount < 0) {
+          count++;
+        }
+      }
+    }
+    return count;
   }
 }

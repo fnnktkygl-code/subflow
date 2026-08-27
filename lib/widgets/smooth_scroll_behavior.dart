@@ -169,33 +169,21 @@ class ScrollAwareWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: animation,
-      builder: (context, child) {
+      builder: (context, _) {
         final value = animation.value;
-        // Determines the direction of the slide based on the alignment.
         final yOffset = alignment == Alignment.topCenter ? -(1 - value) : (1 - value);
 
-        // ✅ DEFINITIVE FIX: Wrap the widget in an IgnorePointer.
-        // PREVIOUS ISSUE: When the widget was translated off-screen and its
-        // opacity was 0, its original layout space could still block touch
-        // events, creating a "transparent padding" effect.
-        //
-        // THE SOLUTION: By setting `ignoring: value == 0`, we tell Flutter
-        // that this widget should be completely transparent to touch events
-        // when it is fully hidden. This allows taps to pass through to the
-        // content underneath.
         return IgnorePointer(
           ignoring: value == 0,
           child: Transform.translate(
-            // The offset is multiplied to create a more noticeable slide effect.
             offset: Offset(0, yOffset * 60),
             child: Opacity(
-              opacity: value,
+              opacity: value.clamp(0.0, 1.0),
               child: child,
             ),
           ),
         );
       },
-      child: child,
     );
   }
 }

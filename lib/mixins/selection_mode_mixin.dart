@@ -17,7 +17,6 @@ import '../provider/simplified_subscription_provider.dart';
 mixin SelectionModeMixin<T extends StatefulWidget> on State<T> {
   bool _isSelectionMode = false;
   final Set<String> _snoozedIds = {};
-  bool _hasShownTutorial = false;
 
   bool get isSelectionMode => _isSelectionMode;
   Set<String> get snoozedIds => _snoozedIds;
@@ -29,7 +28,6 @@ mixin SelectionModeMixin<T extends StatefulWidget> on State<T> {
 
   /// Toggle snooze for a subscription
   void toggleSnooze(String subscriptionId) {
-    // ✅ MODIFIED: Removed HapticFeedback
     setState(() {
       if (_snoozedIds.contains(subscriptionId)) {
         _snoozedIds.remove(subscriptionId);
@@ -41,7 +39,6 @@ mixin SelectionModeMixin<T extends StatefulWidget> on State<T> {
 
   /// Select all subscriptions
   void selectAllSubscriptions(SimplifiedSubscriptionProvider provider) {
-    // ✅ MODIFIED: Removed HapticFeedback
     setState(() {
       _snoozedIds.clear();
       _snoozedIds.addAll(provider.subscriptions.map((s) => s.id));
@@ -50,19 +47,14 @@ mixin SelectionModeMixin<T extends StatefulWidget> on State<T> {
 
   /// Enter selection mode and optionally select a subscription
   void enterSelectionMode(String subscriptionId) {
-    // ✅ MODIFIED: Removed HapticFeedback
     setState(() {
       _isSelectionMode = true;
       _snoozedIds.add(subscriptionId);
     });
-
-    // Show tutorial on first use
-    _showTutorialIfNeeded();
   }
 
   /// Exit selection mode and clear selections
   void exitSelectionMode() {
-    // ✅ MODIFIED: Removed HapticFeedback
     setState(() {
       _isSelectionMode = false;
       _snoozedIds.clear();
@@ -71,29 +63,8 @@ mixin SelectionModeMixin<T extends StatefulWidget> on State<T> {
 
   /// Clear all selections without exiting selection mode
   void clearAllSelections() {
-    // ✅ MODIFIED: Removed HapticFeedback
     setState(() {
       _snoozedIds.clear();
-    });
-  }
-
-  /// Show tutorial overlay on first use
-  void _showTutorialIfNeeded() {
-    if (_hasShownTutorial) return;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => _WhatIfTutorialOverlay(
-          onDismiss: () {
-            _hasShownTutorial = true;
-            Navigator.of(context).pop();
-          },
-        ),
-      );
     });
   }
 
@@ -132,6 +103,8 @@ mixin SelectionModeMixin<T extends StatefulWidget> on State<T> {
     return savings;
   }
 
+  bool _isWhatIfExpanded = false;
+
   /// Build the pinned what-if action bar with live savings preview
   ///
   /// This widget is designed to be used in a Positioned widget at the bottom
@@ -151,170 +124,219 @@ mixin SelectionModeMixin<T extends StatefulWidget> on State<T> {
     final filteredCost = provider.getFilteredTotalMonthlyCost(_snoozedIds);
     final monthlySavings = totalMonthlyCost - filteredCost;
     final yearlySavings = monthlySavings * 12;
+    final isDark = colorScheme.brightness == Brightness.dark;
 
-    // ✅ Simple Container - positioning handled by parent (bottom_nav_bar)
+    // ✅ Compact, non-blocking floating pill container
     return Container(
-      margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+      margin: const EdgeInsets.fromLTRB(12, 0, 12, 4),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            colorScheme.primaryContainer,
-            colorScheme.secondaryContainer,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
+        color: isDark ? colorScheme.surface : Colors.white,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: colorScheme.primary.withOpacity(0.3),
-          width: 2,
+          color: colorScheme.outlineVariant.withValues(alpha: isDark ? 0.4 : 0.8),
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(0.2),
-            blurRadius: 12,
-            offset: const Offset(0, -4), // Shadow goes upward
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.35)
+                : const Color(0xFF20201E).withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, -3),
           ),
         ],
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Header with title and exit button
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.science_outlined,
-                  color: colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "What If Mode",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onPrimaryContainer,
-                          letterSpacing: -0.3,
+      child: AnimatedSize(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Compact Header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.auto_awesome_rounded,
+                      color: colorScheme.primary,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              "What If Mode",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.onSurface,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: colorScheme.tertiary.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                "€${monthlySavings.toStringAsFixed(0)}/mo saved",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: colorScheme.tertiary,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      Text(
-                        "Tap cards to exclude",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.onPrimaryContainer.withOpacity(0.7),
+                        Text(
+                          selectedCount == 0
+                              ? "Tap cards to simulate savings"
+                              : "$selectedCount excluded • €${yearlySavings.toStringAsFixed(0)}/yr saved",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                IconButton(
-                  onPressed: exitSelectionMode,
-                  icon: Icon(
-                    Icons.close_rounded,
-                    color: colorScheme.onPrimaryContainer,
+                  IconButton(
+                    tooltip: _isWhatIfExpanded ? "Collapse details" : "Expand details",
+                    onPressed: () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _isWhatIfExpanded = !_isWhatIfExpanded);
+                    },
+                    icon: Icon(
+                      _isWhatIfExpanded
+                          ? Icons.keyboard_arrow_down_rounded
+                          : Icons.keyboard_arrow_up_rounded,
+                      size: 20,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    style: IconButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    ),
                   ),
-                  style: IconButton.styleFrom(
-                    backgroundColor: colorScheme.surface.withOpacity(0.5),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    tooltip: "Exit What If Mode",
+                    onPressed: exitSelectionMode,
+                    icon: const Icon(Icons.close_rounded, size: 18),
+                    style: IconButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-
-          // Live savings preview
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colorScheme.surface.withOpacity(0.9),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: colorScheme.outline.withOpacity(0.2),
+                ],
               ),
             ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+            // Expanded Breakdown Panel
+            if (_isWhatIfExpanded) ...[
+              Container(
+                margin: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? colorScheme.surfaceContainerLow
+                      : colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: colorScheme.outline.withValues(alpha: 0.15),
+                  ),
+                ),
+                child: Column(
                   children: [
-                    _buildSavingsMetric(
-                      context: context,
-                      label: "EXCLUDED",
-                      value: "$selectedCount / $totalSubs",
-                      icon: Icons.remove_circle_outline,
-                      color: colorScheme.error,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildSavingsMetric(
+                          context: context,
+                          label: "EXCLUDED",
+                          value: "$selectedCount / $totalSubs",
+                          icon: Icons.remove_circle_outline,
+                          color: colorScheme.error,
+                        ),
+                        _buildSavingsMetric(
+                          context: context,
+                          label: "MONTHLY SAVINGS",
+                          value: "€${monthlySavings.toStringAsFixed(0)}",
+                          icon: Icons.trending_down_rounded,
+                          color: colorScheme.tertiary,
+                        ),
+                        _buildSavingsMetric(
+                          context: context,
+                          label: "YEARLY SAVINGS",
+                          value: "€${yearlySavings.toStringAsFixed(0)}",
+                          icon: Icons.savings_outlined,
+                          color: colorScheme.secondary,
+                        ),
+                      ],
                     ),
-                    _buildSavingsMetric(
-                      context: context,
-                      label: "MONTHLY SAVINGS",
-                      value: "€${monthlySavings.toStringAsFixed(0)}",
-                      icon: Icons.trending_down_rounded,
-                      color: colorScheme.tertiary,
-                    ),
-                    _buildSavingsMetric(
-                      context: context,
-                      label: "YEARLY SAVINGS",
-                      value: "€${yearlySavings.toStringAsFixed(0)}",
-                      icon: Icons.savings_outlined,
-                      color: colorScheme.secondary,
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: LinearProgressIndicator(
+                        value: totalSubs > 0 ? selectedCount / totalSubs : 0,
+                        minHeight: 5,
+                        backgroundColor: colorScheme.surfaceContainerHighest,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          colorScheme.error,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-
-                // Progress bar showing selection percentage
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: totalSubs > 0 ? selectedCount / totalSubs : 0,
-                    minHeight: 6,
-                    backgroundColor: colorScheme.surfaceContainerHighest,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      colorScheme.error,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildActionButton(
+                        context: context,
+                        label: "Select All",
+                        icon: Icons.check_circle_outline,
+                        onPressed: () => selectAllSubscriptions(provider),
+                        isPrimary: false,
+                        colorScheme: colorScheme,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: _buildActionButton(
+                        context: context,
+                        label: "Clear All",
+                        icon: Icons.clear_all_rounded,
+                        onPressed: clearAllSelections,
+                        isPrimary: false,
+                        colorScheme: colorScheme,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-
-          // Action buttons
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildActionButton(
-                    context: context,
-                    label: "Select All",
-                    icon: Icons.check_circle_outline,
-                    onPressed: () => selectAllSubscriptions(provider),
-                    isPrimary: false,
-                    colorScheme: colorScheme,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _buildActionButton(
-                    context: context,
-                    label: "Clear All",
-                    icon: Icons.clear_all_rounded,
-                    onPressed: clearAllSelections,
-                    isPrimary: false,
-                    colorScheme: colorScheme,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
@@ -425,143 +447,7 @@ mixin SelectionModeMixin<T extends StatefulWidget> on State<T> {
   }
 }
 
-// ============================================================================
-// TUTORIAL OVERLAY - Shows on first use
-// ============================================================================
 
-class _WhatIfTutorialOverlay extends StatelessWidget {
-  final VoidCallback onDismiss;
-
-  const _WhatIfTutorialOverlay({
-    required this.onDismiss,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      color: Colors.black.withOpacity(0.8),
-      child: SafeArea(
-        child: Center(
-          child: Container(
-            margin: const EdgeInsets.all(24),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  colorScheme.primaryContainer,
-                  colorScheme.secondaryContainer,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(
-                color: colorScheme.primary.withOpacity(0.3),
-                width: 2,
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.science_outlined,
-                  size: 64,
-                  color: colorScheme.primary,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "What If Mode",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onPrimaryContainer,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                _buildTutorialStep(
-                  context: context,
-                  icon: Icons.touch_app_rounded,
-                  text: "Tap any subscription to exclude it",
-                ),
-                const SizedBox(height: 12),
-                _buildTutorialStep(
-                  context: context,
-                  icon: Icons.visibility_off_rounded,
-                  text: "Excluded items stay visible but dimmed",
-                ),
-                const SizedBox(height: 12),
-                _buildTutorialStep(
-                  context: context,
-                  icon: Icons.savings_outlined,
-                  text: "See your potential savings in real-time",
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: onDismiss,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: colorScheme.onPrimary,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 16,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                  child: const Text(
-                    "Got it!",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTutorialStep({
-    required BuildContext context,
-    required IconData icon,
-    required String text,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: colorScheme.surface.withOpacity(0.5),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            icon,
-            size: 24,
-            color: colorScheme.primary,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              color: colorScheme.onPrimaryContainer,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 // ============================================================================
 // CARD OVERLAY WIDGET - Add this to your subscription cards
@@ -609,12 +495,12 @@ class WhatIfCardOverlay extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(24),
             color: isSnoozed
-                ? colorScheme.error.withOpacity(0.15)
+                ? colorScheme.error.withValues(alpha: 0.15)
                 : Colors.transparent,
             border: Border.all(
               color: isSnoozed
-                  ? colorScheme.error.withOpacity(0.5)
-                  : colorScheme.outline.withOpacity(0.3),
+                  ? colorScheme.error.withValues(alpha: 0.5)
+                  : colorScheme.outline.withValues(alpha: 0.3),
               width: isSnoozed ? 2 : 1,
             ),
           ),
@@ -626,7 +512,7 @@ class WhatIfCardOverlay extends StatelessWidget {
                   child: Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(24),
-                      color: colorScheme.surface.withOpacity(0.7),
+                      color: colorScheme.surface.withValues(alpha: 0.7),
                     ),
                   ),
                 ),
@@ -655,7 +541,7 @@ class WhatIfCardOverlay extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
+                          color: Colors.black.withValues(alpha: 0.1),
                           blurRadius: 4,
                           offset: const Offset(0, 2),
                         ),
@@ -687,7 +573,7 @@ class WhatIfCardOverlay extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: colorScheme.error.withOpacity(0.3),
+                          color: colorScheme.error.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),

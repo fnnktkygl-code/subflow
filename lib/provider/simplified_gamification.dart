@@ -1,18 +1,16 @@
+// lib/provider/simplified_gamification.dart
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// SIMPLIFIED GAMIFICATION
-// - Only essential features: XP, Level, Streak
-// - 3 core achievements (not 10+)
-// - Simple daily rewards (no complex quests)
-
+/// Serene Japandi Financial Mindfulness & Habit System
+/// Replaces arcade badges with calm, reflective milestones.
 class SimplifiedGamification extends ChangeNotifier {
   int _xp = 0;
   int _streak = 0;
   DateTime _lastCheckIn = DateTime.fromMillisecondsSinceEpoch(0);
   bool _hasClaimedToday = false;
 
-  // Getters
   int get xp => _xp;
   int get level => (_xp / 100).floor() + 1;
   int get streak => _streak;
@@ -25,42 +23,41 @@ class SimplifiedGamification extends ChangeNotifier {
   }
 
   String _getLevelTitle(int lvl) {
-    if (lvl < 3) return 'Starter 🌱';
-    if (lvl < 5) return 'Tracker 📊';
-    if (lvl < 8) return 'Saver 💰';
-    if (lvl < 12) return 'Master 👑';
-    return 'Legend ⭐';
+    if (lvl < 3) return 'Mindful Starter 🌱';
+    if (lvl < 5) return 'Clarity Seeker 🌊';
+    if (lvl < 8) return 'Financial Zen 🎋';
+    if (lvl < 12) return 'Serene Master 🌸';
+    return 'Zen Luminary ☀️';
   }
 
-  // SIMPLIFIED: Only 3 core achievements
+  // 3 Serene Mindfulness Milestones
   List<Achievement> get achievements => [
     Achievement(
-      title: 'First Steps',
-      description: 'Track 5 subscriptions',
-      icon: Icons.looks_one,
-      color: Colors.blue,
-      current: _xp ~/ 10, // Simplified tracking
+      title: 'Mindful Foundations',
+      description: 'Track 5 subscriptions with clarity',
+      icon: Icons.spa_rounded,
+      color: const Color(0xFF477A56),
+      current: _xp ~/ 10,
       target: 5,
     ),
     Achievement(
-      title: 'Week Warrior',
-      description: 'Maintain 7-day streak',
-      icon: Icons.local_fire_department,
-      color: Colors.orange,
+      title: 'Consistency Flow',
+      description: 'Maintain a 7-day clarity streak',
+      icon: Icons.water_drop_rounded,
+      color: const Color(0xFF3B6E8C),
       current: _streak,
       target: 7,
     ),
     Achievement(
-      title: 'Budget Boss',
-      description: 'Reach Level 5',
-      icon: Icons.star,
-      color: Colors.amber,
+      title: 'Spending Harmony',
+      description: 'Reach Level 5 in financial awareness',
+      icon: Icons.wb_sunny_rounded,
+      color: const Color(0xFFC4823F),
       current: level,
       target: 5,
     ),
   ];
 
-  // Check daily activity (simplified)
   void checkDailyActivity() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -79,31 +76,28 @@ class SimplifiedGamification extends ChangeNotifier {
     }
   }
 
-  // Award XP (simplified)
   void awardXP(int points, [String? reason]) {
     _xp += points;
     _saveState();
     notifyListeners();
   }
 
-  // Claim daily reward
   void claimDailyReward() {
     if (_hasClaimedToday) return;
 
-    final baseReward = 10;
+    const baseReward = 10;
     final streakBonus = (_streak / 7).floor() * 5;
     final totalReward = baseReward + streakBonus;
 
-    awardXP(totalReward, 'Daily check-in');
+    awardXP(totalReward, 'Daily mindfulness reflection');
     _hasClaimedToday = true;
     _saveState();
   }
 
-  // Track events (simplified)
   void onSubscriptionAdded() => awardXP(10, 'Added subscription');
-  void onSubscriptionDeleted(double monthlySaving) => awardXP(25 + (monthlySaving * 2).toInt(), 'Saved money');
+  void onSubscriptionDeleted(double monthlySaving) =>
+      awardXP(25 + (monthlySaving * 2).toInt(), 'Mindful commitment trimmed');
 
-  // Persistence
   Future<void> _saveState() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('xp', _xp);
@@ -122,7 +116,6 @@ class SimplifiedGamification extends ChangeNotifier {
   }
 }
 
-// Simple Achievement Model
 class Achievement {
   final String title;
   final String description;
