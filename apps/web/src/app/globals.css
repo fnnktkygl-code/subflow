@@ -146,17 +146,16 @@
     scrollbar-color: var(--color-border-strong) transparent;
   }
 
-  /* Amount Privacy Mode Blur - Completely unreadable & obscured */
+  /* Amount Privacy Mode Blur - Balanced, unreadable numbers but clearly visible as a blurred amount chip */
   .privacy-blur {
-    filter: blur(22px) contrast(0.1) saturate(0) !important;
-    opacity: 0.35 !important;
+    filter: blur(6px) !important;
+    opacity: 0.88 !important;
     user-select: none !important;
     pointer-events: none !important;
-    letter-spacing: 0.15em !important;
-    text-shadow: 0 0 24px currentColor !important;
-    transition: filter 0.15s ease-in-out, opacity 0.15s ease-in-out;
     display: inline-block;
+    transition: filter 0.2s ease, opacity 0.2s ease;
   }
+
 
   /* 3D Tactile Buttons & Pop Effects */
   .btn-3d-coral {
