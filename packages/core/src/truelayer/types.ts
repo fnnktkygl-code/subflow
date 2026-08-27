@@ -46,16 +46,75 @@ export interface TrueLayerBankProvider {
   id: string;
   name: string;
   country: string;
-  logo: string;
+  domain: string;
+  logoUrl: string;
+  brandColor?: string;
   popular?: boolean;
 }
 
 export const POPULAR_FRENCH_BANKS: TrueLayerBankProvider[] = [
-  { id: 'stet-boursorama', name: 'BoursoBank', country: 'FR', logo: '🏛️', popular: true },
-  { id: 'stet-bnp-paribas', name: 'BNP Paribas', country: 'FR', logo: '🏦', popular: true },
-  { id: 'stet-credit-agricole', name: 'Crédit Agricole', country: 'FR', logo: '🌾', popular: true },
-  { id: 'stet-societe-generale', name: 'Société Générale', country: 'FR', logo: '🔴', popular: true },
-  { id: 'stet-la-banque-postale', name: 'La Banque Postale', country: 'FR', logo: '📮', popular: true },
-  { id: 'revolut', name: 'Revolut', country: 'FR', logo: '⚡', popular: true },
-  { id: 'mock-sandbox', name: 'Banque Démo (Sandbox Test)', country: 'FR', logo: '🧪', popular: true }
+  {
+    id: 'stet-boursorama',
+    name: 'BoursoBank',
+    country: 'FR',
+    domain: 'boursobank.com',
+    logoUrl: 'https://img.logo.dev/boursobank.com?token=pk_X1cpD_81THS3lP56vQoYTw',
+    brandColor: '#E6007E',
+    popular: true
+  },
+  {
+    id: 'revolut',
+    name: 'Revolut',
+    country: 'FR',
+    domain: 'revolut.com',
+    logoUrl: 'https://img.logo.dev/revolut.com?token=pk_X1cpD_81THS3lP56vQoYTw',
+    brandColor: '#000000',
+    popular: true
+  },
+  {
+    id: 'stet-bnp-paribas',
+    name: 'BNP Paribas',
+    country: 'FR',
+    domain: 'bnpparibas.com',
+    logoUrl: 'https://img.logo.dev/bnpparibas.com?token=pk_X1cpD_81THS3lP56vQoYTw',
+    brandColor: '#00965E',
+    popular: true
+  },
+  {
+    id: 'stet-credit-agricole',
+    name: 'Crédit Agricole',
+    country: 'FR',
+    domain: 'credit-agricole.fr',
+    logoUrl: 'https://img.logo.dev/credit-agricole.fr?token=pk_X1cpD_81THS3lP56vQoYTw',
+    brandColor: '#007D8F',
+    popular: true
+  },
+  {
+    id: 'stet-societe-generale',
+    name: 'Société Générale',
+    country: 'FR',
+    domain: 'societegenerale.fr',
+    logoUrl: 'https://img.logo.dev/societegenerale.fr?token=pk_X1cpD_81THS3lP56vQoYTw',
+    brandColor: '#E60028',
+    popular: true
+  },
+  {
+    id: 'stet-la-banque-postale',
+    name: 'La Banque Postale',
+    country: 'FR',
+    domain: 'labanquepostale.fr',
+    logoUrl: 'https://img.logo.dev/labanquepostale.fr?token=pk_X1cpD_81THS3lP56vQoYTw',
+    brandColor: '#0C2340',
+    popular: true
+  },
+  {
+    id: 'mock-sandbox',
+    name: 'Banque Démo (Sandbox Test)',
+    country: 'FR',
+    domain: 'truelayer.com',
+    logoUrl: 'https://img.logo.dev/truelayer.com?token=pk_X1cpD_81THS3lP56vQoYTw',
+    brandColor: '#2563EB',
+    popular: true
+  }
 ];
+

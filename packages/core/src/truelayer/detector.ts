@@ -237,43 +237,95 @@ export function detectSubscriptionsFromTransactions(
 }
 
 /**
- * Générateur de transactions bancaires réalistes pour la démo / Sandbox
+/**
+ * Générateur de transactions bancaires réalistes pour la démo / Sandbox / BoursoBank / Revolut
  */
-export function getMockFrenchBankTransactions(): TrueLayerTransaction[] {
+export function getMockFrenchBankTransactions(bankId?: string): TrueLayerTransaction[] {
   const now = new Date();
   const getMonthDate = (monthsAgo: number, day: number): string => {
     const d = new Date(now.getFullYear(), now.getMonth() - monthsAgo, day);
     return d.toISOString().slice(0, 10);
   };
 
+  if (bankId === 'revolut') {
+    return [
+      // 1. ChatGPT Plus via Revolut
+      { id: 'tx-rev-gpt-1', date: getMonthDate(2, 4), description: 'Revolut Card - OPENAI *CHATGPT PLUS', amount: -23.99, counterpartyName: 'OpenAI', category: 'Productivity' },
+      { id: 'tx-rev-gpt-2', date: getMonthDate(1, 4), description: 'Revolut Card - OPENAI *CHATGPT PLUS', amount: -23.99, counterpartyName: 'OpenAI', category: 'Productivity' },
+      { id: 'tx-rev-gpt-3', date: getMonthDate(0, 4), description: 'Revolut Card - OPENAI *CHATGPT PLUS', amount: -23.99, counterpartyName: 'OpenAI', category: 'Productivity' },
+
+      // 2. Apple One / iCloud via Revolut
+      { id: 'tx-rev-apl-1', date: getMonthDate(2, 19), description: 'Revolut Card - APPLE.COM/BILL ICLOUD+', amount: -9.99, counterpartyName: 'Apple', category: 'Productivity' },
+      { id: 'tx-rev-apl-2', date: getMonthDate(1, 19), description: 'Revolut Card - APPLE.COM/BILL ICLOUD+', amount: -9.99, counterpartyName: 'Apple', category: 'Productivity' },
+      { id: 'tx-rev-apl-3', date: getMonthDate(0, 19), description: 'Revolut Card - APPLE.COM/BILL ICLOUD+', amount: -9.99, counterpartyName: 'Apple', category: 'Productivity' },
+
+      // 3. Spotify via Revolut
+      { id: 'tx-rev-spt-1', date: getMonthDate(2, 15), description: 'Revolut Card - SPOTIFY AB STOCKHOLM', amount: -10.99, counterpartyName: 'Spotify', category: 'Entertainment' },
+      { id: 'tx-rev-spt-2', date: getMonthDate(1, 15), description: 'Revolut Card - SPOTIFY AB STOCKHOLM', amount: -10.99, counterpartyName: 'Spotify', category: 'Entertainment' },
+      { id: 'tx-rev-spt-3', date: getMonthDate(0, 15), description: 'Revolut Card - SPOTIFY AB STOCKHOLM', amount: -10.99, counterpartyName: 'Spotify', category: 'Entertainment' },
+
+      // 4. Claude Pro (Anthropic)
+      { id: 'tx-rev-cld-1', date: getMonthDate(1, 12), description: 'Revolut Card - ANTHROPIC *CLAUDE.AI', amount: -21.60, counterpartyName: 'Anthropic', category: 'Productivity' },
+      { id: 'tx-rev-cld-2', date: getMonthDate(0, 12), description: 'Revolut Card - ANTHROPIC *CLAUDE.AI', amount: -21.60, counterpartyName: 'Anthropic', category: 'Productivity' },
+
+      // 5. Non-recurring
+      { id: 'tx-rev-ubr', date: getMonthDate(0, 20), description: 'Revolut Card - UBER *TRIP AMSTERDAM', amount: -18.40, category: 'Travel' },
+      { id: 'tx-rev-amz', date: getMonthDate(0, 25), description: 'Revolut Card - AMAZON PAYMENTS EU', amount: -34.90, category: 'Shopping' }
+    ];
+  }
+
+  if (bankId === 'stet-boursorama') {
+    return [
+      // 1. Netflix (SEPA BoursoBank)
+      { id: 'tx-brs-nflx-1', date: getMonthDate(2, 27), description: 'PRLV SEPA NETFLIX SERVICES FRANCE FR123456', amount: -13.49, counterpartyName: 'Netflix', category: 'Entertainment' },
+      { id: 'tx-brs-nflx-2', date: getMonthDate(1, 27), description: 'PRLV SEPA NETFLIX SERVICES FRANCE FR123456', amount: -13.49, counterpartyName: 'Netflix', category: 'Entertainment' },
+      { id: 'tx-brs-nflx-3', date: getMonthDate(0, 27), description: 'PRLV SEPA NETFLIX SERVICES FRANCE FR123456', amount: -13.49, counterpartyName: 'Netflix', category: 'Entertainment' },
+
+      // 2. Freebox Pop (SEPA BoursoBank)
+      { id: 'tx-brs-free-1', date: getMonthDate(2, 5), description: 'PRLV SEPA FREE TELECOM FACTURE 987123', amount: -29.99, counterpartyName: 'Free', category: 'Utilities' },
+      { id: 'tx-brs-free-2', date: getMonthDate(1, 5), description: 'PRLV SEPA FREE TELECOM FACTURE 987124', amount: -29.99, counterpartyName: 'Free', category: 'Utilities' },
+      { id: 'tx-brs-free-3', date: getMonthDate(0, 5), description: 'PRLV SEPA FREE TELECOM FACTURE 987125', amount: -29.99, counterpartyName: 'Free', category: 'Utilities' },
+
+      // 3. Basic-Fit (SEPA BoursoBank)
+      { id: 'tx-brs-fit-1', date: getMonthDate(2, 1), description: 'PRLV SEPA BASIC-FIT FRANCE II SARL', amount: -29.99, counterpartyName: 'Basic-Fit', category: 'Fitness' },
+      { id: 'tx-brs-fit-2', date: getMonthDate(1, 1), description: 'PRLV SEPA BASIC-FIT FRANCE II SARL', amount: -29.99, counterpartyName: 'Basic-Fit', category: 'Fitness' },
+      { id: 'tx-brs-fit-3', date: getMonthDate(0, 1), description: 'PRLV SEPA BASIC-FIT FRANCE II SARL', amount: -29.99, counterpartyName: 'Basic-Fit', category: 'Fitness' },
+
+      // 4. Spotify (CB BoursoBank)
+      { id: 'tx-brs-spt-1', date: getMonthDate(2, 15), description: 'CB SPOTIFY COM PREMIUM FACTURE', amount: -10.99, counterpartyName: 'Spotify', category: 'Entertainment' },
+      { id: 'tx-brs-spt-2', date: getMonthDate(1, 15), description: 'CB SPOTIFY COM PREMIUM FACTURE', amount: -10.99, counterpartyName: 'Spotify', category: 'Entertainment' },
+      { id: 'tx-brs-spt-3', date: getMonthDate(0, 15), description: 'CB SPOTIFY COM PREMIUM FACTURE', amount: -10.99, counterpartyName: 'Spotify', category: 'Entertainment' },
+
+      // 5. Non-recurring
+      { id: 'tx-brs-lecl', date: getMonthDate(0, 18), description: 'CB E.LECLERC DRIVE PARIS', amount: -68.40, category: 'Groceries' },
+      { id: 'tx-brs-sncf', date: getMonthDate(1, 10), description: 'CB SNCF VOYAGEURS TGV INOUI', amount: -54.00, category: 'Travel' }
+    ];
+  }
+
   return [
-    // 1. Netflix (Mensuel le 27 de chaque mois - 13.49 €)
+    // Standard mock transactions
     { id: 'tx-nflx-1', date: getMonthDate(2, 27), description: 'PRLV SEPA NETFLIX SERVICES FRANCE', amount: -13.49, counterpartyName: 'Netflix', category: 'Entertainment' },
     { id: 'tx-nflx-2', date: getMonthDate(1, 27), description: 'PRLV SEPA NETFLIX SERVICES FRANCE', amount: -13.49, counterpartyName: 'Netflix', category: 'Entertainment' },
     { id: 'tx-nflx-3', date: getMonthDate(0, 27), description: 'PRLV SEPA NETFLIX SERVICES FRANCE', amount: -13.49, counterpartyName: 'Netflix', category: 'Entertainment' },
 
-    // 2. Spotify (Mensuel le 15 de chaque mois - 10.99 €)
     { id: 'tx-spt-1', date: getMonthDate(2, 15), description: 'CB SPOTIFY COM PREMIUM', amount: -10.99, counterpartyName: 'Spotify', category: 'Entertainment' },
     { id: 'tx-spt-2', date: getMonthDate(1, 15), description: 'CB SPOTIFY COM PREMIUM', amount: -10.99, counterpartyName: 'Spotify', category: 'Entertainment' },
     { id: 'tx-spt-3', date: getMonthDate(0, 15), description: 'CB SPOTIFY COM PREMIUM', amount: -10.99, counterpartyName: 'Spotify', category: 'Entertainment' },
 
-    // 3. Freebox Pop (Mensuel le 5 de chaque mois - 29.99 €)
     { id: 'tx-free-1', date: getMonthDate(2, 5), description: 'PRLV SEPA FREE TELECOM FACTURE 876543', amount: -29.99, counterpartyName: 'Free', category: 'Utilities' },
     { id: 'tx-free-2', date: getMonthDate(1, 5), description: 'PRLV SEPA FREE TELECOM FACTURE 876544', amount: -29.99, counterpartyName: 'Free', category: 'Utilities' },
     { id: 'tx-free-3', date: getMonthDate(0, 5), description: 'PRLV SEPA FREE TELECOM FACTURE 876545', amount: -29.99, counterpartyName: 'Free', category: 'Utilities' },
 
-    // 4. Basic-Fit (Mensuel le 1er du mois - 29.99 €)
     { id: 'tx-fit-1', date: getMonthDate(2, 1), description: 'PRLV SEPA BASIC-FIT FRANCE II SARL', amount: -29.99, counterpartyName: 'Basic-Fit', category: 'Fitness' },
     { id: 'tx-fit-2', date: getMonthDate(1, 1), description: 'PRLV SEPA BASIC-FIT FRANCE II SARL', amount: -29.99, counterpartyName: 'Basic-Fit', category: 'Fitness' },
     { id: 'tx-fit-3', date: getMonthDate(0, 1), description: 'PRLV SEPA BASIC-FIT FRANCE II SARL', amount: -29.99, counterpartyName: 'Basic-Fit', category: 'Fitness' },
 
-    // 5. ChatGPT Plus (Mensuel le 1er du mois - 24.00 €)
     { id: 'tx-gpt-1', date: getMonthDate(1, 1), description: 'CB OPENAI *CHATGPT SUBSCRIPTION', amount: -24.00, counterpartyName: 'OpenAI', category: 'Productivity' },
     { id: 'tx-gpt-2', date: getMonthDate(0, 1), description: 'CB OPENAI *CHATGPT SUBSCRIPTION', amount: -24.00, counterpartyName: 'OpenAI', category: 'Productivity' },
 
-    // 6. Dépenses non récurrentes (Restaurants, Supermarché - doivent être exclues)
     { id: 'tx-carrefour', date: getMonthDate(0, 18), description: 'CB CARREFOUR MARKET PARIS 15', amount: -42.50, category: 'Groceries' },
     { id: 'tx-resto', date: getMonthDate(0, 22), description: 'CB RESTAURANT LE BISTROT', amount: -28.00, category: 'Dining' },
     { id: 'tx-sncf', date: getMonthDate(1, 12), description: 'ACHAT SNCF CONNECT BILLET TGV', amount: -65.00, category: 'Travel' }
   ];
 }
+

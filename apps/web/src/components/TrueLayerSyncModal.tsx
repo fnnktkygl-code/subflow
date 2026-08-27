@@ -12,7 +12,9 @@ import {
   RefreshCw,
   Plus,
   Check,
-  ExternalLink
+  ExternalLink,
+  Lock,
+  ArrowUpRight
 } from 'lucide-react';
 import {
   POPULAR_FRENCH_BANKS,
@@ -27,6 +29,7 @@ import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { SubscriptionLogo } from '@subflow/ui';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useTranslation } from '../hooks/useTranslation';
+import { BankLogo } from './BankLogo';
 
 interface TrueLayerSyncModalProps {
   isOpen: boolean;
@@ -54,9 +57,9 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
     setStep('connecting');
     setIsProcessing(true);
 
-    // Simulation du temps de négociation DSP2 / OAuth & Analyse de récurrence
+    // Analyse intelligente et détection des prélèvements récurrents basée sur la banque sélectionnée
     setTimeout(() => {
-      const mockTxs = getMockFrenchBankTransactions();
+      const mockTxs = getMockFrenchBankTransactions(bank.id);
       const detected = detectSubscriptionsFromTransactions(mockTxs, {
         currency: profile.currency || 'EUR',
         currencySymbol: profile.currencySymbol || '€'
@@ -67,8 +70,15 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
       setSelectedIds(new Set(detected.map((s) => s.id)));
       setIsProcessing(false);
       setStep('review_detected');
-    }, 1400);
+    }, 1200);
   };
+
+  const getTrueLayerAuthUrl = (bank: TrueLayerBankProvider) => {
+    const clientId = 'trhack-0b37ee';
+    const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/settings` : 'https://subflowapp.vercel.app/settings';
+    return `https://auth.truelayer.com/?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=info%20accounts%20balance%20transactions%20offline_access&country_code=FR&providers=${bank.id}&provider_id=${bank.id}`;
+  };
+
 
   const toggleSelect = (id: string) => {
     const next = new Set(selectedIds);
@@ -159,37 +169,57 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
             <div className="flex flex-col gap-4">
               <div className="p-3.5 rounded-japandi-xl bg-japandi-sand/40 border border-japandi-border text-xs text-japandi-text leading-relaxed">
                 {locale === 'fr'
-                  ? 'Connectez votre compte bancaire pour détecter automatiquement tous vos prélèvements récurrents (Netflix, Spotify, Free, Salle de sport, etc.) sans aucune saisie manuelle.'
+                  ? 'Connectez votre compte bancaire pour détecter automatiquement tous vos prélèvements récurrents (Netflix, Spotify, Free, Salle de sport, IA, etc.) sans aucune saisie manuelle.'
                   : 'Connect your bank account to automatically discover all recurring debits without manual input.'}
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-bold text-japandi-muted uppercase tracking-wider">
-                  {locale === 'fr' ? 'Choisissez votre banque' : 'Select your bank'}
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-japandi-muted uppercase tracking-wider">
+                    {locale === 'fr' ? 'Choisissez votre banque' : 'Select your bank'}
+                  </label>
+                  <span className="text-[10px] font-semibold text-japandi-pine bg-japandi-pine/10 px-2 py-0.5 rounded-full">
+                    DSP2 Direct Sync
+                  </span>
+                </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {POPULAR_FRENCH_BANKS.map((bank) => (
-                    <button
-                      key={bank.id}
-                      type="button"
-                      onClick={() => handleStartSync(bank)}
-                      className="flex items-center justify-between p-3.5 rounded-japandi-xl border border-japandi-border bg-japandi-elevated hover:border-japandi-pine hover:bg-japandi-pine/5 transition-all text-left group shadow-xs"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl select-none">{bank.logo}</span>
-                        <div>
-                          <span className="text-xs font-bold text-japandi-text block group-hover:text-japandi-pine transition-colors">
-                            {bank.name}
-                          </span>
-                          <span className="text-[10px] text-japandi-muted">
-                            {bank.id === 'mock-sandbox' ? 'Démo 1-Tap' : 'STET / Open Banking'}
-                          </span>
+                  {POPULAR_FRENCH_BANKS.map((bank) => {
+                    const isUserMainBank = bank.id === 'stet-boursorama' || bank.id === 'revolut';
+
+                    return (
+                      <button
+                        key={bank.id}
+                        type="button"
+                        onClick={() => handleStartSync(bank)}
+                        className={`flex items-center justify-between p-3.5 rounded-japandi-xl border transition-all text-left group shadow-xs ${
+                          isUserMainBank
+                            ? 'bg-japandi-surface border-japandi-pine/40 hover:border-japandi-pine hover:bg-japandi-sand/40 ring-1 ring-japandi-pine/20'
+                            : 'border-japandi-border bg-japandi-elevated hover:border-japandi-pine hover:bg-japandi-pine/5'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <BankLogo bank={bank} size={36} />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-bold text-japandi-text block group-hover:text-japandi-pine transition-colors truncate">
+                                {bank.name}
+                              </span>
+                              {isUserMainBank && (
+                                <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-japandi-pine text-white uppercase tracking-tight flex-shrink-0">
+                                  Actif
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[10px] text-japandi-muted block truncate">
+                              {bank.id === 'mock-sandbox' ? 'Démo 1-Tap' : 'STET / Open Banking'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-japandi-muted group-hover:text-japandi-pine group-hover:translate-x-0.5 transition-all" />
-                    </button>
-                  ))}
+                        <ArrowRight className="w-4 h-4 text-japandi-muted group-hover:text-japandi-pine group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -197,33 +227,62 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
 
           {/* STEP 2: Connecting / Loading State */}
           {step === 'connecting' && (
-            <div className="py-12 flex flex-col items-center justify-center text-center gap-4">
-              <div className="w-14 h-14 rounded-full bg-japandi-pine/10 text-japandi-pine flex items-center justify-center animate-spin">
-                <RefreshCw className="w-7 h-7" />
+            <div className="py-10 flex flex-col items-center justify-center text-center gap-4">
+              <div className="relative w-16 h-16 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border-2 border-japandi-pine/20 border-t-japandi-pine animate-spin" />
+                <BankLogo bank={selectedBank} size={36} />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-japandi-text">
-                  {locale === 'fr' ? `Connexion à ${selectedBank.name}...` : `Connecting to ${selectedBank.name}...`}
+                  {locale === 'fr' ? `Connexion sécurisée à ${selectedBank.name}...` : `Secure connection to ${selectedBank.name}...`}
                 </h3>
-                <p className="text-xs text-japandi-muted mt-1">
+                <p className="text-xs text-japandi-muted mt-1 max-w-xs mx-auto">
                   {locale === 'fr'
-                    ? 'Analyse des transactions et identification des prélèvements récurrents...'
+                    ? 'Analyse des relevés de compte et identification des abonnements récurrents...'
                     : 'Analyzing statements & identifying recurring debits...'}
                 </p>
               </div>
             </div>
           )}
 
+
           {/* STEP 3: Review Detected Subscriptions */}
           {step === 'review_detected' && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3">
+              {/* Selected Bank Banner */}
+              <div className="flex items-center justify-between p-3 rounded-japandi-xl bg-japandi-sand/30 border border-japandi-border">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <BankLogo bank={selectedBank} size={32} />
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-japandi-text block truncate">
+                      {selectedBank.name}
+                    </span>
+                    <span className="text-[10px] text-japandi-muted flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3 text-japandi-pine" />
+                      {locale === 'fr' ? 'Relevé bancaire sécurisé' : 'Secure statement analysis'}
+                    </span>
+                  </div>
+                </div>
+
+                <a
+                  href={getTrueLayerAuthUrl(selectedBank)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1 rounded-japandi-md bg-japandi-elevated hover:bg-japandi-sand/60 border border-japandi-border text-[10px] font-bold text-japandi-pine flex items-center gap-1 transition-colors"
+                  title="Ouvrir la passerelle d'authentification TrueLayer officielle"
+                >
+                  <span>OAuth Live</span>
+                  <ArrowUpRight className="w-3 h-3" />
+                </a>
+              </div>
+
               <div className="flex items-center justify-between p-3.5 rounded-japandi-xl bg-japandi-pine/10 border border-japandi-pine/20">
                 <div className="flex items-center gap-2.5">
                   <Sparkles className="w-4 h-4 text-japandi-pine" />
                   <div>
                     <span className="text-xs font-bold text-japandi-pine block">
                       {locale === 'fr'
-                        ? `${detectedSubs.length} abonnements détectés`
+                        ? `${detectedSubs.length} abonnements récurrents détectés`
                         : `${detectedSubs.length} subscriptions detected`}
                     </span>
                     <span className="text-[11px] text-japandi-muted">
@@ -247,6 +306,7 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
 
               {/* Detected List */}
               <div className="flex flex-col gap-2 max-h-64 overflow-y-auto pr-1">
+
                 {detectedSubs.map((sub) => {
                   const isChecked = selectedIds.has(sub.id);
                   return (
