@@ -79,17 +79,24 @@ export default function SchedulePage() {
     setIsAddModalOpen(true);
   };
 
-  const handleDayTouchStart = (day: number) => {
+  const handlePointerDown = (day: number) => {
+
     isLongPressTriggeredRef.current = false;
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+    }
     longPressTimerRef.current = setTimeout(() => {
       isLongPressTriggeredRef.current = true;
+      if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(40);
+      }
       const targetDate = new Date(year, month, day);
       setActionsDrawerDate(targetDate);
       setIsActionsDrawerOpen(true);
-    }, 600);
+    }, 450);
   };
 
-  const handleDayTouchEnd = (day: number) => {
+  const handlePointerUp = (day: number) => {
     if (longPressTimerRef.current) {
       clearTimeout(longPressTimerRef.current);
       longPressTimerRef.current = null;
@@ -98,6 +105,20 @@ export default function SchedulePage() {
       setSelectedDay(day);
     }
   };
+
+  const handlePointerCancel = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const handleOpenActionsForDay = (day: number) => {
+    const targetDate = new Date(year, month, day);
+    setActionsDrawerDate(targetDate);
+    setIsActionsDrawerOpen(true);
+  };
+
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-300 max-w-5xl mx-auto">
@@ -194,14 +215,17 @@ export default function SchedulePage() {
                   tabIndex={0}
                   aria-selected={isSelected}
                   aria-label={`${dayNum} ${monthLabel}, ${subsOnDay.length} subscriptions`}
-                  onClick={() => setSelectedDay(dayNum)}
-                  onTouchStart={() => handleDayTouchStart(dayNum)}
-                  onTouchEnd={() => handleDayTouchEnd(dayNum)}
+                  onPointerDown={() => handlePointerDown(dayNum)}
+                  onPointerUp={() => handlePointerUp(dayNum)}
+                  onPointerCancel={handlePointerCancel}
+                  onPointerLeave={handlePointerCancel}
                   onContextMenu={(e) => {
                     e.preventDefault();
+                    if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
                     setActionsDrawerDate(new Date(year, month, dayNum));
                     setIsActionsDrawerOpen(true);
                   }}
+                  title={locale === 'fr' ? 'Clic pour sélectionner • Appui long pour le menu d’actions' : 'Click to select • Long-press for action menu'}
                   className={`h-14 sm:h-16 rounded-japandi-xl border transition-all p-1.5 flex flex-col justify-between select-none cursor-pointer focus:outline-none ${
                     isSelected
                       ? 'bg-japandi-pine text-white border-japandi-pine shadow-japandi-sm'
@@ -252,15 +276,26 @@ export default function SchedulePage() {
                 {selectedDay} {monthLabel}
               </h3>
             </div>
-            <button
-              type="button"
-              onClick={() => handleOpenAddOnDay(selectedDay)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-japandi-md text-xs font-bold shadow-xs transition-all bg-japandi-pine text-white hover:bg-japandi-pine-light"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>{t('subs.addSubscription')}</span>
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => handleOpenActionsForDay(selectedDay)}
+                className="px-2.5 py-1.5 rounded-japandi-md text-xs font-bold border border-japandi-border text-japandi-text bg-japandi-elevated hover:border-japandi-pine transition-all"
+                title={locale === 'fr' ? 'Menu d’actions (Ajouter, Modifier, Supprimer)' : 'Action menu (Add, Edit, Delete)'}
+              >
+                {locale === 'fr' ? 'Actions' : 'Actions'}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOpenAddOnDay(selectedDay)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-japandi-md text-xs font-bold shadow-xs transition-all bg-japandi-pine text-white hover:bg-japandi-pine-light"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{t('subs.addSubscription')}</span>
+              </button>
+            </div>
           </div>
+
 
           {/* Subscriptions Renewing on Selected Day */}
           {selectedDaySubs.length === 0 ? (
