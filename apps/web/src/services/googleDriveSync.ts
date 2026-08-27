@@ -17,8 +17,10 @@ declare global {
   }
 }
 
-// Standard Google Client ID or user-provided ID
-export const DEFAULT_GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
+// Built-in SubFlow Google OAuth Client ID
+export const DEFAULT_GOOGLE_CLIENT_ID =
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '1058472918471-subflowapp.apps.googleusercontent.com';
+
 
 /**
  * Initializes and requests token authorization from Google Identity Services (GIS).
