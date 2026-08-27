@@ -74,10 +74,12 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
   };
 
   const getTrueLayerAuthUrl = (bank: TrueLayerBankProvider) => {
-    const clientId = 'trhack-0b37ee';
-    const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/settings` : 'https://subflowapp.vercel.app/settings';
+    const clientId = 'subflow-6571e7';
+    const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const redirectUri = isLocal ? 'http://localhost:3000/callback' : 'https://subflowapp.vercel.app/callback';
     return `https://auth.truelayer.com/?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=info%20accounts%20balance%20transactions%20offline_access&country_code=FR&providers=${bank.id}&provider_id=${bank.id}`;
   };
+
 
 
   const toggleSelect = (id: string) => {
