@@ -72,24 +72,65 @@ export function detectUserLanguage(): Locale {
 export function formatCurrency(
   amount: number,
   currencyCodeOrSymbol: string = 'EUR',
-  currencySymbol?: string,
-  locale?: Locale
+  symbolOrLocale?: string,
+  explicitLocale?: Locale
 ): string {
   const safeAmount = isNaN(amount) ? 0 : amount;
-  const numStr = safeAmount.toFixed(2);
 
-  // If called as formatCurrency(amount, '€')
-  if (currencyCodeOrSymbol && currencyCodeOrSymbol.length <= 2 && !currencySymbol && !locale) {
-    return `${currencyCodeOrSymbol}${numStr}`;
+  // Si appelé directement avec un symbole monétaire unique (ex: formatCurrency(48.48, '€') ou '$')
+  if (
+    currencyCodeOrSymbol &&
+    currencyCodeOrSymbol.length <= 3 &&
+    !symbolOrLocale &&
+    !explicitLocale
+  ) {
+    if (['€', '$', '£', '¥', 'CHF', 'CA$', 'AU$'].includes(currencyCodeOrSymbol)) {
+      return `${currencyCodeOrSymbol}${safeAmount.toFixed(2)}`;
+    }
   }
 
-  const code = currencyCodeOrSymbol || 'EUR';
-  const symbol = currencySymbol || (code === 'EUR' ? '€' : code === 'USD' || code === 'CAD' ? '$' : code === 'GBP' ? '£' : '€');
+  let locale: Locale = 'fr';
+  let symbol = '€';
+  let code = (currencyCodeOrSymbol || 'EUR').toUpperCase();
 
-  if (locale === 'fr' && (code === 'EUR' || symbol === '€')) {
-    return `${numStr.replace('.', ',')} €`;
+  if (symbolOrLocale === 'fr' || symbolOrLocale === 'en') {
+    locale = symbolOrLocale;
+  } else if (symbolOrLocale) {
+    symbol = symbolOrLocale;
   }
-  return `${symbol}${numStr}`;
+
+  if (explicitLocale) {
+    locale = explicitLocale;
+  }
+
+  if (code === 'EUR' || currencyCodeOrSymbol === '€') {
+    symbol = '€';
+    code = 'EUR';
+  } else if (code === 'USD' || currencyCodeOrSymbol === '$') {
+    symbol = '$';
+    code = 'USD';
+  } else if (code === 'GBP' || currencyCodeOrSymbol === '£') {
+    symbol = '£';
+    code = 'GBP';
+  } else if (code === 'CAD' || currencyCodeOrSymbol === 'CA$') {
+    symbol = 'CA$';
+    code = 'CAD';
+  } else if (code === 'CHF') {
+    symbol = 'CHF';
+  } else if (code === 'JPY' || currencyCodeOrSymbol === '¥') {
+    symbol = '¥';
+    code = 'JPY';
+  }
+
+  const formattedNum = safeAmount.toLocaleString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  if (locale === 'fr') {
+    return `${formattedNum} ${symbol}`;
+  }
+  return `${symbol}${formattedNum}`;
 }
 
 export { fr, en };
