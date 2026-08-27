@@ -12,7 +12,8 @@ import {
   SubscriptionCategory,
   Subscription
 } from '@subflow/core';
-import { SpendingDonut, SubscriptionLogo } from '@subflow/ui';
+import { SpendingDonut, SubscriptionLogo, Tooltip } from '@subflow/ui';
+
 import { CategoryIcon } from '../components/CategoryIcon';
 import { GoalDialog } from '../components/GoalDialog';
 import { ActionableInsightHeader } from '../components/ActionableInsightHeader';
@@ -74,110 +75,127 @@ export default function HomePage() {
       <ActionableInsightHeader />
 
       {/* 2. Spending Card with Goal & Long Press to Blur */}
-      <div
-        onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
-        onTouchStart={() => {
-          longPressTimerRef.current = setTimeout(toggleAmountBlur, 500);
-        }}
-        onTouchEnd={() => {
-          if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
-        }}
-        className="rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 relative overflow-hidden transition-all select-none bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm"
-        title="Appui long ou clic sur l'œil en haut pour masquer les montants"
+      <Tooltip
+        content={locale === 'fr' ? "Appui long ou clic sur l'œil en haut pour masquer les montants" : "Long-press or click the eye icon to blur amounts"}
+        side="bottom"
       >
-        {/* Subtle accent backdrop */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-japandi-pine/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
+        <div
+          onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
+          onTouchStart={() => {
+            longPressTimerRef.current = setTimeout(toggleAmountBlur, 500);
+          }}
+          onTouchEnd={() => {
+            if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
+          }}
+          className="rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 relative overflow-hidden transition-all select-none bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm cursor-default"
+        >
+          {/* Subtle accent backdrop */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-japandi-pine/5 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none" />
 
-        {/* Header: Title + yearly subtitle + tune button */}
-        <div className="flex items-start justify-between">
-          <div className="flex flex-col gap-0.5">
+          {/* Header: Title + tune button */}
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-lg">💰</span>
               <h3 className="font-bold text-sm text-japandi-muted">
                 {t('home.spendingTitle')}
               </h3>
             </div>
-            <p className="text-xs ml-7 text-japandi-muted">
-              {t('home.annualized', { amount: isAmountBlurred ? '•••• €' : format(totalYearly) })}
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={(e) => { e.stopPropagation(); setIsGoalModalOpen(true); }}
-            aria-label={t('home.monthlyTarget')}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-japandi-md text-xs font-semibold transition-all shadow-xs bg-japandi-elevated border border-japandi-border hover:border-japandi-pine text-japandi-text"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-japandi-pine" />
-            <span className="hidden sm:inline">{t('settings.configureBudget')}</span>
-          </button>
-        </div>
-
-        {/* Big Hero Amount */}
-        <div
-          onClick={toggleAmountBlur}
-          className="flex items-baseline gap-2 cursor-pointer"
-        >
-          <span className={`text-4xl sm:text-5xl font-extrabold tracking-tight text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
-            {format(totalMonthly)}
-          </span>
-          <span className="text-sm font-semibold text-japandi-muted">
-            {t('cycles.perMonth')}
-          </span>
-        </div>
-
-        {/* Spending Goal Progress Bar */}
-        {spendingGoal > 0 && (
-          <div className="flex flex-col gap-2 pt-2 border-t border-japandi-border/40">
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 text-japandi-muted">
-                <Target className="w-3.5 h-3.5 text-japandi-pine" />
-                <span>{t('home.targetBudget')} : {format(spendingGoal)}</span>
-              </div>
-              <span className={`font-bold ${isUnderGoal ? 'text-japandi-pine' : 'text-japandi-terracotta'}`}>
-                {isUnderGoal
-                  ? `${format(goalDiff)} ${t('home.remainingBudget').toLowerCase()}`
-                  : `${format(goalDiff)} ${t('home.targetExceeded').toLowerCase()}`}
-              </span>
-            </div>
-            <div
-              role="progressbar"
-              aria-valuenow={Math.round(goalProgress * 100)}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              className="w-full h-2.5 rounded-japandi-full overflow-hidden bg-japandi-elevated"
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setIsGoalModalOpen(true); }}
+              aria-label={t('home.monthlyTarget')}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-japandi-md text-xs font-semibold transition-all shadow-xs bg-japandi-elevated border border-japandi-border hover:border-japandi-pine text-japandi-text"
             >
-              <div
-                className={`h-full rounded-japandi-full transition-all duration-500 ${
-                  isUnderGoal ? 'bg-japandi-pine' : 'bg-japandi-terracotta'
-                }`}
-                style={{ width: `${Math.min(goalProgress * 100, 100)}%` }}
-              />
-            </div>
+              <SlidersHorizontal className="w-3.5 h-3.5 text-japandi-pine" />
+              <span className="hidden sm:inline">{t('settings.configureBudget')}</span>
+            </button>
           </div>
-        )}
 
-        {/* Unified What-If Simulator Action Trigger */}
-        <div className="pt-2">
-          <button
-            type="button"
-            onClick={toggleSelectionMode}
-            aria-expanded={isSelectionMode}
-            className={`w-full py-2.5 px-4 rounded-japandi-xl border text-xs font-bold flex items-center justify-between transition-all ${
-              isSelectionMode
-                ? 'bg-japandi-sand/60 border-japandi-pine text-japandi-pine'
-                : 'bg-japandi-elevated border-japandi-border hover:border-japandi-pine text-japandi-text'
-            }`}
+          {/* Big Hero Amount + Harmonious Annual Badge */}
+          <div
+            onClick={toggleAmountBlur}
+            className="flex flex-wrap items-baseline gap-x-3 gap-y-2 cursor-pointer"
           >
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full animate-pulse bg-japandi-pine" />
-              <span>{isSelectionMode ? t('whatIf.modeActive') : t('home.whatIfTitle')}</span>
-            </div>
-            <span className="text-[11px] text-japandi-muted">
-              {isSelectionMode ? t('whatIf.exitMode') : t('home.whatIfButton')} →
+            <span className={`text-4xl sm:text-5xl font-extrabold tracking-tight text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+              {format(totalMonthly)}
             </span>
-          </button>
+            <span className="text-sm font-bold text-japandi-muted">
+              {t('cycles.perMonth')}
+            </span>
+
+            {/* Premium Pill Badge for Annualized Total */}
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all ${
+              isAmountBlurred
+                ? 'bg-japandi-sand/30 border-japandi-border text-japandi-muted'
+                : 'bg-japandi-pine/10 border-japandi-pine/20 text-japandi-pine dark:text-emerald-400 shadow-xs'
+            }`}>
+              <span className="text-[10px] opacity-75 font-normal uppercase tracking-wider">
+                {locale === 'fr' ? 'Soit' : 'Equiv.'}
+              </span>
+              <span className={isAmountBlurred ? 'privacy-blur' : 'font-extrabold'}>
+                {isAmountBlurred ? '•••• €' : format(totalYearly)}
+              </span>
+              <span className="text-[10px] opacity-75 font-normal">
+                / {locale === 'fr' ? 'an' : 'yr'}
+              </span>
+            </span>
+          </div>
+
+          {/* Spending Goal Progress Bar */}
+          {spendingGoal > 0 && (
+            <div className="flex flex-col gap-2 pt-2 border-t border-japandi-border/40">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5 text-japandi-muted">
+                  <Target className="w-3.5 h-3.5 text-japandi-pine" />
+                  <span>{t('home.targetBudget')} : {format(spendingGoal)}</span>
+                </div>
+                <span className={`font-bold ${isUnderGoal ? 'text-japandi-pine' : 'text-japandi-terracotta'}`}>
+                  {isUnderGoal
+                    ? `${format(goalDiff)} ${t('home.remainingBudget').toLowerCase()}`
+                    : `${format(goalDiff)} ${t('home.targetExceeded').toLowerCase()}`}
+                </span>
+              </div>
+              <div
+                role="progressbar"
+                aria-valuenow={Math.round(goalProgress * 100)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                className="w-full h-2.5 rounded-japandi-full overflow-hidden bg-japandi-elevated"
+              >
+                <div
+                  className={`h-full rounded-japandi-full transition-all duration-500 ${
+                    isUnderGoal ? 'bg-japandi-pine' : 'bg-japandi-terracotta'
+                  }`}
+                  style={{ width: `${Math.min(goalProgress * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Unified What-If Simulator Action Trigger */}
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={toggleSelectionMode}
+              aria-expanded={isSelectionMode}
+              className={`w-full py-2.5 px-4 rounded-japandi-xl border text-xs font-bold flex items-center justify-between transition-all ${
+                isSelectionMode
+                  ? 'bg-japandi-sand/60 border-japandi-pine text-japandi-pine'
+                  : 'bg-japandi-elevated border-japandi-border hover:border-japandi-pine text-japandi-text'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full animate-pulse bg-japandi-pine" />
+                <span>{isSelectionMode ? t('whatIf.modeActive') : t('home.whatIfTitle')}</span>
+              </div>
+              <span className="text-[11px] text-japandi-muted">
+                {isSelectionMode ? t('whatIf.exitMode') : t('home.whatIfButton')} →
+              </span>
+            </button>
+          </div>
         </div>
-      </div>
+      </Tooltip>
+
 
       {/* 3. Category Breakdown & Donut */}
       {subscriptions.length > 0 && (

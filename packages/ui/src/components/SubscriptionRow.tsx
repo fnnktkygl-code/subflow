@@ -4,7 +4,9 @@ import React from 'react';
 import { Subscription, formatCurrency } from '@subflow/core';
 import { JapandiBadge } from './JapandiBadge';
 import { SubscriptionLogo } from './SubscriptionLogo';
+import { Tooltip } from './Tooltip';
 import { Edit2, Trash2 } from 'lucide-react';
+
 
 export interface SubscriptionRowProps {
   subscription: Subscription;
@@ -106,30 +108,34 @@ export const SubscriptionRow: React.FC<SubscriptionRowProps> = ({
         {!isSelectionMode && (
           <div className="hidden group-hover:flex items-center gap-1 ml-2 transition-opacity animate-in fade-in duration-150">
             {onEdit && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(subscription);
-                }}
-                className="p-1.5 rounded-japandi-sm text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/50 transition-colors"
-                title="Edit subscription"
-              >
-                <Edit2 className="w-3.5 h-3.5" />
-              </button>
+              <Tooltip content="Modifier" side="top">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(subscription);
+                  }}
+                  className="p-1.5 rounded-japandi-sm text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/50 transition-colors"
+                  aria-label="Modifier l'abonnement"
+                >
+                  <Edit2 className="w-3.5 h-3.5" />
+                </button>
+              </Tooltip>
             )}
             {onDelete && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(subscription);
-                }}
-                className="p-1.5 rounded-japandi-sm text-japandi-muted hover:text-japandi-terracotta hover:bg-japandi-terracotta/10 transition-colors"
-                title="Delete subscription"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
+              <Tooltip content="Supprimer" side="top">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(subscription);
+                  }}
+                  className="p-1.5 rounded-japandi-sm text-japandi-muted hover:text-japandi-terracotta hover:bg-japandi-terracotta/10 transition-colors"
+                  aria-label="Supprimer l'abonnement"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </Tooltip>
             )}
           </div>
         )}
@@ -137,3 +143,4 @@ export const SubscriptionRow: React.FC<SubscriptionRowProps> = ({
     </div>
   );
 };
+

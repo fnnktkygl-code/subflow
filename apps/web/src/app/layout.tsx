@@ -6,6 +6,8 @@ import { TopAppBar } from '../components/TopAppBar';
 import { BottomDock } from '../components/BottomDock';
 import { AddSubscriptionModal } from '../components/AddSubscriptionModal';
 
+import { TooltipProvider } from '@subflow/ui';
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -17,16 +19,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <title>SubFlow — Mindful Subscription Management</title>
       </head>
       <body className="h-full bg-japandi-bg text-japandi-text font-sans antialiased selection:bg-japandi-pine selection:text-white flex flex-col min-h-screen">
-        <TopAppBar />
-        <main className="flex-1 w-full max-w-[1120px] mx-auto px-4 sm:px-6 pt-4 pb-32">
-          {children}
-        </main>
-        <BottomDock onOpenAddModal={() => setIsAddModalOpen(true)} />
-        <AddSubscriptionModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-        />
+        <TooltipProvider delayDuration={150}>
+          <TopAppBar />
+          <main className="flex-1 w-full max-w-[1120px] mx-auto px-4 sm:px-6 pt-4 pb-32">
+            {children}
+          </main>
+          <BottomDock onOpenAddModal={() => setIsAddModalOpen(true)} />
+          <AddSubscriptionModal
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+          />
+        </TooltipProvider>
       </body>
     </html>
   );
 }
+

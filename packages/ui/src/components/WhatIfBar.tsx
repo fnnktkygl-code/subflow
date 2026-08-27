@@ -3,6 +3,8 @@
 import React, { useState } from 'react';
 import { WhatIfSavings } from '@subflow/core';
 import { X, Sparkles, MinusCircle, TrendingDown, PiggyBank, CheckCircle2, AlignJustify, ChevronUp, ChevronDown } from 'lucide-react';
+import { Tooltip } from './Tooltip';
+
 
 export interface WhatIfBarProps {
   savings: WhatIfSavings;
@@ -57,14 +59,16 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
               <ChevronUp className="w-3.5 h-3.5 text-japandi-muted" />
             </button>
 
-            <button
-              type="button"
-              onClick={onExit}
-              className="p-1.5 rounded-japandi-md text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand transition-colors"
-              title="Exit What If Mode"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <Tooltip content="Quitter le mode Simulation" side="top">
+              <button
+                type="button"
+                onClick={onExit}
+                className="p-1.5 rounded-japandi-md text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand transition-colors"
+                aria-label="Exit What If Mode"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </Tooltip>
           </div>
         </div>
       ) : (
@@ -83,24 +87,29 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
             </div>
 
             <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setIsExpanded(false)}
-                className="p-1.5 rounded-japandi-sm text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/40 transition-colors"
-                title="Collapse details"
-              >
-                <ChevronDown className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={onExit}
-                className="p-1.5 rounded-japandi-sm text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/40 transition-colors"
-                title="Exit What If Mode"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <Tooltip content="Réduire" side="top">
+                <button
+                  type="button"
+                  onClick={() => setIsExpanded(false)}
+                  className="p-1.5 rounded-japandi-sm text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/40 transition-colors"
+                  aria-label="Collapse details"
+                >
+                  <ChevronDown className="w-4 h-4" />
+                </button>
+              </Tooltip>
+              <Tooltip content="Quitter le mode Simulation" side="top">
+                <button
+                  type="button"
+                  onClick={onExit}
+                  className="p-1.5 rounded-japandi-sm text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/40 transition-colors"
+                  aria-label="Exit What If Mode"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </Tooltip>
             </div>
           </div>
+
 
           {/* Center Metric Box */}
           <div className="p-3.5 rounded-japandi-lg bg-japandi-elevated border border-japandi-border flex flex-col gap-2.5">

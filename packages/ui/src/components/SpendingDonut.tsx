@@ -3,6 +3,8 @@
 import React from 'react';
 import { SubscriptionCategory, Subscription, formatCurrency } from '@subflow/core';
 import { X } from 'lucide-react';
+import { Tooltip } from './Tooltip';
+
 
 export interface SpendingDonutProps {
   categories: Record<string, { total: number; percentage: number; count: number; subscriptions?: Subscription[] }>;
@@ -185,12 +187,13 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
         {/* Center Content: Either Selected Category Card or Total */}
         {selectedCategory && selectedData ? (
           /* Selected Category Center Card matching Flutter screenshot 1 */
-          <div
-            onClick={() => onSelectCategory?.(null)}
-            title="Cliquer pour réinitialiser"
-            className="absolute z-10 w-32 py-2.5 px-2 rounded-japandi-lg bg-japandi-surface border border-japandi-border hover:border-japandi-pine shadow-japandi-md flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-150 select-none cursor-pointer transition-colors"
-          >
-            <div className="flex items-center gap-1.5 mb-0.5">
+          <Tooltip content="Cliquer pour réinitialiser" side="top">
+            <div
+              onClick={() => onSelectCategory?.(null)}
+              className="absolute z-10 w-32 py-2.5 px-2 rounded-japandi-lg bg-japandi-surface border border-japandi-border hover:border-japandi-pine shadow-japandi-md flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-150 select-none cursor-pointer transition-colors"
+            >
+              <div className="flex items-center gap-1.5 mb-0.5">
+
               <div
                 className="w-5 h-5 rounded-japandi-sm flex items-center justify-center p-0.5 shadow-2xs"
                 style={{
@@ -213,7 +216,9 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
               {selectedData.percentage.toFixed(1)}% of total
             </span>
           </div>
-        ) : (
+        </Tooltip>
+      ) : (
+
           /* Default Center Total */
           <div className="absolute flex flex-col items-center justify-center text-center select-none pointer-events-none">
             <span className="text-[10px] uppercase font-bold text-japandi-muted tracking-wider">

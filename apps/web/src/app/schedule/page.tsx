@@ -4,7 +4,8 @@ import React, { useState, useMemo, useRef } from 'react';
 import { useSubscriptionStore } from '../../store/useSubscriptionStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { calculateTotalMonthlyCost, Subscription } from '@subflow/core';
-import { SubscriptionLogo } from '@subflow/ui';
+import { SubscriptionLogo, Tooltip } from '@subflow/ui';
+
 import { ChevronLeft, ChevronRight, Eye, EyeOff, Receipt, Plus, Sparkles } from 'lucide-react';
 import { AddSubscriptionModal } from '../../components/AddSubscriptionModal';
 import { CalendarActionsDrawer } from '../../components/CalendarActionsDrawer';
@@ -135,25 +136,30 @@ export default function SchedulePage() {
 
 
         {/* Monthly Total Pill with Long Press / Click to Blur */}
-        <div
-          onClick={toggleAmountBlur}
-          onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
-          className="flex items-center gap-3 px-4 py-2.5 rounded-japandi-xl border transition-all cursor-pointer select-none bg-japandi-surface border-japandi-border hover:border-japandi-pine shadow-japandi-sm"
-          title="Appui long ou clic pour masquer/afficher les montants"
+        <Tooltip
+          content={locale === 'fr' ? "Appui long ou clic pour masquer/afficher les montants" : "Click to toggle amount visibility"}
+          side="bottom"
         >
-          <div className="w-8 h-8 rounded-japandi-full flex items-center justify-center bg-japandi-pine/10 text-japandi-pine">
-            <Receipt className="w-4 h-4" />
+          <div
+            onClick={toggleAmountBlur}
+            onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
+            className="flex items-center gap-3 px-4 py-2.5 rounded-japandi-xl border transition-all cursor-pointer select-none bg-japandi-surface border-japandi-border hover:border-japandi-pine shadow-japandi-sm"
+          >
+            <div className="w-8 h-8 rounded-japandi-full flex items-center justify-center bg-japandi-pine/10 text-japandi-pine">
+              <Receipt className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[10px] uppercase font-semibold tracking-wider text-japandi-muted">
+                {t('schedule.monthlyTotal')}
+              </span>
+              <span className={`text-base font-extrabold text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+                {format(totalMonthlyCost)}
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase font-semibold tracking-wider text-japandi-muted">
-              {t('schedule.monthlyTotal')}
-            </span>
-            <span className={`text-base font-extrabold text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
-              {format(totalMonthlyCost)}
-            </span>
-          </div>
-        </div>
+        </Tooltip>
       </div>
+
 
       {/* 2. Responsive 2-Column Layout for Desktop */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -225,7 +231,6 @@ export default function SchedulePage() {
                     setActionsDrawerDate(new Date(year, month, dayNum));
                     setIsActionsDrawerOpen(true);
                   }}
-                  title={locale === 'fr' ? 'Clic pour sélectionner • Appui long pour le menu d’actions' : 'Click to select • Long-press for action menu'}
                   className={`h-14 sm:h-16 rounded-japandi-xl border transition-all p-1.5 flex flex-col justify-between select-none cursor-pointer focus:outline-none ${
                     isSelected
                       ? 'bg-japandi-pine text-white border-japandi-pine shadow-japandi-sm'

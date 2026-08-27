@@ -4,7 +4,8 @@ import React, { useState, useMemo, useId } from 'react';
 import { useSubscriptionStore } from '../../store/useSubscriptionStore';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
-import { SubscriptionLogo } from '@subflow/ui';
+import { SubscriptionLogo, Tooltip } from '@subflow/ui';
+
 import { Subscription, calculateTotalMonthlyCost, calculateTotalYearlyCost } from '@subflow/core';
 import {
   ClipboardList,
@@ -186,34 +187,52 @@ export default function SubsPage() {
       </div>
 
       {/* 2. Spending Summary Hero */}
-      <div
-        onClick={toggleAmountBlur}
-        onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
-        className="rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-3 cursor-pointer select-none transition-all bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm"
-        title="Appui long ou clic pour masquer/afficher les montants"
+      <Tooltip
+        content={locale === 'fr' ? "Appui long ou clic pour masquer/afficher les montants" : "Click or long-press to toggle amount blur"}
+        side="bottom"
       >
-        <div className="flex items-center justify-between">
-          <span className="text-xs uppercase tracking-wider text-japandi-muted font-semibold">
-            {t('home.spendingTitle')}
-          </span>
-          <span className="text-xs font-bold px-2.5 py-1 rounded-full text-japandi-pine bg-japandi-pine/10">
-            {t('home.activeCount', { count: remainingSubsCount })}
-          </span>
-        </div>
+        <div
+          onClick={toggleAmountBlur}
+          onContextMenu={(e) => { e.preventDefault(); toggleAmountBlur(); }}
+          className="rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-3 cursor-pointer select-none transition-all bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs uppercase tracking-wider text-japandi-muted font-bold">
+              {t('home.spendingTitle')}
+            </span>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full text-japandi-pine bg-japandi-pine/10">
+              {t('home.activeCount', { count: remainingSubsCount })}
+            </span>
+          </div>
 
-        <div className="flex items-baseline gap-2">
-          <span className={`text-4xl sm:text-5xl font-extrabold text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
-            {format(totalMonthly)}
-          </span>
-          <span className="text-sm font-semibold text-japandi-muted">
-            {t('cycles.perMonth')}
-          </span>
-        </div>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+            <span className={`text-4xl sm:text-5xl font-extrabold text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
+              {format(totalMonthly)}
+            </span>
+            <span className="text-sm font-bold text-japandi-muted">
+              {t('cycles.perMonth')}
+            </span>
 
-        <p className="text-xs text-japandi-muted">
-          {t('home.annualized', { amount: isAmountBlurred ? '•••• €' : format(totalYearly) })}
-        </p>
-      </div>
+            {/* Premium Annual Pill Badge */}
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border transition-all ${
+              isAmountBlurred
+                ? 'bg-japandi-sand/30 border-japandi-border text-japandi-muted'
+                : 'bg-japandi-pine/10 border-japandi-pine/20 text-japandi-pine dark:text-emerald-400 shadow-xs'
+            }`}>
+              <span className="text-[10px] opacity-75 font-normal uppercase tracking-wider">
+                {locale === 'fr' ? 'Soit' : 'Equiv.'}
+              </span>
+              <span className={isAmountBlurred ? 'privacy-blur' : 'font-extrabold'}>
+                {isAmountBlurred ? '•••• €' : format(totalYearly)}
+              </span>
+              <span className="text-[10px] opacity-75 font-normal">
+                / {locale === 'fr' ? 'an' : 'yr'}
+              </span>
+            </span>
+          </div>
+        </div>
+      </Tooltip>
+
 
 
 

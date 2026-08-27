@@ -7,6 +7,8 @@ import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { ThemeMode } from '@subflow/core';
 
+import { Tooltip } from '@subflow/ui';
+
 export const TopAppBar: React.FC = () => {
   const pathname = usePathname();
   const { isAmountBlurred, toggleAmountBlur, profile, updateProfile } = useSubscriptionStore();
@@ -94,50 +96,53 @@ export const TopAppBar: React.FC = () => {
 
         <div className="flex items-center gap-2">
           {/* Quick Language Toggle with National Flags (🇫🇷 FR / 🇬🇧 EN) */}
-          <button
-            type="button"
-            onClick={toggleLanguage}
-            aria-label={`Switch language from ${locale.toUpperCase()} to ${locale === 'fr' ? 'EN' : 'FR'}`}
-            title={`Langue actuelle : ${locale === 'fr' ? 'Français 🇫🇷' : 'English 🇬🇧'} (Cliquer pour changer)`}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-japandi-md border border-japandi-border bg-japandi-surface text-japandi-text text-xs font-bold hover:border-japandi-pine transition-all shadow-xs"
-          >
-            <span className="text-sm select-none" role="img" aria-label={locale === 'fr' ? 'Drapeau français' : 'British flag'}>
-              {locale === 'fr' ? '🇫🇷' : '🇬🇧'}
-            </span>
-            <span className="uppercase tracking-wider">{locale}</span>
-          </button>
+          <Tooltip content={`Langue : ${locale === 'fr' ? 'Français 🇫🇷' : 'English 🇬🇧'} (Changer)`} side="bottom">
+            <button
+              type="button"
+              onClick={toggleLanguage}
+              aria-label={`Switch language from ${locale.toUpperCase()} to ${locale === 'fr' ? 'EN' : 'FR'}`}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-japandi-md border border-japandi-border bg-japandi-surface text-japandi-text text-xs font-bold hover:border-japandi-pine transition-all shadow-xs"
+            >
+              <span className="text-sm select-none" role="img" aria-label={locale === 'fr' ? 'Drapeau français' : 'British flag'}>
+                {locale === 'fr' ? '🇫🇷' : '🇬🇧'}
+              </span>
+              <span className="uppercase tracking-wider">{locale}</span>
+            </button>
+          </Tooltip>
 
           {/* Amount Blur Toggle */}
-          <button
-            type="button"
-            onClick={toggleAmountBlur}
-            aria-label={isAmountBlurred ? 'Show amounts' : 'Hide amounts'}
-            title={isAmountBlurred ? 'Show amounts' : 'Hide amounts'}
-            className="p-2 rounded-japandi-md text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/40 transition-colors"
-          >
-            {isAmountBlurred ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
+          <Tooltip content={isAmountBlurred ? (locale === 'fr' ? 'Afficher les montants' : 'Show amounts') : (locale === 'fr' ? 'Masquer les montants' : 'Hide amounts')} side="bottom">
+            <button
+              type="button"
+              onClick={toggleAmountBlur}
+              aria-label={isAmountBlurred ? 'Show amounts' : 'Hide amounts'}
+              className="p-2 rounded-japandi-md text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/40 transition-colors"
+            >
+              {isAmountBlurred ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </Tooltip>
 
           {/* Theme Cycler (Light -> Dark -> Pinkbie) */}
-          <button
-            type="button"
-            onClick={cycleTheme}
-            aria-label={`Cycle theme, currently ${currentTheme}`}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-japandi-md border border-japandi-border bg-japandi-surface text-japandi-muted hover:text-japandi-text hover:border-japandi-border-strong transition-all shadow-xs"
-          >
-            {getThemeIcon()}
-            <span className="text-xs font-semibold capitalize hidden sm:inline text-japandi-text">
-              {currentTheme === 'barbie'
-                ? 'Pinkbie'
-                : currentTheme === 'dark'
-                ? (locale === 'fr' ? 'Sombre' : 'Dark')
-                : (locale === 'fr' ? 'Clair' : 'Light')}
-            </span>
-          </button>
-
-
+          <Tooltip content={locale === 'fr' ? 'Changer de thème' : 'Switch theme'} side="bottom">
+            <button
+              type="button"
+              onClick={cycleTheme}
+              aria-label={`Cycle theme, currently ${currentTheme}`}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-japandi-md border border-japandi-border bg-japandi-surface text-japandi-muted hover:text-japandi-text hover:border-japandi-border-strong transition-all shadow-xs"
+            >
+              {getThemeIcon()}
+              <span className="text-xs font-semibold capitalize hidden sm:inline text-japandi-text">
+                {currentTheme === 'barbie'
+                  ? 'Pinkbie'
+                  : currentTheme === 'dark'
+                  ? (locale === 'fr' ? 'Sombre' : 'Dark')
+                  : (locale === 'fr' ? 'Clair' : 'Light')}
+              </span>
+            </button>
+          </Tooltip>
         </div>
       </div>
     </header>
   );
 };
+

@@ -6,7 +6,10 @@ import { useTranslation } from '../hooks/useTranslation';
 import { calculateUpcomingOccurrences, calculateTotalMonthlyCost } from '@subflow/core';
 import { Pencil, Check, Bell, Clock, AlertTriangle, CheckCircle2, Activity } from 'lucide-react';
 
+import { Tooltip } from '@subflow/ui';
+
 export const ActionableInsightHeader: React.FC = () => {
+
   const { profile, updateProfile, subscriptions, isAmountBlurred } = useSubscriptionStore();
   const { t, format, locale } = useTranslation();
 
@@ -135,24 +138,28 @@ export const ActionableInsightHeader: React.FC = () => {
         </form>
       ) : (
         <div className="flex items-center gap-2 group">
-          <h1
-            onClick={() => setIsEditingName(true)}
-            className="text-3xl sm:text-4xl font-extrabold tracking-tight text-japandi-text font-sans cursor-pointer hover:text-japandi-pine transition-colors"
-            style={{ lineHeight: 1.15, letterSpacing: '-0.6px' }}
-            title="Cliquer pour modifier votre prénom"
-          >
-            {greetingTitle}
-          </h1>
-          <button
-            type="button"
-            onClick={() => setIsEditingName(true)}
-            aria-label="Modifier mon prénom"
-            className="opacity-0 group-hover:opacity-100 p-1.5 rounded-japandi-md text-japandi-muted hover:text-japandi-pine hover:bg-japandi-elevated transition-all"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-          </button>
+          <Tooltip content={locale === 'fr' ? 'Cliquer pour modifier votre prénom' : 'Click to edit your name'} side="right">
+            <h1
+              onClick={() => setIsEditingName(true)}
+              className="text-3xl sm:text-4xl font-extrabold tracking-tight text-japandi-text font-sans cursor-pointer hover:text-japandi-pine transition-colors"
+              style={{ lineHeight: 1.15, letterSpacing: '-0.6px' }}
+            >
+              {greetingTitle}
+            </h1>
+          </Tooltip>
+          <Tooltip content={locale === 'fr' ? 'Modifier' : 'Edit'} side="top">
+            <button
+              type="button"
+              onClick={() => setIsEditingName(true)}
+              aria-label="Modifier mon prénom"
+              className="opacity-0 group-hover:opacity-100 p-1.5 rounded-japandi-md text-japandi-muted hover:text-japandi-pine hover:bg-japandi-elevated transition-all"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          </Tooltip>
         </div>
       )}
+
 
       {/* Dynamic Actionable Insight Pill */}
       <div className="flex items-center">

@@ -6,3 +6,5 @@ export * from './components/SubscriptionRow';
 export * from './components/SubscriptionLogo';
 export * from './components/WhatIfBar';
 export * from './components/CustomDropdown';
+export * from './components/Tooltip';
+
