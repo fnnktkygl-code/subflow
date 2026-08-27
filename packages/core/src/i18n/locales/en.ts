@@ -226,6 +226,11 @@ export const en = {
     regional: 'Language & Currency',
     languageLabel: 'Application Language',
     currencyLabel: 'Primary Currency',
+    profileSection: 'Profile & Identity',
+    userNameLabel: 'Your name or nickname',
+    userNameSubtitle: 'The name SubFlow uses to address you',
+    userNamePlaceholder: 'e.g. Richard, Sarah, Alex...',
+    saveNameSuccess: 'Name updated!',
     privacySection: 'Privacy & Display',
     blurAmounts: 'Hide Amounts (Privacy Blur Mode)',
     incomeGoalSection: 'Budget & Goals',
@@ -240,3 +245,4 @@ export const en = {
     resetConfirm: 'Are you sure you want to delete all your subscriptions?'
   }
 };
+

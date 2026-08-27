@@ -28,6 +28,8 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
 
   const savings = calculateWhatIfSavings(subscriptions, new Set(excludedIds));
 
+  const isVibrant = profile.themeMode === 'vibrant';
+
   return (
     <div className="fixed bottom-6 inset-x-0 z-40 flex flex-col items-center pointer-events-none px-4">
       {/* What-If Floating Action Bar */}
@@ -46,14 +48,20 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
       {/* Centered Modern Floating Dock */}
       <nav
         aria-label="Navigation principale"
-        className="w-full max-w-[580px] h-[68px] rounded-japandi-xl bg-japandi-surface/95 backdrop-blur-xl border border-japandi-border shadow-japandi-lg pointer-events-auto flex items-center justify-around px-3"
+        className={`w-full max-w-[580px] h-[68px] rounded-japandi-xl pointer-events-auto flex items-center justify-around px-3 transition-all ${
+          isVibrant
+            ? 'bg-[#121020]/90 backdrop-blur-xl border border-pink-500/20 shadow-[0_12px_40px_rgba(0,0,0,0.6)]'
+            : 'bg-japandi-surface/95 backdrop-blur-xl border border-japandi-border shadow-japandi-lg'
+        }`}
       >
         {/* Home */}
         <Link
           href="/"
           aria-label={t('nav.home')}
           className={`flex flex-col items-center justify-center w-16 h-12 rounded-japandi-md transition-colors ${
-            pathname === '/' ? 'text-japandi-pine font-bold' : 'text-japandi-muted hover:text-japandi-text'
+            pathname === '/'
+              ? isVibrant ? 'text-pink-400 font-extrabold' : 'text-japandi-pine font-bold'
+              : isVibrant ? 'text-slate-400 hover:text-white' : 'text-japandi-muted hover:text-japandi-text'
           }`}
         >
           <Home className="w-5 h-5" />
@@ -65,7 +73,9 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
           href="/schedule"
           aria-label={t('nav.schedule')}
           className={`flex flex-col items-center justify-center w-16 h-12 rounded-japandi-md transition-colors ${
-            pathname === '/schedule' ? 'text-japandi-pine font-bold' : 'text-japandi-muted hover:text-japandi-text'
+            pathname === '/schedule'
+              ? isVibrant ? 'text-pink-400 font-extrabold' : 'text-japandi-pine font-bold'
+              : isVibrant ? 'text-slate-400 hover:text-white' : 'text-japandi-muted hover:text-japandi-text'
           }`}
         >
           <Calendar className="w-5 h-5" />
@@ -77,7 +87,11 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
           <button
             type="button"
             onClick={onOpenAddModal}
-            className="w-12 h-12 rounded-japandi-full bg-japandi-pine text-white flex items-center justify-center shadow-japandi-md hover:scale-105 active:scale-95 transition-transform"
+            className={`w-12 h-12 rounded-japandi-full flex items-center justify-center hover:scale-105 active:scale-95 transition-transform ${
+              isVibrant
+                ? 'btn-3d-mint text-[#002923]'
+                : 'bg-japandi-pine text-white shadow-japandi-md'
+            }`}
             aria-label={t('modal.addTitle')}
           >
             <Plus className="w-6 h-6" />
@@ -89,7 +103,9 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
           href="/subs"
           aria-label={t('nav.subscriptions')}
           className={`flex flex-col items-center justify-center w-16 h-12 rounded-japandi-md transition-colors ${
-            pathname === '/subs' ? 'text-japandi-pine font-bold' : 'text-japandi-muted hover:text-japandi-text'
+            pathname === '/subs'
+              ? isVibrant ? 'text-pink-400 font-extrabold' : 'text-japandi-pine font-bold'
+              : isVibrant ? 'text-slate-400 hover:text-white' : 'text-japandi-muted hover:text-japandi-text'
           }`}
         >
           <List className="w-5 h-5" />
@@ -101,7 +117,9 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
           href="/settings"
           aria-label={t('nav.settings')}
           className={`flex flex-col items-center justify-center w-16 h-12 rounded-japandi-md transition-colors ${
-            pathname === '/settings' ? 'text-japandi-pine font-bold' : 'text-japandi-muted hover:text-japandi-text'
+            pathname === '/settings'
+              ? isVibrant ? 'text-pink-400 font-extrabold' : 'text-japandi-pine font-bold'
+              : isVibrant ? 'text-slate-400 hover:text-white' : 'text-japandi-muted hover:text-japandi-text'
           }`}
         >
           <Settings className="w-5 h-5" />
@@ -111,3 +129,4 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
     </div>
   );
 };
+

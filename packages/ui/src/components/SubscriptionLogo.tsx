@@ -5,6 +5,7 @@ import { extractDomain, getLogoSources } from '@subflow/core';
 
 export interface SubscriptionLogoProps {
   name: string;
+  domain?: string;
   logoUrl?: string;
   category?: string;
   size?: number;
@@ -85,7 +86,9 @@ function renderCategoryPinIcon(category: string) {
 }
 
 export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
+
   name,
+  domain,
   logoUrl,
   category = 'General',
   size = 44,
@@ -100,18 +103,19 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
     if (logoUrl && (logoUrl.startsWith('/') || logoUrl.startsWith('http://') || logoUrl.startsWith('https://'))) {
       list.push(logoUrl);
     }
-    const derived = getLogoSources(name);
+    const derived = getLogoSources(name, domain);
     derived.forEach((s) => {
       if (!list.includes(s)) list.push(s);
     });
     return list;
-  }, [name, logoUrl]);
+  }, [name, domain, logoUrl]);
 
-  // Reset fallback sequence when name or logoUrl updates
+  // Reset fallback sequence when name, domain, or logoUrl updates
   useEffect(() => {
     setSourceIndex(0);
     setHasError(false);
-  }, [name, logoUrl]);
+  }, [name, domain, logoUrl]);
+
 
   const currentSrc = sources[sourceIndex];
 
@@ -134,12 +138,12 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
       style={{ width: `${size}px`, height: `${size}px` }}
     >
       {/* Main Logo Container with High-Contrast Canvas for Light/Dark mode parity */}
-      <div className={`w-full h-full ${isSmall ? 'rounded-full' : 'rounded-japandi-md border border-japandi-border/80 dark:border-white/10 shadow-japandi-xs'} bg-white dark:bg-white text-zinc-900 overflow-hidden flex items-center justify-center`}>
+      <div className={`w-full h-full ${isSmall ? 'rounded-full' : 'rounded-japandi-xl border border-japandi-border/80 dark:border-white/10 shadow-japandi-xs'} bg-white dark:bg-white text-zinc-900 overflow-hidden flex items-center justify-center`}>
         {!hasError && currentSrc ? (
           <img
             src={currentSrc}
             alt={name}
-            className={`w-full h-full object-contain ${isSmall ? 'p-0.5 rounded-full' : 'p-1.5 rounded-japandi-md'}`}
+            className={`w-full h-full object-contain p-0.5 transform scale-110 ${isSmall ? 'rounded-full' : 'rounded-japandi-xl'}`}
             loading="lazy"
             onError={handleImageError}
           />
@@ -148,13 +152,14 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
             className="w-full h-full flex items-center justify-center font-bold text-white tracking-tight"
             style={{
               background: `linear-gradient(135deg, ${categoryColor} 0%, ${categoryColor}DD 100%)`,
-              fontSize: `${Math.max(8, Math.round(size * 0.42))}px`
+              fontSize: `${Math.max(10, Math.round(size * 0.46))}px`
             }}
           >
             {initial}
           </div>
         )}
       </div>
+
 
       {/* Floating Category Pin Badge matching Flutter exactly */}
       {showCategoryBadge && !isSmall && (

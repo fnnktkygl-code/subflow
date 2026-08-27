@@ -226,6 +226,11 @@ export const fr = {
     regional: 'Langue & Devise',
     languageLabel: 'Langue de l\'application',
     currencyLabel: 'Devise principale',
+    profileSection: 'Profil & Identité',
+    userNameLabel: 'Votre prénom ou pseudo',
+    userNameSubtitle: 'Le nom par lequel SubFlow s\'adresse à vous',
+    userNamePlaceholder: 'ex: Richard, Sarah, Alex...',
+    saveNameSuccess: 'Prénom enregistré !',
     privacySection: 'Confidentialité & Affichage',
     blurAmounts: 'Masquer les montants (Mode Discret)',
     incomeGoalSection: 'Objectifs & Budget',
@@ -240,3 +245,4 @@ export const fr = {
     resetConfirm: 'Êtes-vous sûr de vouloir supprimer tous vos abonnements ?'
   }
 };
+

@@ -32,7 +32,7 @@ export const TopAppBar: React.FC = () => {
   // Apply theme to HTML root element
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('dark', 'barbie');
+    root.classList.remove('dark', 'barbie', 'vibrant');
     root.removeAttribute('data-theme');
 
     if (currentTheme === 'dark') {
@@ -41,6 +41,9 @@ export const TopAppBar: React.FC = () => {
     } else if (currentTheme === 'barbie') {
       root.classList.add('barbie');
       root.setAttribute('data-theme', 'barbie');
+    } else if (currentTheme === 'vibrant') {
+      root.classList.add('vibrant');
+      root.setAttribute('data-theme', 'vibrant');
     } else {
       root.setAttribute('data-theme', 'light');
     }
@@ -49,7 +52,8 @@ export const TopAppBar: React.FC = () => {
   const cycleTheme = () => {
     let nextTheme: ThemeMode = 'light';
     if (currentTheme === 'light') nextTheme = 'dark';
-    else if (currentTheme === 'dark') nextTheme = 'barbie';
+    else if (currentTheme === 'dark') nextTheme = 'vibrant';
+    else if (currentTheme === 'vibrant') nextTheme = 'barbie';
     else nextTheme = 'light';
 
     updateProfile({ themeMode: nextTheme });
@@ -64,12 +68,15 @@ export const TopAppBar: React.FC = () => {
     switch (currentTheme) {
       case 'dark':
         return <Moon className="w-4 h-4 text-amber-300" />;
+      case 'vibrant':
+        return <Sparkles className="w-4 h-4 text-teal-400 animate-spin" style={{ animationDuration: '6s' }} />;
       case 'barbie':
         return <Sparkles className="w-4 h-4 text-pink-500 animate-pulse" />;
       default:
         return <Sun className="w-4 h-4 text-amber-500" />;
     }
   };
+
 
   return (
     <header className="sticky top-0 z-30 w-full bg-japandi-canvas/80 backdrop-blur-md border-b border-japandi-border/60">
@@ -111,18 +118,25 @@ export const TopAppBar: React.FC = () => {
             {isAmountBlurred ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
           </button>
 
-          {/* Theme Cycler (Light -> Dark -> Pinkbie) */}
+          {/* Theme Cycler (Light -> Dark -> Vibrant/Coloré -> Pinkbie) */}
           <button
             type="button"
             onClick={cycleTheme}
-            aria-label={`Cycle theme, currently ${currentTheme === 'barbie' ? 'Pinkbie' : currentTheme}`}
+            aria-label={`Cycle theme, currently ${currentTheme}`}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-japandi-md border border-japandi-border bg-japandi-surface text-japandi-muted hover:text-japandi-text hover:border-japandi-border-strong transition-all shadow-xs"
           >
             {getThemeIcon()}
             <span className="text-xs font-semibold capitalize hidden sm:inline text-japandi-text">
-              {currentTheme === 'barbie' ? 'Pinkbie' : currentTheme}
+              {currentTheme === 'barbie'
+                ? 'Pinkbie'
+                : currentTheme === 'vibrant'
+                ? (locale === 'fr' ? 'Coloré' : 'Vibrant')
+                : currentTheme === 'dark'
+                ? (locale === 'fr' ? 'Sombre' : 'Dark')
+                : (locale === 'fr' ? 'Clair' : 'Light')}
             </span>
           </button>
+
         </div>
       </div>
     </header>

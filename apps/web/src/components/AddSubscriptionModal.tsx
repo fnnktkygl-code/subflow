@@ -18,7 +18,8 @@ import { CategoryIcon } from './CategoryIcon';
 import { JapandiDatePicker } from './JapandiDatePicker';
 import { CancellationAssistantModal } from './CancellationAssistantModal';
 import { TrueLayerSyncModal } from './TrueLayerSyncModal';
-import { X, Sparkles, FileText, Building2 } from 'lucide-react';
+import { ScanInvoiceModal } from './ScanInvoiceModal';
+import { X, Sparkles, FileText, Building2, Camera } from 'lucide-react';
 
 interface AddSubscriptionModalProps {
   isOpen: boolean;
@@ -75,6 +76,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
   const [isTrueLayerOpen, setIsTrueLayerOpen] = useState(false);
+  const [isScanInvoiceOpen, setIsScanInvoiceOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const matchingSuggestions = React.useMemo(() => {
@@ -206,22 +208,38 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           {/* Quick Pick Presets & Bank Sync */}
           {!editSubscription && (
             <div className="flex flex-col gap-2.5">
-              {/* TrueLayer Open Banking Shortcut */}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsTrueLayerOpen(true);
-                }}
-                className="w-full flex items-center justify-between p-3 rounded-japandi-xl bg-japandi-pine/10 border border-japandi-pine/20 hover:bg-japandi-pine/15 text-japandi-pine text-xs font-bold transition-all shadow-xs"
-              >
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4" />
-                  <span>Synchro Bancaire TrueLayer (Détecter automatiquement)</span>
-                </div>
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-japandi-pine text-white">
-                  DSP2 1-Tap
-                </span>
-              </button>
+              {/* AI Gemini Invoice Scanner & TrueLayer Open Banking Shortcut */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsScanInvoiceOpen(true)}
+                  className="flex items-center justify-between p-3 rounded-japandi-xl bg-teal-500/10 border border-teal-500/30 hover:bg-teal-500/20 text-teal-600 dark:text-teal-300 text-xs font-bold transition-all shadow-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <Camera className="w-4 h-4 text-teal-500" />
+                    <span>Scanner une Facture (IA)</span>
+                  </div>
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-teal-500 text-slate-950">
+                    Gemini 3.6
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsTrueLayerOpen(true);
+                  }}
+                  className="flex items-center justify-between p-3 rounded-japandi-xl bg-japandi-pine/10 border border-japandi-pine/20 hover:bg-japandi-pine/15 text-japandi-pine text-xs font-bold transition-all shadow-xs"
+                >
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <span>Synchro TrueLayer</span>
+                  </div>
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-japandi-pine text-white">
+                    DSP2 1-Tap
+                  </span>
+                </button>
+              </div>
 
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
                 {presets.map((preset) => (
@@ -280,13 +298,13 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                         setAmount(item.defaultAmount.toString());
                         setCategory(item.category as SubscriptionCategory);
                         setCycle(item.defaultCycle as BillingCycle);
-                        setLogoUrl(fetchLogo(item.name));
+                        setLogoUrl(fetchLogo(item.name, item.domain));
                         setShowSuggestions(false);
                       }}
                       className="p-2.5 hover:bg-japandi-sand/50 transition-colors cursor-pointer flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2">
-                        <SubscriptionLogo name={item.name} category={item.category} size={24} />
+                        <SubscriptionLogo name={item.name} domain={item.domain} category={item.category} size={24} />
                         <div>
                           <span className="font-bold text-xs text-japandi-text">{item.name}</span>
                           <span className="text-[10px] text-japandi-muted ml-2">{item.category}</span>
@@ -295,6 +313,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                       <span className="text-xs font-extrabold text-japandi-terracotta">
                         {item.currencySymbol}{item.defaultAmount.toFixed(2)}
                       </span>
+
                     </div>
                   ))}
                 </div>
@@ -415,6 +434,18 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           }}
         />
       )}
+
+      {/* Gemini 3.6 Flash Scan Invoice Modal */}
+      {isScanInvoiceOpen && (
+        <ScanInvoiceModal
+          isOpen={isScanInvoiceOpen}
+          onClose={() => {
+            setIsScanInvoiceOpen(false);
+            onClose();
+          }}
+        />
+      )}
     </div>
   );
 };
+

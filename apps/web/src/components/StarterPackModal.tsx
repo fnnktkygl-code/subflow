@@ -179,9 +179,11 @@ export const StarterPackModal: React.FC<StarterPackModalProps> = ({ isOpen, onCl
                   <div className="flex items-center gap-2.5 min-w-0">
                     <SubscriptionLogo
                       name={item.name}
+                      domain={item.domain}
                       category={item.category}
                       size={36}
                     />
+
                     <div className="min-w-0">
                       <h4 className="font-bold text-xs text-japandi-text truncate">
                         {item.name}
