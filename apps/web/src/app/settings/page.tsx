@@ -26,13 +26,56 @@ import {
   AlertCircle
 } from 'lucide-react';
 
-const CURRENCY_OPTIONS: DropdownOption[] = [
-  { value: 'EUR', label: 'EUR (€) — Euro' },
-  { value: 'USD', label: 'USD ($) — US Dollar' },
-  { value: 'GBP', label: 'GBP (£) — British Pound' },
-  { value: 'CAD', label: 'CAD ($) — Dollar Canadien' },
-  { value: 'CHF', label: 'CHF (CHF) — Franc Suisse' },
-  { value: 'JPY', label: 'JPY (¥) — Japanese Yen' }
+const CURRENCY_OPTIONS = [
+  {
+    value: 'EUR',
+    label: 'EUR',
+    badge: '€',
+    icon: '🇪🇺',
+    subtitle: 'Zone Euro (France, Allemagne, Belgique)'
+  },
+  {
+    value: 'USD',
+    label: 'USD',
+    badge: '$',
+    icon: '🇺🇸',
+    subtitle: 'US Dollar (États-Unis)'
+  },
+  {
+    value: 'GBP',
+    label: 'GBP',
+    badge: '£',
+    icon: '🇬🇧',
+    subtitle: 'Livre Sterling (Royaume-Uni)'
+  },
+  {
+    value: 'CAD',
+    label: 'CAD',
+    badge: 'CA$',
+    icon: '🇨🇦',
+    subtitle: 'Dollar Canadien (Canada)'
+  },
+  {
+    value: 'CHF',
+    label: 'CHF',
+    badge: 'CHF',
+    icon: '🇨🇭',
+    subtitle: 'Franc Suisse (Suisse)'
+  },
+  {
+    value: 'JPY',
+    label: 'JPY',
+    badge: '¥',
+    icon: '🇯🇵',
+    subtitle: 'Yen (Japon)'
+  },
+  {
+    value: 'AUD',
+    label: 'AUD',
+    badge: 'AU$',
+    icon: '🇦🇺',
+    subtitle: 'Dollar Australien (Australie)'
+  }
 ];
 
 export default function SettingsPage() {
@@ -145,7 +188,7 @@ export default function SettingsPage() {
             </p>
           </div>
 
-          <div className="w-full sm:w-56">
+          <div className="w-full sm:w-64">
             <CustomDropdown
               options={CURRENCY_OPTIONS}
               value={profile.currency || 'EUR'}
