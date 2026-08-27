@@ -17,8 +17,9 @@ import { useEscapeKey } from '../hooks/useEscapeKey';
 import { CategoryIcon } from './CategoryIcon';
 import { JapandiDatePicker } from './JapandiDatePicker';
 import { CancellationAssistantModal } from './CancellationAssistantModal';
-import { TrueLayerSyncModal } from './TrueLayerSyncModal';
-import { X, Sparkles, FileText, Building2 } from 'lucide-react';
+import { TrueLayerSyncModal, getTrueLayerAuthUrl } from './TrueLayerSyncModal';
+import { X, Sparkles, FileText, Building2, ExternalLink, Zap } from 'lucide-react';
+
 
 interface AddSubscriptionModalProps {
   isOpen: boolean;
@@ -208,20 +209,36 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           {/* Quick Pick Presets & Bank Sync */}
           {!editSubscription && (
             <div className="flex flex-col gap-2.5">
-              {/* TrueLayer Open Banking Shortcut */}
-              <button
-                type="button"
-                onClick={() => setIsTrueLayerOpen(true)}
-                className="flex items-center justify-between p-3 rounded-japandi-xl border text-xs font-bold transition-all shadow-xs bg-japandi-pine/10 border-japandi-pine/20 hover:bg-japandi-pine/15 text-japandi-pine"
-              >
-                <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4" />
-                  <span>{locale === 'fr' ? 'Détection automatique bancaire (TrueLayer)' : 'Automatic Bank Detection (TrueLayer)'}</span>
-                </div>
-                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-japandi-pine text-white">
-                  DSP2 1-Tap
-                </span>
-              </button>
+              {/* Direct BoursoBank Connect & All Banks */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const url = getTrueLayerAuthUrl('stet-boursorama');
+                    if (typeof window !== 'undefined') window.location.href = url;
+                  }}
+                  className="flex items-center justify-between p-3 rounded-japandi-xl border text-xs font-bold transition-all shadow-xs bg-japandi-pine/10 border-japandi-pine/30 hover:bg-japandi-pine/20 text-japandi-pine group"
+                >
+                  <div className="flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-japandi-pine fill-japandi-pine" />
+                    <span>BoursoBank Live</span>
+                  </div>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsTrueLayerOpen(true)}
+                  className="flex items-center justify-between p-3 rounded-japandi-xl border text-xs font-bold transition-all shadow-xs bg-japandi-elevated border-japandi-border hover:border-japandi-pine text-japandi-text"
+                >
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4 text-japandi-muted" />
+                    <span>{locale === 'fr' ? 'Autres banques...' : 'Other banks...'}</span>
+                  </div>
+                  <span className="text-[10px] font-semibold text-japandi-muted">DSP2</span>
+                </button>
+              </div>
+
 
 
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">

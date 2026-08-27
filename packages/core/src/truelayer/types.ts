@@ -106,15 +106,7 @@ export const POPULAR_FRENCH_BANKS: TrueLayerBankProvider[] = [
     logoUrl: 'https://img.logo.dev/labanquepostale.fr?token=pk_X1cpD_81THS3lP56vQoYTw',
     brandColor: '#0C2340',
     popular: true
-  },
-  {
-    id: 'mock-sandbox',
-    name: 'Banque Démo (Sandbox Test)',
-    country: 'FR',
-    domain: 'truelayer.com',
-    logoUrl: 'https://img.logo.dev/truelayer.com?token=pk_X1cpD_81THS3lP56vQoYTw',
-    brandColor: '#2563EB',
-    popular: true
   }
 ];
+
 
