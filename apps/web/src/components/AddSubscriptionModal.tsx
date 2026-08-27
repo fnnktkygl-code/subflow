@@ -18,8 +18,7 @@ import { CategoryIcon } from './CategoryIcon';
 import { JapandiDatePicker } from './JapandiDatePicker';
 import { CancellationAssistantModal } from './CancellationAssistantModal';
 import { TrueLayerSyncModal } from './TrueLayerSyncModal';
-import { ScanInvoiceModal } from './ScanInvoiceModal';
-import { X, Sparkles, FileText, Building2, Camera } from 'lucide-react';
+import { X, Sparkles, FileText, Building2 } from 'lucide-react';
 
 interface AddSubscriptionModalProps {
   isOpen: boolean;
@@ -56,8 +55,9 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   editSubscription
 }) => {
   const { addSubscription, updateSubscription, profile } = useSubscriptionStore();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const titleId = useId();
+
 
   // Keyboard accessibility: Close on Escape key
   useEscapeKey(isOpen, onClose);
@@ -76,8 +76,8 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
   const [isTrueLayerOpen, setIsTrueLayerOpen] = useState(false);
-  const [isScanInvoiceOpen, setIsScanInvoiceOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
 
   const matchingSuggestions = React.useMemo(() => {
     if (!name || name.trim().length < 2) return [];
@@ -208,38 +208,21 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           {/* Quick Pick Presets & Bank Sync */}
           {!editSubscription && (
             <div className="flex flex-col gap-2.5">
-              {/* AI Gemini Invoice Scanner & TrueLayer Open Banking Shortcut */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setIsScanInvoiceOpen(true)}
-                  className="flex items-center justify-between p-3 rounded-japandi-xl border text-xs font-bold transition-all shadow-xs bg-teal-500/10 border-teal-500/30 hover:bg-teal-500/20 text-teal-600 dark:text-teal-300"
-                >
-                  <div className="flex items-center gap-2">
-                    <Camera className="w-4 h-4 text-teal-500" />
-                    <span>Scanner une Facture (IA)</span>
-                  </div>
-                  <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-teal-500 text-slate-950">
-                    Gemini 3.6
-                  </span>
-                </button>
+              {/* TrueLayer Open Banking Shortcut */}
+              <button
+                type="button"
+                onClick={() => setIsTrueLayerOpen(true)}
+                className="flex items-center justify-between p-3 rounded-japandi-xl border text-xs font-bold transition-all shadow-xs bg-japandi-pine/10 border-japandi-pine/20 hover:bg-japandi-pine/15 text-japandi-pine"
+              >
+                <div className="flex items-center gap-2">
+                  <Building2 className="w-4 h-4" />
+                  <span>{locale === 'fr' ? 'Détection automatique bancaire (TrueLayer)' : 'Automatic Bank Detection (TrueLayer)'}</span>
+                </div>
+                <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-japandi-pine text-white">
+                  DSP2 1-Tap
+                </span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsTrueLayerOpen(true);
-                  }}
-                  className="flex items-center justify-between p-3 rounded-japandi-xl border text-xs font-bold transition-all shadow-xs bg-japandi-pine/10 border-japandi-pine/20 hover:bg-japandi-pine/15 text-japandi-pine"
-                >
-                  <div className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4" />
-                    <span>Synchro TrueLayer</span>
-                  </div>
-                  <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-japandi-pine text-white">
-                    DSP2 1-Tap
-                  </span>
-                </button>
-              </div>
 
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-thin">
                 {presets.map((preset) => {
@@ -442,18 +425,8 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           }}
         />
       )}
-
-      {/* Gemini 3.6 Flash Scan Invoice Modal */}
-      {isScanInvoiceOpen && (
-        <ScanInvoiceModal
-          isOpen={isScanInvoiceOpen}
-          onClose={() => {
-            setIsScanInvoiceOpen(false);
-            onClose();
-          }}
-        />
-      )}
     </div>
   );
 };
+
 

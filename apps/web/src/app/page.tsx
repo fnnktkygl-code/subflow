@@ -17,7 +17,6 @@ import { CategoryIcon } from '../components/CategoryIcon';
 import { GoalDialog } from '../components/GoalDialog';
 import { ActionableInsightHeader } from '../components/ActionableInsightHeader';
 import { CancellationArenaModal } from '../components/CancellationArenaModal';
-import { ScanInvoiceModal } from '../components/ScanInvoiceModal';
 import { AddSubscriptionModal } from '../components/AddSubscriptionModal';
 import {
   SlidersHorizontal,
@@ -30,7 +29,6 @@ import {
   Info,
   Sparkles,
   Scissors,
-  Camera,
   Flame,
   Zap,
   TrendingDown
@@ -54,8 +52,8 @@ export default function HomePage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
-  const [isScanInvoiceModalOpen, setIsScanInvoiceModalOpen] = useState(false);
   const longPressTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
 
 
   const activeExcluded = isSelectionMode ? new Set(excludedIds) : new Set<string>();
@@ -404,14 +402,9 @@ export default function HomePage() {
         isOpen={isCancellationModalOpen}
         onClose={() => setIsCancellationModalOpen(false)}
       />
-
-      {/* Invoice Scanner Modal */}
-      <ScanInvoiceModal
-        isOpen={isScanInvoiceModalOpen}
-        onClose={() => setIsScanInvoiceModalOpen(false)}
-      />
     </div>
   );
 }
+
 
 
