@@ -27,7 +27,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-        <meta name="google-site-verification" content="googledad56f5057974951" />
+        <meta name="google-site-verification" content="YKWehFN_AmBugQ2uUXgrVGdvtjmLQcr57gVJ59AeqyM" />
+
         <title>SubFlow — Mindful Subscription Management</title>
         <script src="https://accounts.google.com/gsi/client" async defer></script>
       </head>
