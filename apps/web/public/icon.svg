@@ -1,11 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" rx="116" fill="#1B3B2F"/>
-  <!-- Top Loop -->
-  <path d="M290 140 C345 140 385 180 385 230 C385 275 350 305 300 325 L230 355 C185 375 155 400 155 440 C155 485 195 520 245 520" fill="none" stroke="#F5EFE6" stroke-width="44" stroke-linecap="round" opacity="0"/>
-  
-  <!-- Balanced Minimal S-Flow Rings -->
-  <g fill="none" stroke="#F5EFE6" stroke-width="46" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Upper loop of S -->
-    <path d="M 330 155 C 330 155 315 130 256 130 C 190 130 155 175 155 225 C 155 285 215 305 265 320 C 315 335 365 355 365 415 C 365 470 320 510 256 510 C 190 510 160 475 160 475" transform="translate(0, -65)"/>
+  <rect width="512" height="512" rx="115" fill="#1B3B2F"/>
+  <g fill="none" stroke="#F5EFE6" stroke-width="42" stroke-linecap="round">
+    <!-- Upper Arc of the Cadence -->
+    <path d="M 193 248 A 82.5 82.5 0 1 1 327 236" />
+    <!-- Lower Arc of the Cadence -->
+    <path d="M 319 264 A 82.5 82.5 0 1 1 188 364" />
   </g>
 </svg>
