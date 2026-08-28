@@ -211,13 +211,22 @@ export const useSubscriptionStore = create<SubFlowState>()(
     }),
 
     {
-      name: 'subflow-storage',
+      name: 'subflow-storage-v2',
       onRehydrateStorage: () => (state) => {
-        if (state && (state.profile?.themeMode as string) === 'vibrant') {
+        if (!state) return;
+        if ((state.profile?.themeMode as string) === 'vibrant') {
           state.profile.themeMode = 'light';
+        }
+        // Purge any legacy mock test subscriptions (sub-1, sub-2, etc.) from old localStorage caches
+        const legacyMockIds = new Set(['sub-1', 'sub-2', 'sub-3', 'sub-4', 'sub-5', 'sub-6']);
+        if (Array.isArray(state.subscriptions)) {
+          state.subscriptions = state.subscriptions.filter(
+            (s) => !legacyMockIds.has(s.id) && s.name !== 'Netflix' && s.name !== 'Spotify' && s.name !== 'ChatGPT Plus'
+          );
         }
       }
     }
+
   )
 );
 
