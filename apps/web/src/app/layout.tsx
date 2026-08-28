@@ -27,9 +27,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta name="google-site-verification" content="googledad56f5057974951" />
         <title>SubFlow — Mindful Subscription Management</title>
         <script src="https://accounts.google.com/gsi/client" async defer></script>
       </head>
+
       <body className="h-full bg-japandi-bg text-japandi-text font-sans antialiased selection:bg-japandi-pine selection:text-white flex flex-col min-h-screen">
         <TooltipProvider delayDuration={150}>
           <TopAppBar />
