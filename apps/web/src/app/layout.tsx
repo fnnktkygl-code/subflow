@@ -36,9 +36,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1 w-full max-w-[1120px] mx-auto px-4 sm:px-6 pt-4 pb-32">
             {children}
           </main>
+
+          {/* Static Crawler & User Accessible Footer */}
+          <footer className="w-full border-t border-japandi-border/60 py-6 text-center text-xs text-japandi-muted bg-japandi-canvas/40 mt-auto">
+            <div className="max-w-[1120px] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span>© {new Date().getFullYear()} SubFlow — Gestion sereine des abonnements</span>
+              <div className="flex items-center gap-4">
+                <a href="/privacy" className="hover:text-japandi-pine hover:underline">
+                  Politique de confidentialité
+                </a>
+                <span>•</span>
+                <a href="/terms" className="hover:text-japandi-pine hover:underline">
+                  Conditions d'utilisation
+                </a>
+              </div>
+            </div>
+          </footer>
+
           {mounted && !isNewUserOnboarding && (
             <BottomDock onOpenAddModal={() => setIsAddModalOpen(true)} />
           )}
+
           <AddSubscriptionModal
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
