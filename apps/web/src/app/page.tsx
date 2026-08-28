@@ -76,10 +76,8 @@ export default function HomePage() {
     );
   }
 
-  // If new user and onboarding is not completed, show the elegant welcome choice screen
-  if (!hasCompletedOnboarding && !googleAccount && subscriptions.length === 0) {
-    return <OnboardingWelcomeScreen />;
-  }
+  // Non-blocking: App is directly accessible to visitors and Google reviewers without signing in
+
 
 
   const activeExcluded = isSelectionMode ? new Set(excludedIds) : new Set<string>();

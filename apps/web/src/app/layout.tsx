@@ -53,9 +53,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </footer>
 
-          {mounted && !isNewUserOnboarding && (
+          {mounted && (
             <BottomDock onOpenAddModal={() => setIsAddModalOpen(true)} />
           )}
+
 
           <AddSubscriptionModal
             isOpen={isAddModalOpen}
