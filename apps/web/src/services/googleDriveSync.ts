@@ -19,7 +19,8 @@ declare global {
 
 // Built-in SubFlow Google OAuth Client ID
 export const DEFAULT_GOOGLE_CLIENT_ID =
-  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '1058472918471-subflowapp.apps.googleusercontent.com';
+  process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '702043703591-tdvapt1cb96h1q3npg8bnp1p73rvgvib.apps.googleusercontent.com';
+
 
 
 /**

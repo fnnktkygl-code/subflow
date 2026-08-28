@@ -1,6 +1,6 @@
 'use client';
+import React, { useState, useEffect } from 'react';
 
-import React, { useState } from 'react';
 import './globals.css';
 import { TopAppBar } from '../components/TopAppBar';
 import { BottomDock } from '../components/BottomDock';
@@ -8,15 +8,19 @@ import { AddSubscriptionModal } from '../components/AddSubscriptionModal';
 
 import { TooltipProvider } from '@subflow/ui';
 import { useGoogleDriveAutoSync } from '../hooks/useGoogleDriveAutoSync';
-
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const { hasCompletedOnboarding, googleAccount, subscriptions } = useSubscriptionStore();
   useGoogleDriveAutoSync();
 
-  const isNewUserOnboarding = !hasCompletedOnboarding && !googleAccount && subscriptions.length === 0;
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isNewUserOnboarding = mounted && !hasCompletedOnboarding && !googleAccount && subscriptions.length === 0;
 
   return (
     <html lang="en" className="h-full">
@@ -32,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1 w-full max-w-[1120px] mx-auto px-4 sm:px-6 pt-4 pb-32">
             {children}
           </main>
-          {!isNewUserOnboarding && (
+          {mounted && !isNewUserOnboarding && (
             <BottomDock onOpenAddModal={() => setIsAddModalOpen(true)} />
           )}
           <AddSubscriptionModal
@@ -44,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+
 
 
 

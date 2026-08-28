@@ -59,12 +59,28 @@ export default function HomePage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const longPressTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Hydration safety: render matching blank shell until client store hydrates
+  if (!mounted) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-japandi-pine border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   // If new user and onboarding is not completed, show the elegant welcome choice screen
   if (!hasCompletedOnboarding && !googleAccount && subscriptions.length === 0) {
     return <OnboardingWelcomeScreen />;
   }
+
 
   const activeExcluded = isSelectionMode ? new Set(excludedIds) : new Set<string>();
   const totalMonthly = calculateTotalMonthlyCost(subscriptions, activeExcluded);
