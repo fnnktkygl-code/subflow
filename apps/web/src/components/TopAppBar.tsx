@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+
 import { Sun, Moon, Sparkles, Eye, EyeOff, Languages, Cloud } from 'lucide-react';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
@@ -85,16 +87,30 @@ export const TopAppBar: React.FC = () => {
   return (
     <header className="sticky top-0 z-30 w-full bg-japandi-canvas/80 backdrop-blur-md border-b border-japandi-border/60">
       <div className="max-w-[1120px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-extrabold tracking-tight text-japandi-text font-sans">
-            {getTitle()}
-          </span>
+        <div className="flex items-center gap-2.5">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="w-8 h-8 rounded-japandi-lg bg-japandi-pine text-white flex items-center justify-center shadow-japandi-xs group-hover:scale-105 transition-transform">
+              <svg className="w-4 h-4" viewBox="0 0 512 512" fill="none">
+                <path
+                  d="M 100 256 C 180 176, 220 176, 256 256 C 292 336, 332 336, 412 256"
+                  stroke="#F5EFE6"
+                  strokeWidth="56"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <span className="text-lg font-extrabold tracking-tight text-japandi-text font-sans">
+              SubFlow
+            </span>
+          </Link>
           {currentTheme === 'barbie' && (
             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-pink-100 text-pink-600 border border-pink-200">
               Pinkbie
             </span>
           )}
         </div>
+
 
         <div className="flex items-center gap-2">
           {/* Google Account & Cloud Sync Status Button */}

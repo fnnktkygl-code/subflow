@@ -52,8 +52,17 @@ export const OnboardingWelcomeScreen: React.FC = () => {
         {/* Brand Header */}
         <div className="text-center flex flex-col items-center gap-2 pt-2">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-japandi-2xl bg-japandi-pine text-white shadow-japandi-md mb-1 ring-4 ring-japandi-pine/10">
-            <Sparkles className="w-7 h-7" />
+            <svg className="w-8 h-8" viewBox="0 0 512 512" fill="none">
+              <path
+                d="M 100 256 C 180 176, 220 176, 256 256 C 292 336, 332 336, 412 256"
+                stroke="#F5EFE6"
+                strokeWidth="52"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </div>
+
           <h1 className="text-2xl sm:text-3xl font-extrabold text-japandi-text tracking-tight">
             SubFlow
           </h1>

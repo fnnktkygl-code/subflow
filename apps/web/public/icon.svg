@@ -1,9 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <rect width="512" height="512" rx="115" fill="#1B3B2F"/>
-  <g fill="none" stroke="#F5EFE6" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Upper Hook of the Cadence -->
-    <path d="M 108 276 L 108 221 A 85 85 0 0 1 278 221 L 278 266" />
-    <!-- Lower Hook of the Cadence -->
-    <path d="M 404 236 L 404 291 A 85 85 0 0 1 234 291 L 234 246" />
-  </g>
+  <!-- Flow Wave Path -->
+  <path d="M 100 256 C 180 176, 220 176, 256 256 C 292 336, 332 336, 412 256" 
+        fill="none" 
+        stroke="#F5EFE6" 
+        stroke-width="50" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
 </svg>
