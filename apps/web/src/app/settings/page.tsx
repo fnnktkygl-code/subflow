@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useId } from 'react';
+import Link from 'next/link';
 import { useSubscriptionStore } from '../../store/useSubscriptionStore';
 import { useTranslation } from '../../hooks/useTranslation';
+
 import { ThemeMode, Locale } from '@subflow/core';
 
 import { StarterPackModal } from '../../components/StarterPackModal';
@@ -426,12 +428,50 @@ export default function SettingsPage() {
         </form>
       </div>
 
-      {/* 7. Danger Zone */}
+      {/* 7. Legal & About */}
+      <div className="rounded-japandi-2xl bg-japandi-surface border border-japandi-border p-5 shadow-japandi-sm flex flex-col gap-3">
+        <div className="flex items-center gap-2">
+          <Shield className="w-4 h-4 text-japandi-pine" />
+          <h2 className="text-sm font-bold text-japandi-text">
+            {locale === 'fr' ? 'À propos & Confidentialité' : 'About & Privacy'}
+          </h2>
+        </div>
+
+        <div className="flex flex-col divide-y divide-japandi-border text-xs">
+          <Link
+            href="/privacy"
+            className="py-2.5 flex items-center justify-between text-japandi-text hover:text-japandi-pine transition-colors group"
+          >
+            <span className="font-semibold">
+              {locale === 'fr' ? 'Politique de Confidentialité' : 'Privacy Policy'}
+            </span>
+            <ChevronRight className="w-4 h-4 text-japandi-muted group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+
+          <Link
+            href="/terms"
+            className="py-2.5 flex items-center justify-between text-japandi-text hover:text-japandi-pine transition-colors group"
+          >
+            <span className="font-semibold">
+              {locale === 'fr' ? "Conditions Générales d'Utilisation" : 'Terms of Service'}
+            </span>
+            <ChevronRight className="w-4 h-4 text-japandi-muted group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+
+          <div className="py-2.5 flex items-center justify-between text-japandi-muted text-[11px]">
+            <span>Version de l'application</span>
+            <span className="font-mono font-medium">v2.0.0 • Production</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 8. Danger Zone */}
       <div className="rounded-japandi-2xl bg-japandi-surface border border-japandi-terracotta/30 p-5 shadow-japandi-sm flex flex-col gap-3">
         <div className="flex items-center gap-2">
           <Trash2 className="w-4 h-4 text-japandi-terracotta" />
           <h2 className="text-sm font-bold text-japandi-terracotta">{t('settings.dangerZone')}</h2>
         </div>
+
 
         <p className="text-xs text-japandi-muted">
           {t('settings.resetConfirm')}

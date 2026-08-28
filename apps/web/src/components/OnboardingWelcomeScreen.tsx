@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
+
 import {
   Cloud,
   HardDrive,
@@ -223,16 +225,44 @@ export const OnboardingWelcomeScreen: React.FC = () => {
         </div>
 
         {/* Reassurance Footer */}
-        <div className="text-center pt-1 pb-4">
+        <div className="text-center pt-1 pb-4 flex flex-col items-center gap-2">
           <p className="text-[11px] text-japandi-muted flex items-center justify-center gap-1.5 font-medium">
             <ShieldCheck className="w-3.5 h-3.5 text-japandi-pine" />
             <span>
               {locale === 'fr'
-                ? 'Zéro publicité • Vos données vous appartiennent • Modifiable à tout moment dans les Réglages'
+                ? 'Zéro publicité • Vos données vous appartiennent • Modifiable à tout moment'
                 : 'Zero ads • Your data stays yours • Switch anytime in Settings'}
             </span>
           </p>
+          <p className="text-[11px] text-japandi-muted">
+            {locale === 'fr' ? (
+              <>
+                En continuant, vous acceptez nos{' '}
+                <Link href="/terms" className="text-japandi-pine hover:underline font-semibold">
+                  Conditions d'Utilisation
+                </Link>{' '}
+                et notre{' '}
+                <Link href="/privacy" className="text-japandi-pine hover:underline font-semibold">
+                  Politique de Confidentialité
+                </Link>
+                .
+              </>
+            ) : (
+              <>
+                By continuing, you agree to our{' '}
+                <Link href="/terms" className="text-japandi-pine hover:underline font-semibold">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link href="/privacy" className="text-japandi-pine hover:underline font-semibold">
+                  Privacy Policy
+                </Link>
+                .
+              </>
+            )}
+          </p>
         </div>
+
 
       </div>
     </div>
