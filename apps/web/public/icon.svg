@@ -1,9 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
   <rect width="512" height="512" rx="115" fill="#1B3B2F"/>
-  <g fill="none" stroke="#F5EFE6" stroke-width="42" stroke-linecap="round">
-    <!-- Upper Arc of the Cadence -->
-    <path d="M 193 248 A 82.5 82.5 0 1 1 327 236" />
-    <!-- Lower Arc of the Cadence -->
-    <path d="M 319 264 A 82.5 82.5 0 1 1 188 364" />
+  <g fill="none" stroke="#F5EFE6" stroke-width="40" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Upper Hook of the Cadence -->
+    <path d="M 108 276 L 108 221 A 85 85 0 0 1 278 221 L 278 266" />
+    <!-- Lower Hook of the Cadence -->
+    <path d="M 404 236 L 404 291 A 85 85 0 0 1 234 291 L 234 246" />
   </g>
 </svg>
