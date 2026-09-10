@@ -3,6 +3,14 @@ import { formatCurrency } from '../i18n';
 
 export { formatCurrency };
 
+/**
+ * Arrondit strictement à 2 décimales pour éliminer les dérives IEEE 754
+ */
+export function roundToCents(amount: number): number {
+  if (isNaN(amount) || !isFinite(amount)) return 0;
+  return Math.round((amount + Number.EPSILON) * 100) / 100;
+}
+
 export function normalizeMonthlyAmount(amount: number, cycle: BillingCycle | string): number {
   if (isNaN(amount) || amount <= 0) return 0;
   const normCycle = (cycle || 'Monthly').toLowerCase().replace(/[\s\-_]/g, '');
@@ -35,20 +43,22 @@ export function normalizeYearlyAmount(amount: number, cycle: BillingCycle | stri
   return normalizeMonthlyAmount(amount, cycle) * 12;
 }
 
+
 export function calculateTotalMonthlyCost(
   subscriptions: Subscription[],
   excludedIds: Set<string> = new Set()
 ): number {
-  return subscriptions
+  const sum = subscriptions
     .filter((sub) => !excludedIds.has(sub.id) && sub.status !== 'paused')
-    .reduce((sum, sub) => sum + normalizeMonthlyAmount(sub.amount, sub.cycle), 0);
+    .reduce((total, sub) => total + normalizeMonthlyAmount(sub.amount, sub.cycle), 0);
+  return roundToCents(sum);
 }
 
 export function calculateTotalYearlyCost(
   subscriptions: Subscription[],
   excludedIds: Set<string> = new Set()
 ): number {
-  return calculateTotalMonthlyCost(subscriptions, excludedIds) * 12;
+  return roundToCents(calculateTotalMonthlyCost(subscriptions, excludedIds) * 12);
 }
 
 export function calculateWhatIfSavings(
@@ -58,9 +68,10 @@ export function calculateWhatIfSavings(
   const baselineMonthly = calculateTotalMonthlyCost(subscriptions);
   const whatIfMonthly = calculateTotalMonthlyCost(subscriptions, excludedIds);
 
-  const monthlySavings = Math.max(0, baselineMonthly - whatIfMonthly);
-  const yearlySavings = monthlySavings * 12;
+  const monthlySavings = roundToCents(Math.max(0, baselineMonthly - whatIfMonthly));
+  const yearlySavings = roundToCents(monthlySavings * 12);
   const savingsPercentage = baselineMonthly > 0 ? (monthlySavings / baselineMonthly) * 100 : (excludedIds.size > 0 ? 100 : 0);
+
 
   return {
     monthlySavings,

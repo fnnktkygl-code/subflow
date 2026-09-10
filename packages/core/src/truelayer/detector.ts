@@ -82,11 +82,17 @@ export function detectSubscriptionsFromTransactions(
   const currency = options.currency || 'EUR';
   const currencySymbol = options.currencySymbol || '€';
 
-  // 1. Filtrer uniquement les débits (dépenses)
+  // 1. Filtrer uniquement les débits réels (dépenses) et exclure les dates manifestement aberrantes (> 45j dans le futur)
+  const maxTimestamp = Date.now() + 45 * 86400000; // tolérance pour les cycles mensuels courants et tests
   const debitTxs = transactions.filter((t) => {
     const amt = typeof t.amount === 'number' ? Math.abs(t.amount) : 0;
-    return amt > 0.5; // Ignorer les micro-transactions < 0.50 €
+    if (amt <= 0.5) return false; // Ignorer les micro-transactions < 0.50 €
+    const txTime = new Date(t.date).getTime();
+    if (isNaN(txTime) || txTime > maxTimestamp) return false; // Ignorer les dates corrompues ou lointaines
+    return true;
   });
+
+
 
   // 2. Regrouper les transactions par marchand normalisé
   const groups = new Map<string, TrueLayerTransaction[]>();

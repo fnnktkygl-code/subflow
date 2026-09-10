@@ -79,3 +79,10 @@ Thumbs.db
 *.ipr
 commit_message.txt
 paste_history_chrome_extension/
+
+# -----------------------------------------------------------------------------
+# Antigravity 2.0 Agents Scratchpad Buffer (Ephemeral workers)
+# -----------------------------------------------------------------------------
+.agents/scratchpad/*
+!.agents/scratchpad/.gitkeep
+

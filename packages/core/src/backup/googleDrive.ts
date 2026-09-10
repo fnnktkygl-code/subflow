@@ -159,3 +159,40 @@ export async function deleteAppDataBackup(
 
   return response.ok;
 }
+
+/**
+ * Fusionne intelligemment un snapshot local et distant sans écrasement accidentel.
+ * Résout les conflits par identifiant unique et horodatage de mise à jour.
+ */
+export function mergeSubscriptionsSnapshot<T extends { id: string; updatedAt?: string }>(
+  localItems: T[],
+  remoteItems: T[]
+): T[] {
+  const map = new Map<string, T>();
+
+  // 1. Ajouter d'abord les éléments distants
+  for (const item of remoteItems) {
+    if (item && item.id) {
+      map.set(item.id, item);
+    }
+  }
+
+  // 2. Fusionner avec les éléments locaux : si local plus récent ou absent du remote, conserver le local
+  for (const item of localItems) {
+    if (!item || !item.id) continue;
+
+    const existing = map.get(item.id);
+    if (!existing) {
+      map.set(item.id, item);
+    } else {
+      const localTime = item.updatedAt ? new Date(item.updatedAt).getTime() : 0;
+      const remoteTime = existing.updatedAt ? new Date(existing.updatedAt).getTime() : 0;
+      if (localTime >= remoteTime) {
+        map.set(item.id, item);
+      }
+    }
+  }
+
+  return Array.from(map.values());
+}
+
