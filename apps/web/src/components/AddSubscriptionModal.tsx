@@ -234,10 +234,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    const url = getTrueLayerAuthUrl('stet-boursorama');
-                    if (typeof window !== 'undefined') window.location.href = url;
-                  }}
+                  onClick={() => setIsTrueLayerOpen(true)}
                   className="flex items-center justify-between p-3 rounded-japandi-xl border text-xs font-bold transition-all shadow-xs bg-japandi-pine/10 border-japandi-pine/30 hover:bg-japandi-pine/20 text-japandi-pine group"
                 >
                   <div className="flex items-center gap-2">
@@ -288,51 +285,40 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
 
           {/* Form */}
           <form id="sub-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {/* Dedicated Logo & Icon Customization Banner */}
-            <div className="flex items-center justify-between p-3.5 rounded-japandi-xl border border-japandi-border bg-japandi-elevated hover:border-japandi-border-strong transition-all">
-              <div className="flex items-center gap-3 min-w-0">
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setIsIconPickerOpen(true)}
-                  className="cursor-pointer hover:scale-105 transition-transform flex-shrink-0"
-                  title="Cliquez pour changer le logo ou l'icône"
-                >
-                  <SubscriptionLogo name={name} logoUrl={logoUrl} category={category} size={38} showCategoryBadge={false} />
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-xs font-bold text-japandi-text truncate">
-                    {logoUrl?.startsWith('svg:')
-                      ? 'Icône vectorielle SVG'
-                      : logoUrl
-                      ? 'Logo officiel détecté'
-                      : 'Icône par défaut'}
-                  </span>
-                  <span className="text-[11px] text-japandi-muted truncate">
-                    {logoUrl?.startsWith('svg:')
-                      ? 'Style vectoriel sélectionné'
-                      : logoUrl
-                      ? (name || 'Service')
-                      : `Catégorie ${category}`}
-                  </span>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsIconPickerOpen(true)}
-                className="px-3 py-1.5 rounded-japandi-md border border-japandi-pine/30 bg-japandi-pine/10 hover:bg-japandi-pine/20 text-japandi-pine text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs flex-shrink-0"
-              >
-                <ImageIcon className="w-3.5 h-3.5" />
-                <span>Modifier le logo</span>
-              </button>
-            </div>
-
-            {/* Subscription Name */}
+            {/* Subscription Name with Integrated Logo Picker */}
             <div className="relative">
-              <label className="block text-xs font-semibold text-japandi-muted uppercase tracking-wider mb-1.5">
-                {t('modal.nameLabel')}
-              </label>
-              <div className="relative">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-japandi-muted uppercase tracking-wider">
+                  {t('modal.nameLabel')}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setIsIconPickerOpen(true)}
+                  className="text-[11px] font-semibold text-japandi-pine hover:underline flex items-center gap-1 transition-all"
+                  title="Choisir une icône vectorielle ou un logo"
+                >
+                  <ImageIcon className="w-3 h-3" />
+                  <span>{logoUrl?.startsWith('svg:') ? 'Icône SVG choisie' : 'Changer d\'icône'}</span>
+                </button>
+              </div>
+
+              <div className="relative flex items-center">
+                {/* Embedded Interactive Logo Preview inside input */}
+                <button
+                  type="button"
+                  onClick={() => setIsIconPickerOpen(true)}
+                  className="absolute left-2.5 z-10 hover:scale-105 transition-transform flex-shrink-0 focus:outline-none"
+                  title="Cliquez pour changer le logo ou l'icône SVG"
+                >
+                  <SubscriptionLogo
+                    name={name}
+                    logoUrl={logoUrl}
+                    category={category}
+                    size={28}
+                    showCategoryBadge={false}
+                  />
+                </button>
+
                 <input
                   type="text"
                   required
@@ -343,7 +329,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                     setShowSuggestions(true);
                   }}
                   onFocus={() => setShowSuggestions(true)}
-                  className="w-full px-3.5 py-2.5 rounded-japandi-md bg-japandi-elevated border border-japandi-border text-japandi-text text-sm focus:outline-none focus:ring-2 focus:ring-japandi-pine transition-all"
+                  className="w-full pl-12 pr-3.5 py-2.5 rounded-japandi-md bg-japandi-elevated border border-japandi-border text-japandi-text text-sm focus:outline-none focus:ring-2 focus:ring-japandi-pine transition-all"
                 />
               </div>
 
