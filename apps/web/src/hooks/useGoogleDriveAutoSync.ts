@@ -7,7 +7,7 @@ import { pushToGoogleDrive } from '../services/googleDriveSync';
 export function useGoogleDriveAutoSync() {
   const subscriptions = useSubscriptionStore((state) => state.subscriptions);
   const profile = useSubscriptionStore((state) => state.profile);
-  const googleAccount = useSubscriptionStore((state) => state.googleAccount);
+  const accessToken = useSubscriptionStore((state) => state.googleAccount?.accessToken);
   const isInitialMount = useRef(true);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -17,7 +17,7 @@ export function useGoogleDriveAutoSync() {
       return;
     }
 
-    if (!googleAccount || !googleAccount.accessToken) {
+    if (!accessToken) {
       return;
     }
 
@@ -26,11 +26,11 @@ export function useGoogleDriveAutoSync() {
     }
 
     debounceTimerRef.current = setTimeout(() => {
-      pushToGoogleDrive();
+      void pushToGoogleDrive().catch(() => { /* Service exposes the failure in the store. */ });
     }, 1500);
 
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  }, [subscriptions, profile, googleAccount]);
+  }, [subscriptions, profile, accessToken]);
 }

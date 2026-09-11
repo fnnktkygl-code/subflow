@@ -27,7 +27,7 @@ export default function PrivacyPolicyPage() {
               Politique de Confidentialité
             </h1>
             <p className="text-xs text-japandi-muted">
-              Dernière mise à jour : 28 août 2026 • Application SubFlow
+              Dernière mise à jour : 11 septembre 2026 • Application SubFlow
             </p>
           </div>
         </div>
@@ -52,10 +52,10 @@ export default function PrivacyPolicyPage() {
           </p>
           <ul className="list-disc list-inside text-xs text-japandi-muted space-y-1.5 pl-2">
             <li>
-              <strong>Mode Local (Hors-ligne) :</strong> Vos abonnements, montants et préférences sont stockés exclusivement dans la mémoire locale de votre navigateur ou de votre appareil.
+              <strong>Mode Local (Hors-ligne) :</strong> Vos abonnements, montants et préférences sont stockés exclusivement dans le stockage local de votre navigateur. Ce stockage web n’est pas chiffré par SubFlow : protégez votre session et votre appareil. Effacer les données du navigateur efface aussi ce suivi ; exportez régulièrement une sauvegarde.
             </li>
             <li>
-              <strong>Mode Cloud Google Drive (Optionnel) :</strong> Lorsque vous vous connectez avec votre compte Google, une sauvegarde chiffrée de vos abonnements est enregistrée dans le dossier privé et isolé <code>appDataFolder</code> de votre propre compte Google Drive. SubFlow n'a aucun accès à vos autres fichiers, photos ou documents personnels Google Drive.
+              <strong>Mode Cloud Google Drive (Optionnel) :</strong> Lorsque vous vous connectez avec votre compte Google, une sauvegarde JSON de vos abonnements est enregistrée dans le dossier privé et isolé <code>appDataFolder</code> de votre propre compte Google Drive. Cette sauvegarde n’est pas chiffrée de bout en bout par SubFlow. Les exports manuels protégés par mot de passe sont chiffrés séparément. SubFlow n'a aucun accès à vos autres fichiers, photos ou documents personnels Google Drive.
             </li>
           </ul>
         </section>
@@ -79,7 +79,7 @@ export default function PrivacyPolicyPage() {
             Conformément au RGPD et aux réglementations sur la protection des données, vous disposez d'un contrôle total :
           </p>
           <ul className="list-disc list-inside text-xs text-japandi-muted space-y-1 pl-2">
-            <li>Vous pouvez supprimer l'intégralité de vos données en un clic depuis l'onglet Réglages (« Supprimer toutes les données »).</li>
+            <li>La suppression dans les Réglages efface les données locales. Elle ne révoque pas les autorisations Google et ne supprime pas automatiquement une sauvegarde distante.</li>
             <li>Vous pouvez déconnecter votre compte Google Drive ou révoquer l'accès à tout moment depuis les paramètres de votre compte Google.</li>
           </ul>
         </section>

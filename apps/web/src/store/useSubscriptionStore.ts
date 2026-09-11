@@ -2,7 +2,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { Subscription, UserProfile, fetchLogo, detectUserCountry } from '@subflow/core';
+import { Subscription, UserProfile, fetchLogo, subscriptionSchema } from '@subflow/core';
 
 export interface GoogleAccount {
   email: string;
@@ -59,7 +59,7 @@ const DEFAULT_SUBSCRIPTIONS: Subscription[] = [];
 
 const DEFAULT_PROFILE: UserProfile = {
   id: 'usr-default',
-  name: 'Richard',
+  name: 'Bienvenue',
   email: '',
   currency: 'EUR',
   currencySymbol: '€',
@@ -176,9 +176,9 @@ export const useSubscriptionStore = create<SubFlowState>()(
       setGoogleAccount: (account) =>
         set((state) => ({
           googleAccount: account,
-          storageMode: account ? 'cloud' : state.storageMode,
+          storageMode: account ? 'cloud' : 'local',
           hasCompletedOnboarding: account ? true : state.hasCompletedOnboarding,
-          driveSyncStatus: account ? 'synced' : 'idle',
+          driveSyncStatus: account ? 'syncing' : 'idle',
           driveSyncError: null
         })),
 
@@ -199,8 +199,8 @@ export const useSubscriptionStore = create<SubFlowState>()(
 
       restoreFromCloud: (data) =>
         set((state) => ({
-          subscriptions: Array.isArray(data.subscriptions) && data.subscriptions.length > 0
-            ? data.subscriptions
+          subscriptions: Array.isArray(data.subscriptions)
+            ? data.subscriptions.map(sub => subscriptionSchema.parse(sub))
             : state.subscriptions,
           profile: data.profile
             ? { ...state.profile, ...data.profile }
@@ -212,6 +212,11 @@ export const useSubscriptionStore = create<SubFlowState>()(
 
     {
       name: 'subflow-storage-v2',
+      partialize: ({ subscriptions, profile, isAmountBlurred, hasCompletedOnboarding, storageMode, googleClientId }) => ({ subscriptions, profile, isAmountBlurred, hasCompletedOnboarding, storageMode, googleClientId }),
+      merge: (persisted, current) => {
+        const saved = (persisted || {}) as Partial<SubFlowState>;
+        return { ...current, ...saved, googleAccount: null, driveSyncStatus: 'idle', driveSyncError: null, isSelectionMode: false, excludedIds: [] };
+      },
       storage: createJSONStorage(() =>
         typeof window !== 'undefined'
           ? window.localStorage
@@ -226,21 +231,9 @@ export const useSubscriptionStore = create<SubFlowState>()(
         if ((state.profile?.themeMode as string) === 'vibrant') {
           state.profile.themeMode = 'light';
         }
-        // Purge only legacy mock test IDs (sub-1, sub-2, etc.) from initial proof of concept
-        const legacyMockIds = new Set(['sub-1', 'sub-2', 'sub-3', 'sub-4', 'sub-5', 'sub-6']);
-        if (Array.isArray(state.subscriptions)) {
-          state.subscriptions = state.subscriptions.filter(
-            (s) => !legacyMockIds.has(s.id)
-          );
-        }
+
       }
     }
 
   )
 );
-
-if (typeof window !== 'undefined') {
-  (window as any).__store = useSubscriptionStore;
-}
-
-

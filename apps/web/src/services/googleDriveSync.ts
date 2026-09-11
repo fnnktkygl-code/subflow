@@ -29,6 +29,7 @@ export const DEFAULT_GOOGLE_CLIENT_ID =
 export async function requestGoogleDriveAccess(clientId?: string): Promise<string> {
   const activeClientId = clientId || useSubscriptionStore.getState().googleClientId || DEFAULT_GOOGLE_CLIENT_ID;
 
+  await loadGoogleIdentity();
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined') {
       return reject(new Error('Window is not defined'));
@@ -110,7 +111,7 @@ export async function loginWithGoogleAndSync(customClientId?: string): Promise<v
       lastSyncedAt: new Date().toISOString()
     };
 
-    store.setGoogleAccount(account);
+    // Do not enable background writes until restoration has finished.
 
     // 1. Search for existing cloud backup
     const existingBackupFile = await searchAppDataBackup(accessToken);
@@ -123,7 +124,7 @@ export async function loginWithGoogleAndSync(customClientId?: string): Promise<v
         version?: number;
       }>(accessToken, existingBackupFile.id);
 
-      if (cloudData && Array.isArray(cloudData.subscriptions) && cloudData.subscriptions.length > 0) {
+      if (cloudData && Array.isArray(cloudData.subscriptions)) {
         store.restoreFromCloud({
           subscriptions: cloudData.subscriptions,
           profile: cloudData.profile
@@ -151,6 +152,7 @@ export async function loginWithGoogleAndSync(customClientId?: string): Promise<v
       });
     }
 
+    store.setGoogleAccount(account);
     store.setDriveSyncStatus('synced');
   } catch (err: any) {
     store.setDriveSyncStatus('error', err.message || 'Échec de la connexion à Google Drive');
@@ -169,6 +171,10 @@ export async function pushToGoogleDrive(): Promise<void> {
     return;
   }
 
+  if (account.expiresAt && account.expiresAt <= Date.now()) {
+    store.setDriveSyncStatus('error', 'Session Google expirée. Reconnectez-vous.');
+    throw new Error('Session Google expirée. Reconnectez-vous.');
+  }
   store.setDriveSyncStatus('syncing');
 
   try {
@@ -190,6 +196,7 @@ export async function pushToGoogleDrive(): Promise<void> {
     store.setDriveSyncStatus('synced');
   } catch (err: any) {
     store.setDriveSyncStatus('error', err.message || 'Échec de la sauvegarde Google Drive');
+    throw err;
   }
 }
 
@@ -204,6 +211,10 @@ export async function pullFromGoogleDrive(): Promise<void> {
     throw new Error('Non connecté à Google Drive');
   }
 
+  if (account.expiresAt && account.expiresAt <= Date.now()) {
+    store.setDriveSyncStatus('error', 'Session Google expirée. Reconnectez-vous.');
+    throw new Error('Session Google expirée. Reconnectez-vous.');
+  }
   store.setDriveSyncStatus('syncing');
 
   try {
@@ -235,4 +246,19 @@ export function disconnectGoogleAccount(): void {
   const store = useSubscriptionStore.getState();
   store.setGoogleAccount(null);
   store.setDriveSyncStatus('idle');
+}
+
+let identityLoading: Promise<void> | undefined;
+function loadGoogleIdentity(): Promise<void> {
+  if (typeof window === 'undefined') return Promise.reject(new Error('Browser required'));
+  if (window.google?.accounts?.oauth2) return Promise.resolve();
+  if (!identityLoading) identityLoading = new Promise<void>((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => { identityLoading = undefined; script.remove(); reject(new Error('Connexion Google indisponible. Réessayez.')); };
+    document.head.appendChild(script);
+  });
+  return identityLoading;
 }

@@ -193,7 +193,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
               <div className="p-4 rounded-japandi-xl bg-japandi-sand/30 border border-japandi-border flex flex-col gap-2">
                 <span className="text-xs font-bold text-japandi-text flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-japandi-pine" />
-                  <span>{locale === 'fr' ? 'Synchronisation automatique en temps réel' : 'Real-Time Auto Sync'}</span>
+                  <span>{locale === 'fr' ? 'Sauvegarde Google Drive facultative' : 'Optional Google Drive backup'}</span>
                 </span>
                 <p className="text-xs text-japandi-muted leading-relaxed">
                   {locale === 'fr'
@@ -272,15 +272,15 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                 <div className="flex flex-col gap-1.5 text-xs text-japandi-text pt-1">
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />
-                    <span>{locale === 'fr' ? 'Synchronisation automatique entre téléphone et ordinateur' : 'Real-time sync between phone & computer'}</span>
+                    <span>{locale === 'fr' ? 'Sauvegarde et restauration sur vos appareils' : 'Backup and restore across your devices'}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />
-                    <span>{locale === 'fr' ? 'Restauration garantie en cas de réinitialisation ou changement d\'appareil' : 'Instant recovery if you change or reset your phone'}</span>
+                    <span>{locale === 'fr' ? 'Restauration depuis votre dernière sauvegarde disponible' : 'Instant recovery if you change or reset your phone'}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />
-                    <span>{locale === 'fr' ? 'Stockage privé 100% sécurisé (vos données vous appartiennent)' : '100% private sandboxed storage in your own Drive'}</span>
+                    <span>{locale === 'fr' ? 'Dossier applicatif isolé dans votre Drive (sans chiffrement de bout en bout)' : 'App-only folder in your Drive (not end-to-end encrypted)'}</span>
                   </div>
                 </div>
 

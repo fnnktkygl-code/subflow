@@ -12,7 +12,7 @@ export function roundToCents(amount: number): number {
 }
 
 export function normalizeMonthlyAmount(amount: number, cycle: BillingCycle | string): number {
-  if (isNaN(amount) || amount <= 0) return 0;
+  if (!Number.isFinite(amount) || amount <= 0) return 0;
   const normCycle = (cycle || 'Monthly').toLowerCase().replace(/[\s\-_]/g, '');
   switch (normCycle) {
     case 'daily':
@@ -58,7 +58,7 @@ export function calculateTotalYearlyCost(
   subscriptions: Subscription[],
   excludedIds: Set<string> = new Set()
 ): number {
-  return roundToCents(calculateTotalMonthlyCost(subscriptions, excludedIds) * 12);
+  return roundToCents(subscriptions.filter(sub => !excludedIds.has(sub.id) && sub.status !== 'paused').reduce((sum, sub) => sum + normalizeYearlyAmount(sub.amount, sub.cycle), 0));
 }
 
 export function calculateWhatIfSavings(
@@ -174,65 +174,62 @@ export interface UpcomingOccurrence {
   formattedDate: string;
 }
 
-export function calculateUpcomingOccurrences(
-  subscriptions: Subscription[],
-  referenceDate: Date = new Date(),
-  daysForward: number = 60
-): UpcomingOccurrence[] {
-  const occurrences: UpcomingOccurrence[] = [];
-  const refTime = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate()).getTime();
-
-  subscriptions.forEach((sub) => {
-    if (sub.status === 'paused') return;
-    const start = new Date(sub.startDate);
-    let due = new Date(start);
-
-    const cycle = (sub.cycle || 'Monthly').toLowerCase();
-    while (due.getTime() < refTime) {
-      if (cycle === 'weekly') {
-        due.setDate(due.getDate() + 7);
-      } else if (cycle === 'yearly' || cycle === 'annual' || cycle === 'annually') {
-        due.setFullYear(due.getFullYear() + 1);
-      } else {
-        due.setMonth(due.getMonth() + 1);
-      }
-    }
-
-    const diffDays = Math.round((due.getTime() - refTime) / (1000 * 60 * 60 * 24));
-    if (diffDays <= daysForward) {
-      occurrences.push({
-        subscription: sub,
-        dueDate: due,
-        daysRemaining: diffDays,
-        formattedDate: due.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
-      });
-    }
-  });
-
-    return occurrences.sort((a, b) => a.daysRemaining - b.daysRemaining);
+/** Calendar dates stay in local time; month-end recurrences keep their original anchor. */
+function parseCalendarDate(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return null;
+  const [year, month, day] = match.slice(1).map(Number) as [number, number, number];
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
 }
 
-export function calculateNextRenewalDate(
-  lastChargeDateStr: string,
-  cycle: string = 'monthly',
-  referenceDate: Date = new Date()
-): string {
-  const last = new Date(lastChargeDateStr);
-  if (isNaN(last.getTime())) return new Date().toISOString().slice(0, 10);
-
-  const next = new Date(last);
-  const refTime = new Date(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate()).getTime();
-  const c = (cycle || 'monthly').toLowerCase();
-
-  while (next.getTime() <= refTime) {
-    if (c === 'weekly') {
-      next.setDate(next.getDate() + 7);
-    } else if (c === 'yearly' || c === 'annual') {
-      next.setFullYear(next.getFullYear() + 1);
-    } else {
-      next.setMonth(next.getMonth() + 1);
-    }
+function nextOccurrence(start: Date, cycle: string, reference: Date, strictlyAfter = false): Date {
+  const c = cycle.toLowerCase().replace(/[\s_-]/g, '');
+  const dayStep = ({ daily: 1, weekly: 7, biweekly: 14, fortnightly: 14 } as Record<string, number>)[c];
+  const ref = new Date(reference.getFullYear(), reference.getMonth(), reference.getDate());
+  if (strictlyAfter) ref.setDate(ref.getDate() + 1);
+  if (start >= ref) return new Date(start);
+  if (dayStep) {
+    const days = Math.round((Date.UTC(ref.getFullYear(), ref.getMonth(), ref.getDate()) - Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000);
+    const due = new Date(start);
+    due.setDate(start.getDate() + Math.ceil(days / dayStep) * dayStep);
+    return due;
   }
+  const monthStep = ({ quarterly: 3, semiannual: 6, semiannually: 6, halfyearly: 6, yearly: 12, annual: 12, annually: 12 } as Record<string, number>)[c] || 1;
+  const monthDiff = (ref.getFullYear() - start.getFullYear()) * 12 + ref.getMonth() - start.getMonth();
+  let step = Math.max(0, Math.floor(monthDiff / monthStep));
+  const at = (index: number) => {
+    const date = new Date(start.getFullYear(), start.getMonth() + index * monthStep, 1);
+    const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+    date.setDate(Math.min(start.getDate(), lastDay));
+    return date;
+  };
+  let due = at(step);
+  if (due < ref) due = at(++step);
+  return due;
+}
 
-  return next.toISOString().slice(0, 10);
+export function calculateUpcomingOccurrences(subscriptions: Subscription[], referenceDate: Date = new Date(), daysForward = 60): UpcomingOccurrence[] {
+  if (!Number.isFinite(referenceDate.getTime()) || !Number.isFinite(daysForward) || daysForward < 0) return [];
+  const refDay = Date.UTC(referenceDate.getFullYear(), referenceDate.getMonth(), referenceDate.getDate());
+  const occurrences: UpcomingOccurrence[] = [];
+  for (const subscription of subscriptions) {
+    if (subscription.status === 'paused') continue;
+    const start = parseCalendarDate(subscription.startDate);
+    if (!start) continue;
+    const dueDate = nextOccurrence(start, subscription.cycle || 'Monthly', referenceDate);
+    const daysRemaining = Math.round((Date.UTC(dueDate.getFullYear(), dueDate.getMonth(), dueDate.getDate()) - refDay) / 86400000);
+    if (daysRemaining <= daysForward) occurrences.push({ subscription, dueDate, daysRemaining, formattedDate: dueDate.toLocaleDateString('en-US', { day: 'numeric', month: 'short' }) });
+  }
+  return occurrences.sort((a, b) => a.daysRemaining - b.daysRemaining);
+}
+
+export function calculateNextRenewalDate(lastChargeDateStr: string, cycle = 'monthly', referenceDate = new Date()): string {
+  const start = parseCalendarDate(lastChargeDateStr);
+  if (!start || !Number.isFinite(referenceDate.getTime())) {
+    const fallback = new Date(referenceDate);
+    return `${fallback.getFullYear()}-${String(fallback.getMonth() + 1).padStart(2, '0')}-${String(fallback.getDate()).padStart(2, '0')}`;
+  }
+  const next = nextOccurrence(start, cycle, referenceDate, false);
+  return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
 }

@@ -191,11 +191,11 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
               title="Cliquez pour changer le logo ou l'icône SVG"
             >
               <SubscriptionLogo
-                name={name || 'Subscription'}
+                name={name}
                 logoUrl={logoUrl}
                 category={category}
                 size={44}
-                showCategoryBadge={true}
+                showCategoryBadge={false}
               />
               <div className="absolute inset-0 rounded-japandi-xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
                 <ImageIcon className="w-4 h-4 drop-shadow-sm" />
@@ -289,34 +289,38 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           {/* Form */}
           <form id="sub-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
             {/* Dedicated Logo & Icon Customization Banner */}
-            <div className="flex items-center justify-between p-3 rounded-japandi-xl border border-japandi-border bg-japandi-elevated/60">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between p-3.5 rounded-japandi-xl border border-japandi-border bg-japandi-elevated hover:border-japandi-border-strong transition-all">
+              <div className="flex items-center gap-3 min-w-0">
                 <div
                   role="button"
                   tabIndex={0}
                   onClick={() => setIsIconPickerOpen(true)}
-                  className="cursor-pointer hover:scale-105 transition-transform"
+                  className="cursor-pointer hover:scale-105 transition-transform flex-shrink-0"
                   title="Cliquez pour changer le logo ou l'icône"
                 >
-                  <SubscriptionLogo name={name || 'Service'} logoUrl={logoUrl} category={category} size={36} />
+                  <SubscriptionLogo name={name} logoUrl={logoUrl} category={category} size={38} showCategoryBadge={false} />
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold text-japandi-text">
-                    {logoUrl?.startsWith('svg:') ? 'Icône SVG personnalisée' : 'Logo du service'}
-                  </span>
-                  <span className="text-[11px] text-japandi-muted">
+                <div className="flex flex-col min-w-0">
+                  <span className="text-xs font-bold text-japandi-text truncate">
                     {logoUrl?.startsWith('svg:')
-                      ? 'Icône vectorielle native sélectionnée'
+                      ? 'Icône vectorielle SVG'
                       : logoUrl
-                      ? 'Logo détecté automatiquement'
-                      : 'Icône par défaut de la catégorie'}
+                      ? 'Logo officiel détecté'
+                      : 'Icône par défaut'}
+                  </span>
+                  <span className="text-[11px] text-japandi-muted truncate">
+                    {logoUrl?.startsWith('svg:')
+                      ? 'Style vectoriel sélectionné'
+                      : logoUrl
+                      ? (name || 'Service')
+                      : `Catégorie ${category}`}
                   </span>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setIsIconPickerOpen(true)}
-                className="px-3 py-1.5 rounded-japandi-md border border-japandi-pine/30 bg-japandi-pine/10 hover:bg-japandi-pine/20 text-japandi-pine text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs"
+                className="px-3 py-1.5 rounded-japandi-md border border-japandi-pine/30 bg-japandi-pine/10 hover:bg-japandi-pine/20 text-japandi-pine text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs flex-shrink-0"
               >
                 <ImageIcon className="w-3.5 h-3.5" />
                 <span>Modifier le logo</span>

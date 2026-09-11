@@ -218,6 +218,23 @@ export const KNOWN_BRAND_DOMAINS: Record<string, string> = {
   subflow: 'subflowapp.vercel.app'
 };
 
+// Generic placeholder or system words that should never resolve to arbitrary external domains
+const GENERIC_RESERVED_NAMES = new Set([
+  'subscription',
+  'subscriptions',
+  'service',
+  'services',
+  'abonnement',
+  'abonnements',
+  'default',
+  'general',
+  'unknown',
+  'autre',
+  'other',
+  'test',
+  'item'
+]);
+
 export function extractDomain(subscriptionName: string, explicitDomain?: string): string {
   if (explicitDomain && explicitDomain.trim()) {
     let d = explicitDomain.trim().toLowerCase();
@@ -225,7 +242,7 @@ export function extractDomain(subscriptionName: string, explicitDomain?: string)
   }
 
   let trimmed = subscriptionName.trim().toLowerCase();
-  if (!trimmed) return '';
+  if (!trimmed || trimmed.length < 2 || GENERIC_RESERVED_NAMES.has(trimmed)) return '';
 
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     try {
@@ -252,7 +269,7 @@ export function extractDomain(subscriptionName: string, explicitDomain?: string)
 
   const cleaned = trimmed.replace(/[^a-z0-9\.\-]/g, '');
 
-  if (!cleaned) return '';
+  if (!cleaned || GENERIC_RESERVED_NAMES.has(cleaned)) return '';
 
   if (cleaned.includes('.')) {
     return cleaned;
@@ -263,7 +280,7 @@ export function extractDomain(subscriptionName: string, explicitDomain?: string)
 
 export function fetchLogo(subscriptionName: string, explicitDomain?: string): string {
   const trimmed = subscriptionName.trim();
-  if (!trimmed) return '';
+  if (!trimmed || GENERIC_RESERVED_NAMES.has(trimmed.toLowerCase())) return '';
 
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) {
     return trimmed;
@@ -277,7 +294,7 @@ export function fetchLogo(subscriptionName: string, explicitDomain?: string): st
   const domain = extractDomain(trimmed, explicitDomain);
   if (!domain) return '';
 
-  return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+  return `https://unavatar.io/${domain}?fallback=false`;
 }
 
 export function getLogoSources(subscriptionName: string, explicitDomain?: string): string[] {
@@ -285,6 +302,8 @@ export function getLogoSources(subscriptionName: string, explicitDomain?: string
   if (!trimmed && !explicitDomain) return [];
 
   const norm = trimmed.toLowerCase();
+  if (GENERIC_RESERVED_NAMES.has(norm) && !explicitDomain) return [];
+
   const sources: string[] = [];
 
   if (LOCAL_SVG_LOGOS[norm]) {
@@ -297,16 +316,17 @@ export function getLogoSources(subscriptionName: string, explicitDomain?: string
 
   const domain = extractDomain(trimmed, explicitDomain);
   if (domain) {
-    // 1. Google High-Resolution Favicon CDN (Fast, reliable globally)
-    sources.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
-    // 2. DuckDuckGo High-Res Icon
-    sources.push(`https://icons.duckduckgo.com/ip3/${domain}.ico`);
-    // 3. Icon Horse
-    sources.push(`https://icon.horse/icon/${domain}`);
-    // 4. Unavatar with explicit fallback=false so it fails cleanly rather than returning generic globe SVG
+    // 1. Unavatar with fallback=false (Returns official SVGs/PNGs for known brands)
     sources.push(`https://unavatar.io/${domain}?fallback=false`);
+    // 2. Google High-Resolution Favicon CDN v2 (Direct 128px png)
+    sources.push(`https://t3.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=http://${domain}&size=128`);
+    // 3. Google Favicons S2 API (Global CDN fallback)
+    sources.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
+    // 4. DuckDuckGo High-Res Icon
+    sources.push(`https://icons.duckduckgo.com/ip3/${domain}.ico`);
+    // 5. Icon Horse
+    sources.push(`https://icon.horse/icon/${domain}`);
   }
 
   return sources;
 }
-

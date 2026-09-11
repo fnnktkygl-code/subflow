@@ -106,7 +106,7 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
   const sources = React.useMemo(() => {
     if (isExplicitNativeSvg) return [];
     const list: string[] = [];
-    if (logoUrl && (logoUrl.startsWith('/') || logoUrl.startsWith('http://') || logoUrl.startsWith('https://'))) {
+    if (logoUrl && /^\/logos\/[a-zA-Z0-9_ .-]+\.(svg|png|webp)$/.test(logoUrl)) {
       list.push(logoUrl);
     }
     const derived = getLogoSources(name, domain);
@@ -138,12 +138,12 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
 
   // Render native SVG icon inside styled container
   const renderNativeSvgContent = (iconSvg: string) => {
-    const iconSize = Math.max(14, Math.round(size * 0.52));
+    const iconSize = Math.max(16, Math.round(size * 0.5));
     return (
       <div
-        className="w-full h-full flex items-center justify-center transition-transform hover:scale-105"
+        className="w-full h-full flex items-center justify-center transition-all"
         style={{
-          backgroundColor: `${categoryColor}18`,
+          backgroundColor: `${categoryColor}14`,
           color: categoryColor
         }}
       >
@@ -161,20 +161,28 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
     );
   };
 
+  const hasValidImage = !hasError && Boolean(currentSrc);
+
   return (
     <div
       className={`relative flex-shrink-0 select-none ${className}`}
       style={{ width: `${size}px`, height: `${size}px` }}
     >
       {/* Main Logo Container with High-Contrast Canvas for Light/Dark mode parity */}
-      <div className={`w-full h-full ${isSmall ? 'rounded-full' : 'rounded-japandi-xl border border-japandi-border/80 dark:border-white/10 shadow-japandi-xs'} bg-white dark:bg-white text-zinc-900 overflow-hidden flex items-center justify-center`}>
+      <div
+        className={`w-full h-full ${
+          isSmall ? 'rounded-full' : 'rounded-japandi-xl border border-japandi-border/80 dark:border-white/10 shadow-xs'
+        } ${hasValidImage && !isExplicitNativeSvg ? 'bg-white dark:bg-white' : 'bg-japandi-surface'} overflow-hidden flex items-center justify-center`}
+      >
         {isExplicitNativeSvg && explicitNativeIcon ? (
           renderNativeSvgContent(explicitNativeIcon.svg)
-        ) : !hasError && currentSrc ? (
+        ) : hasValidImage ? (
           <img
             src={currentSrc}
-            alt={name}
-            className={`w-full h-full object-contain p-0.5 transform scale-110 ${isSmall ? 'rounded-full' : 'rounded-japandi-xl'}`}
+            alt={name || 'Service'}
+            className={`w-full h-full object-contain p-1 transform scale-100 ${
+              isSmall ? 'rounded-full' : 'rounded-japandi-xl'
+            }`}
             loading="lazy"
             onError={handleImageError}
           />

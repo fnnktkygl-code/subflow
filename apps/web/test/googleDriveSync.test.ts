@@ -94,7 +94,7 @@ describe('GoogleDriveSync Application Service', () => {
 
       vi.spyOn(core, 'searchAppDataBackup').mockRejectedValue(new Error('Drive Quota Exceeded'));
 
-      await pushToGoogleDrive();
+      await expect(pushToGoogleDrive()).rejects.toThrow('Drive Quota Exceeded');
 
       expect(useSubscriptionStore.getState().driveSyncStatus).toBe('error');
       expect(useSubscriptionStore.getState().driveSyncError).toBe('Drive Quota Exceeded');
