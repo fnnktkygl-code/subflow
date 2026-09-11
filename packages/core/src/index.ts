@@ -12,3 +12,4 @@ export * from './notifications/scheduler';
 export * from './i18n';
 export * from './truelayer/types';
 export * from './truelayer/detector';
+export * from './utils/nativeSvgIcons';

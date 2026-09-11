@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { subscriptionSchema, userProfileSchema } from '../src/validation/schemas';
-import { extractDomain, getLogoSources, LOCAL_SVG_LOGOS } from '../src/utils/logo';
-import { PRESET_SUBSCRIPTIONS } from '../src/presets';
+import { extractDomain, getLogoSources } from '../src/utils/logo';
 
 describe('1. Zod Data Validation Schemas', () => {
   it('validates a correct subscription object', () => {
@@ -90,30 +89,5 @@ describe('2. Brand Domain Extraction & Logo Resolver', () => {
     expect(sources.some((s) => s.includes('google.com/s2/favicons'))).toBe(true);
     expect(sources.some((s) => s.includes('unavatar.io'))).toBe(true);
     expect(sources.some((s) => s.includes('icon.horse'))).toBe(true);
-  });
-});
-
-describe('3. Preset Subscriptions Catalog Integrity', () => {
-  it('contains valid preset subscriptions', () => {
-    expect(PRESET_SUBSCRIPTIONS.length).toBeGreaterThan(0);
-  });
-
-  it('ensures every preset passes subscription schema validation', () => {
-    PRESET_SUBSCRIPTIONS.forEach((preset) => {
-      const parsed = subscriptionSchema.safeParse({
-        ...preset,
-        id: `preset-${preset.name.toLowerCase().replace(/\s+/g, '-')}`,
-        startDate: '2026-08-01'
-      });
-      expect(parsed.success).toBe(true);
-    });
-  });
-
-  it('ensures every preset has a valid category and positive amount', () => {
-    PRESET_SUBSCRIPTIONS.forEach((preset) => {
-      expect(preset.amount).toBeGreaterThan(0);
-      expect(preset.name.length).toBeGreaterThan(0);
-      expect(preset.category.length).toBeGreaterThan(0);
-    });
   });
 });

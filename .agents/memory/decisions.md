@@ -40,12 +40,25 @@
 - **Décision tranchée** : Onboarding transparent à deux choix : Cloud Google Drive (recommandé) ou Mode Local (avertissement de risque de perte si cache vidé). Clé Zustand incrémentée (`subflow-storage-v2`) avec purge automatique des anciens caches de test.
 - **Raison / Pourquoi** : Respecte l'autonomie de l'utilisateur tout en garantissant une base saine et zéro données mockées en production.
 
-### 2026-09-10 | Fiabilité & Robustesse : Stress Test & Hardening (Arrondis, Dates Bancaires, Merge Sync)
-- **Contexte / Problème** : Risques de dérive d'arrondi décimal IEEE 754 sur de gros volumes d'abonnements, contamination de périodicité par des dates futures aberrantes dans les relevés Open Banking, et risque d'écrasement silencieux lors des synchronisations multi-écrans.
-- **Décision tranchée** : 
-  1. Ajout de `roundToCents` systématique sur les totaux mensuels, annuels et simulations What-If.
-  2. Filtrage défensif des dates bancaires corrompues ou futures (> 45j) dans le détecteur TrueLayer.
-  3. Implémentation de `mergeSubscriptionsSnapshot` avec fusion par identifiant unique et horodatage `updatedAt`.
-  4. Suite de stress tests automatisée validant 2 000 abonnements sous 50ms.
-- **Raison / Pourquoi** : Élimine toute anomalie d'affichage financier et garantit l'intégrité des données à l'échelle.
+### 2026-09-11 | Qualité & Tests : Optimisation et Épuration Chirurgicale des Tests (Brooks-Zero)
+- **Contexte / Problème** : Présence de ~25-30% de tests redondants (boucle d'assertions 350+ dupliquée, doublon de formatage monétaire, template Flutter par défaut obsolète), pollution console persistante de Zustand (`storage unavailable` en SSR/Vitest), et angles morts sans tests sur les proxies API Next.js Serverless et la synchro Google Drive Web.
+- **Décision tranchée** :
+  1. Suppression de la Suite 3 dans `validation.test.ts` (doublon strict avec `presets_350_catalog.test.ts`), du bloc formatage de `budget.test.ts`, et de `test/widget_test.dart`.
+  2. Configuration d'un storage fallback sécurisé SSR dans `useSubscriptionStore.ts` éliminant 100% des avertissements console Zustand.
+  3. Ajout de `apps/web/test/api_truelayer.test.ts` (8 tests couvrant les 3 routes proxy `/api/truelayer/*`).
+  4. Ajout de `apps/web/test/googleDriveSync.test.ts` (9 tests couvrant les flux Google Drive client & user profile).
+  5. Extension de `google_drive_backup.test.ts` avec les cas d'erreurs HTTP (401, 403, 404).
+  6. Fusion et unification des tests Dart Flutter jumeaux (`subscription_provider_test.dart` et `user_profile_provider_test.dart`).
+- **Raison / Pourquoi** : Réduit le bruit de fond en CI à zéro, protège les points d'intégration critiques et garde la base de tests affûtée et maintenable.
+
+### 2026-09-11 | UI & Assets : Standardisation des Icônes SVG Natives et Fallbacks Épurés
+- **Contexte / Problème** : En cas d'échec de récupération de favicon ou de logo manquant (ou par préférence de personnalisation de l'utilisateur), l'application affichait une simple lettre initiale sur fond dégradé. L'utilisateur souhaitait des icônes SVG natives, classées par catégorie, conformes aux standards de l'industrie pour remplacer ou supplanter le logo prédit.
+- **Décision tranchée** :
+  1. Création d'une bibliothèque d'icônes vectorielles standardisées dans `@subflow/core` (`packages/core/src/utils/nativeSvgIcons.ts`) classées par catégories (Streaming, Tech/IA, Énergie/Box, Sport, Alimentation, Shopping, Transport, Banque/Général).
+  2. Mise à niveau du composant `SubscriptionLogo` dans `@subflow/ui` : prise en charge des identifiants `svg:<icon_id>` et fallback SVG catégorisé haute fidélité au lieu d'une initiale texte brute.
+  3. Intégration d'un sélecteur modal visuel `SvgIconPickerModal` dans `AddSubscriptionModal` (recherche textuelle + onglets par catégorie).
+  4. Couverture par tests unitaires automatisés (`packages/core/test/native_svg_icons.test.ts`).
+- **Raison / Pourquoi** : Garantit une cohérence esthétique Japandi sans aucune dépendance réseau pour les logos, et offre un contrôle total à l'utilisateur.
+- **Impacts & Conséquences** : 109 tests automatisés au vert, déploiement Vercel mis à jour immédiatement en production.
+
 

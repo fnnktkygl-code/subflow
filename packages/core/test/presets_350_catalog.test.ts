@@ -3,7 +3,9 @@ import {
   COMPLETE_SUBSCRIPTION_CATALOG,
   searchPresetCatalog,
   getRegionalPresets,
-  getCancellationGuide
+  getCancellationGuide,
+  detectUserCountry,
+  getCurrencyForCountry
 } from '../src';
 
 describe('350+ Comprehensive Subscription Catalog Engine', () => {
@@ -68,5 +70,22 @@ describe('350+ Comprehensive Subscription Catalog Engine', () => {
     const guideFreebox = getCancellationGuide('Freebox Pop Fibre');
     expect(guideFreebox).toBeDefined();
     expect(guideFreebox?.directCancelUrl).toContain('free.fr');
+  });
+
+  it('provides regional presets filtered by country', () => {
+    const frPresets = getRegionalPresets('FR');
+    expect(frPresets.length).toBeGreaterThan(0);
+    expect(frPresets.every((p) => p.currencyCode && p.amount > 0)).toBe(true);
+
+    const usPresets = getRegionalPresets('US');
+    expect(usPresets.length).toBeGreaterThan(0);
+  });
+
+  it('detects country and currencies accurately with safe defaults', () => {
+    // In Node / SSR, default is 'FR'
+    expect(detectUserCountry()).toBe('FR');
+    expect(getCurrencyForCountry('FR')).toEqual({ code: 'EUR', symbol: '€' });
+    expect(getCurrencyForCountry('US')).toEqual({ code: 'USD', symbol: '$' });
+    expect(getCurrencyForCountry('GB')).toEqual({ code: 'GBP', symbol: '£' });
   });
 });

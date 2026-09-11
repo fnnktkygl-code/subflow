@@ -18,7 +18,8 @@ import { CategoryIcon } from './CategoryIcon';
 import { JapandiDatePicker } from './JapandiDatePicker';
 import { CancellationAssistantModal } from './CancellationAssistantModal';
 import { TrueLayerSyncModal, getTrueLayerAuthUrl } from './TrueLayerSyncModal';
-import { X, Sparkles, FileText, Building2, ExternalLink, Zap } from 'lucide-react';
+import { SvgIconPickerModal } from './SvgIconPickerModal';
+import { X, Sparkles, FileText, Building2, ExternalLink, Zap, Image as ImageIcon } from 'lucide-react';
 
 
 interface AddSubscriptionModalProps {
@@ -74,9 +75,11 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   const [cycle, setCycle] = useState<BillingCycle>('Monthly');
   const [startDate, setStartDate] = useState<string>(defaultDate ?? getTodayString());
   const [logoUrl, setLogoUrl] = useState<string>('');
+  const [isCustomLogoExplicit, setIsCustomLogoExplicit] = useState<boolean>(false);
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
   const [isTrueLayerOpen, setIsTrueLayerOpen] = useState(false);
+  const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
 
@@ -93,6 +96,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
       setCycle(editSubscription.cycle as BillingCycle);
       setStartDate(editSubscription.startDate || getTodayString());
       setLogoUrl(editSubscription.logoUrl || '');
+      setIsCustomLogoExplicit(Boolean(editSubscription.logoUrl?.startsWith('svg:')));
     } else {
       setName('');
       setAmount('');
@@ -100,16 +104,17 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
       setCycle('Monthly');
       setStartDate(defaultDate ?? getTodayString());
       setLogoUrl('');
+      setIsCustomLogoExplicit(false);
       setSelectedPreset(null);
     }
   }, [editSubscription, defaultDate, isOpen]);
 
   useEffect(() => {
-    if (!editSubscription && name.trim().length > 1) {
+    if (!editSubscription && !isCustomLogoExplicit && name.trim().length > 1) {
       const predicted = fetchLogo(name);
       setLogoUrl(predicted);
     }
-  }, [name, editSubscription]);
+  }, [name, editSubscription, isCustomLogoExplicit]);
 
   const handleApplyPreset = (preset: RegionalPreset) => {
     setName(preset.name);
@@ -175,18 +180,34 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
       >
         {/* Header */}
         <div className="p-5 flex items-center justify-between border-b border-japandi-border">
-          <div className="flex items-center gap-3">
-            <SubscriptionLogo
-              name={name || 'Subscription'}
-              logoUrl={logoUrl}
-              category={category}
-              size={40}
-              showCategoryBadge={true}
-            />
+          <div className="flex items-center gap-3.5">
+            {/* Interactive Logo Avatar */}
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => setIsIconPickerOpen(true)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsIconPickerOpen(true); }}
+              className="relative group cursor-pointer"
+              title="Cliquez pour changer le logo ou l'icône SVG"
+            >
+              <SubscriptionLogo
+                name={name || 'Subscription'}
+                logoUrl={logoUrl}
+                category={category}
+                size={44}
+                showCategoryBadge={true}
+              />
+              <div className="absolute inset-0 rounded-japandi-xl bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                <ImageIcon className="w-4 h-4 drop-shadow-sm" />
+              </div>
+            </div>
+
             <div>
-              <h3 id={titleId} className="font-bold text-lg text-japandi-text">
-                {editSubscription ? t('modal.editTitle') : t('modal.addTitle')}
-              </h3>
+              <div className="flex items-center gap-2">
+                <h3 id={titleId} className="font-bold text-lg text-japandi-text">
+                  {editSubscription ? t('modal.editTitle') : t('modal.addTitle')}
+                </h3>
+              </div>
               <p className="text-xs text-japandi-muted">
                 {editSubscription
                   ? t('subs.subtitle')
@@ -267,17 +288,47 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
 
           {/* Form */}
           <form id="sub-form" onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Dedicated Logo & Icon Customization Banner */}
+            <div className="flex items-center justify-between p-3 rounded-japandi-xl border border-japandi-border bg-japandi-elevated/60">
+              <div className="flex items-center gap-3">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setIsIconPickerOpen(true)}
+                  className="cursor-pointer hover:scale-105 transition-transform"
+                  title="Cliquez pour changer le logo ou l'icône"
+                >
+                  <SubscriptionLogo name={name || 'Service'} logoUrl={logoUrl} category={category} size={36} />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs font-bold text-japandi-text">
+                    {logoUrl?.startsWith('svg:') ? 'Icône SVG personnalisée' : 'Logo du service'}
+                  </span>
+                  <span className="text-[11px] text-japandi-muted">
+                    {logoUrl?.startsWith('svg:')
+                      ? 'Icône vectorielle native sélectionnée'
+                      : logoUrl
+                      ? 'Logo détecté automatiquement'
+                      : 'Icône par défaut de la catégorie'}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsIconPickerOpen(true)}
+                className="px-3 py-1.5 rounded-japandi-md border border-japandi-pine/30 bg-japandi-pine/10 hover:bg-japandi-pine/20 text-japandi-pine text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs"
+              >
+                <ImageIcon className="w-3.5 h-3.5" />
+                <span>Modifier le logo</span>
+              </button>
+            </div>
+
             {/* Subscription Name */}
             <div className="relative">
               <label className="block text-xs font-semibold text-japandi-muted uppercase tracking-wider mb-1.5">
                 {t('modal.nameLabel')}
               </label>
               <div className="relative">
-                {logoUrl && (
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2">
-                    <SubscriptionLogo name={name} logoUrl={logoUrl} category={category} size={24} />
-                  </div>
-                )}
                 <input
                   type="text"
                   required
@@ -288,9 +339,10 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                     setShowSuggestions(true);
                   }}
                   onFocus={() => setShowSuggestions(true)}
-                  className={`w-full ${logoUrl ? 'pl-12' : 'pl-3.5'} pr-3.5 py-2.5 rounded-japandi-md bg-japandi-elevated border border-japandi-border text-japandi-text text-sm focus:outline-none focus:ring-2 focus:ring-japandi-pine transition-all`}
+                  className="w-full px-3.5 py-2.5 rounded-japandi-md bg-japandi-elevated border border-japandi-border text-japandi-text text-sm focus:outline-none focus:ring-2 focus:ring-japandi-pine transition-all"
                 />
               </div>
+
 
               {/* Suggestions Dropdown from 350+ Catalog */}
               {!editSubscription && showSuggestions && matchingSuggestions.length > 0 && name.trim().length >= 2 && (
@@ -439,6 +491,19 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           onClose={() => {
             setIsTrueLayerOpen(false);
             onClose();
+          }}
+        />
+      )}
+
+      {/* SVG Icon Picker Modal */}
+      {isIconPickerOpen && (
+        <SvgIconPickerModal
+          isOpen={isIconPickerOpen}
+          onClose={() => setIsIconPickerOpen(false)}
+          selectedIconId={logoUrl?.startsWith('svg:') ? logoUrl.replace(/^svg:/, '') : undefined}
+          subscriptionCategory={category}
+          onSelectIcon={(iconId) => {
+            setLogoUrl(`svg:${iconId}`);
           }}
         />
       )}

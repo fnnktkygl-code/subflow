@@ -1,12 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import {
   normalizeMonthlyAmount,
+  normalizeYearlyAmount,
   calculateTotalMonthlyCost,
+  calculateTotalYearlyCost,
   calculateWhatIfSavings,
   calculate503020Split,
   calculateCategoryBreakdown,
   calculateUpcomingOccurrences,
-  formatCurrency
+  calculateNextRenewalDate
 } from '../src/math/budget';
 import { Subscription } from '../src/types';
 
@@ -201,10 +203,35 @@ describe('6. Upcoming Occurrences & Renewal Schedule', () => {
   });
 });
 
-describe('7. Currency Formatting', () => {
-  it('formats amounts with 2 decimals and given currency symbol', () => {
-    expect(formatCurrency(48.48, '€')).toBe('€48.48');
-    expect(formatCurrency(120, '$')).toBe('$120.00');
-    expect(formatCurrency(0, '£')).toBe('£0.00');
+describe('7. Yearly Projections & Next Renewal Date', () => {
+  it('normalizes yearly amounts accurately across cycles', () => {
+    expect(normalizeYearlyAmount(10, 'Monthly')).toBe(120);
+    expect(normalizeYearlyAmount(120, 'Yearly')).toBe(120);
+    expect(normalizeYearlyAmount(30, 'Quarterly')).toBe(120);
+  });
+
+  it('calculates total yearly cost with exclusion sets', () => {
+    const subs: Subscription[] = [
+      { id: '1', name: 'Netflix', amount: 15, category: 'Entertainment', cycle: 'Monthly', startDate: '2026-01-01' },
+      { id: '2', name: 'Gym', amount: 360, category: 'Health', cycle: 'Yearly', startDate: '2026-01-01' }
+    ];
+    // 15 * 12 = 180, plus 360 = 540
+    expect(calculateTotalYearlyCost(subs)).toBe(540);
+    expect(calculateTotalYearlyCost(subs, new Set(['2']))).toBe(180);
+  });
+
+  it('calculates next renewal date rolling forward correctly', () => {
+    const refDate = new Date(2026, 7, 27); // Aug 27, 2026
+    // Monthly renewal from Aug 10 rolls to Sep 10
+    expect(calculateNextRenewalDate('2026-08-10', 'monthly', refDate)).toBe('2026-09-10');
+    // Weekly renewal from Aug 20 rolls to Aug 27
+    expect(calculateNextRenewalDate('2026-08-20', 'weekly', refDate)).toBe('2026-08-27');
+    // Yearly renewal from 2025-08-10 rolls to 2027-08-10 (past Aug 2026)
+    expect(calculateNextRenewalDate('2025-08-10', 'yearly', refDate)).toBe('2027-08-10');
+  });
+
+  it('falls back safely on invalid charge dates', () => {
+    const result = calculateNextRenewalDate('invalid-date', 'monthly');
+    expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });

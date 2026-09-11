@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { extractDomain, getLogoSources } from '@subflow/core';
+import { extractDomain, getLogoSources, getNativeSvgIconById, getNativeSvgIconForCategory } from '@subflow/core';
 
 export interface SubscriptionLogoProps {
   name: string;
@@ -20,6 +20,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   'Health & Fitness': '#477A56', // Matcha Green
   'Food & Dining': '#C49A6C', // Hinoki Warm Ochre
   Shopping: '#8C7355', // Sandalwood
+  Transport: '#5E7D8A', // Indigo Fog
   General: '#8C867A' // Tatami Ash
 };
 
@@ -86,7 +87,6 @@ function renderCategoryPinIcon(category: string) {
 }
 
 export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
-
   name,
   domain,
   logoUrl,
@@ -98,7 +98,13 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
   const [sourceIndex, setSourceIndex] = useState(0);
   const [hasError, setHasError] = useState(false);
 
+  // Check if logoUrl is a native SVG token (e.g., 'svg:sparkles' or 'svg:dumbbell')
+  const isExplicitNativeSvg = Boolean(logoUrl && logoUrl.startsWith('svg:'));
+  const nativeSvgId = isExplicitNativeSvg ? logoUrl!.replace(/^svg:/, '') : null;
+  const explicitNativeIcon = nativeSvgId ? getNativeSvgIconById(nativeSvgId) : null;
+
   const sources = React.useMemo(() => {
+    if (isExplicitNativeSvg) return [];
     const list: string[] = [];
     if (logoUrl && (logoUrl.startsWith('/') || logoUrl.startsWith('http://') || logoUrl.startsWith('https://'))) {
       list.push(logoUrl);
@@ -108,14 +114,13 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
       if (!list.includes(s)) list.push(s);
     });
     return list;
-  }, [name, domain, logoUrl]);
+  }, [name, domain, logoUrl, isExplicitNativeSvg]);
 
   // Reset fallback sequence when name, domain, or logoUrl updates
   useEffect(() => {
     setSourceIndex(0);
     setHasError(false);
   }, [name, domain, logoUrl]);
-
 
   const currentSrc = sources[sourceIndex];
 
@@ -127,10 +132,34 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
     }
   };
 
-  const initial = (name.trim()[0] || '?').toUpperCase();
   const categoryColor = CATEGORY_COLORS[category] || '#8C867A';
-
+  const fallbackSvgIcon = getNativeSvgIconForCategory(category);
   const isSmall = size <= 20;
+
+  // Render native SVG icon inside styled container
+  const renderNativeSvgContent = (iconSvg: string) => {
+    const iconSize = Math.max(14, Math.round(size * 0.52));
+    return (
+      <div
+        className="w-full h-full flex items-center justify-center transition-transform hover:scale-105"
+        style={{
+          backgroundColor: `${categoryColor}18`,
+          color: categoryColor
+        }}
+      >
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          style={{ width: `${iconSize}px`, height: `${iconSize}px` }}
+          dangerouslySetInnerHTML={{ __html: iconSvg }}
+        />
+      </div>
+    );
+  };
 
   return (
     <div
@@ -139,7 +168,9 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
     >
       {/* Main Logo Container with High-Contrast Canvas for Light/Dark mode parity */}
       <div className={`w-full h-full ${isSmall ? 'rounded-full' : 'rounded-japandi-xl border border-japandi-border/80 dark:border-white/10 shadow-japandi-xs'} bg-white dark:bg-white text-zinc-900 overflow-hidden flex items-center justify-center`}>
-        {!hasError && currentSrc ? (
+        {isExplicitNativeSvg && explicitNativeIcon ? (
+          renderNativeSvgContent(explicitNativeIcon.svg)
+        ) : !hasError && currentSrc ? (
           <img
             src={currentSrc}
             alt={name}
@@ -148,18 +179,9 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
             onError={handleImageError}
           />
         ) : (
-          <div
-            className="w-full h-full flex items-center justify-center font-bold text-white tracking-tight"
-            style={{
-              background: `linear-gradient(135deg, ${categoryColor} 0%, ${categoryColor}DD 100%)`,
-              fontSize: `${Math.max(10, Math.round(size * 0.46))}px`
-            }}
-          >
-            {initial}
-          </div>
+          renderNativeSvgContent(fallbackSvgIcon.svg)
         )}
       </div>
-
 
       {/* Floating Category Pin Badge matching Flutter exactly */}
       {showCategoryBadge && !isSmall && (
@@ -174,3 +196,4 @@ export const SubscriptionLogo: React.FC<SubscriptionLogoProps> = ({
     </div>
   );
 };
+

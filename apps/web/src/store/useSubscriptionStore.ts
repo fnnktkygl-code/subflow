@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { Subscription, UserProfile, fetchLogo, detectUserCountry } from '@subflow/core';
 
 export interface GoogleAccount {
@@ -212,16 +212,25 @@ export const useSubscriptionStore = create<SubFlowState>()(
 
     {
       name: 'subflow-storage-v2',
+      storage: createJSONStorage(() =>
+        typeof window !== 'undefined'
+          ? window.localStorage
+          : {
+              getItem: () => null,
+              setItem: () => {},
+              removeItem: () => {}
+            }
+      ),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         if ((state.profile?.themeMode as string) === 'vibrant') {
           state.profile.themeMode = 'light';
         }
-        // Purge any legacy mock test subscriptions (sub-1, sub-2, etc.) from old localStorage caches
+        // Purge only legacy mock test IDs (sub-1, sub-2, etc.) from initial proof of concept
         const legacyMockIds = new Set(['sub-1', 'sub-2', 'sub-3', 'sub-4', 'sub-5', 'sub-6']);
         if (Array.isArray(state.subscriptions)) {
           state.subscriptions = state.subscriptions.filter(
-            (s) => !legacyMockIds.has(s.id) && s.name !== 'Netflix' && s.name !== 'Spotify' && s.name !== 'ChatGPT Plus'
+            (s) => !legacyMockIds.has(s.id)
           );
         }
       }

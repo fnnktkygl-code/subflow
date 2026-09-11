@@ -55,4 +55,9 @@ describe('i18n & Multi-Currency System Engine', () => {
   it('falls back safely to key or English when a key is missing', () => {
     expect(t('nonexistent.key', 'fr')).toBe('nonexistent.key');
   });
+
+  it('detects user language safely with SSR fallback to fr', () => {
+    // In Node / Vitest SSR environment, window is undefined
+    expect(detectUserLanguage()).toBe('fr');
+  });
 });

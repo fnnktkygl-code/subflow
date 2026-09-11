@@ -119,4 +119,52 @@ describe('Google Drive AppData Sync Engine', () => {
     const success = await deleteAppDataBackup(fakeToken, 'file_to_delete', mockFetch as any);
     expect(success).toBe(true);
   });
+
+  describe('HTTP Failure & Error Resilience', () => {
+    it('throws descriptive error on 401 Unauthorized during search', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        text: async () => 'Invalid Credentials'
+      });
+
+      await expect(searchAppDataBackup(fakeToken, mockFetch as any)).rejects.toThrow(
+        /Google Drive API error: 401 Unauthorized/i
+      );
+    });
+
+    it('throws descriptive error on 403 Quota Exceeded during upload', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        statusText: 'Rate Limit Exceeded',
+        text: async () => 'User Rate Limit Exceeded'
+      });
+
+      const payload = { subscriptions: [] };
+      await expect(uploadAppDataBackup(fakeToken, payload, undefined, mockFetch as any)).rejects.toThrow(
+        /Failed to create backup in Google Drive: Rate Limit Exceeded/i
+      );
+    });
+
+    it('throws descriptive error on 404 Not Found during download', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: false,
+        status: 404,
+        statusText: 'Not Found',
+        text: async () => 'File not found'
+      });
+
+      await expect(downloadAppDataBackup(fakeToken, 'missing_id', mockFetch as any)).rejects.toThrow(
+        /Failed to download backup: Not Found/i
+      );
+    });
+
+    it('returns false when delete fails', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({ ok: false });
+      const success = await deleteAppDataBackup(fakeToken, 'file_to_delete', mockFetch as any);
+      expect(success).toBe(false);
+    });
+  });
 });

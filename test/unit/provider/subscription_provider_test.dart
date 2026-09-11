@@ -76,10 +76,21 @@ class InMemorySubscriptionRepository implements SubscriptionRepository {
 }
 
 void main() {
-  group('Subscription Provider Extended & Counter-Tests', () {
-    test('What-If simulation calculations accurately exclude snoozed items', () async {
-      final repo = InMemorySubscriptionRepository();
-      final provider = SimplifiedSubscriptionProvider(repository: repo);
+  group('SimplifiedSubscriptionProvider Unified Test Suite', () {
+    late InMemorySubscriptionRepository repo;
+    late SimplifiedSubscriptionProvider provider;
+
+    setUp(() {
+      repo = InMemorySubscriptionRepository();
+      provider = SimplifiedSubscriptionProvider(repository: repo);
+    });
+
+    test('starts with empty list before init', () {
+      expect(provider.subscriptions, isEmpty);
+      expect(provider.totalMonthlyCost, 0.0);
+    });
+
+    test('adds subscriptions and computes monthly totals properly', () async {
       await provider.init();
 
       final sub1 = Subscription(
@@ -102,33 +113,16 @@ void main() {
         logoUrl: '',
       );
 
-      final sub3 = Subscription(
-        id: 's3',
-        name: 'Cloud Storage',
-        amount: -10.0,
-        startDate: DateTime(2026, 1, 1),
-        cycle: 'Monthly',
-        category: 'Tech',
-        logoUrl: '',
-      );
-
       await provider.addSubscription(sub1);
       await provider.addSubscription(sub2);
-      await provider.addSubscription(sub3);
 
-      expect(provider.totalMonthlyCost, closeTo(55.0, 0.001));
-
-      // Calculate cash flow when Netflix (15€) is snoozed
-      final snoozedIds = {'s1'};
-      final adjustedFlow = provider.calculateCashFlowForMonth(snoozedIds, DateTime(2026, 3, 1));
-
-      // 55€ - 15€ = 40€ expense (-40€)
-      expect(adjustedFlow, closeTo(-40.0, 0.001));
+      expect(provider.subscriptions.length, 2);
+      expect(provider.totalMonthlyCost, closeTo(45.0, 0.001));
+      expect(provider.categorySpending['Entertainment'], closeTo(15.0, 0.001));
+      expect(provider.categorySpending['Health'], closeTo(30.0, 0.001));
     });
 
     test('replaces existing subscription on update', () async {
-      final repo = InMemorySubscriptionRepository();
-      final provider = SimplifiedSubscriptionProvider(repository: repo);
       await provider.init();
 
       final originalSub = Subscription(
@@ -155,13 +149,64 @@ void main() {
       expect(provider.totalMonthlyCost, closeTo(25.0, 0.001));
     });
 
+    test('deletes subscription and updates spending', () async {
+      await provider.init();
+
+      final sub1 = Subscription(
+        id: 's1',
+        name: 'Spotify',
+        amount: -10.0,
+        startDate: DateTime(2026, 1, 1),
+        cycle: 'Monthly',
+        category: 'Music',
+        logoUrl: '',
+      );
+
+      await provider.addSubscription(sub1);
+      expect(provider.subscriptions.length, 1);
+
+      await provider.deleteSubscription('s1');
+      expect(provider.subscriptions, isEmpty);
+      expect(provider.totalMonthlyCost, 0.0);
+    });
+
+    test('What-If simulation calculations accurately exclude snoozed items', () async {
+      await provider.init();
+
+      final sub1 = Subscription(
+        id: 's1',
+        name: 'Netflix',
+        amount: -15.0,
+        startDate: DateTime(2026, 1, 1),
+        cycle: 'Monthly',
+        category: 'Entertainment',
+        logoUrl: '',
+      );
+
+      final sub2 = Subscription(
+        id: 's2',
+        name: 'Gym',
+        amount: -30.0,
+        startDate: DateTime(2026, 1, 1),
+        cycle: 'Monthly',
+        category: 'Health',
+        logoUrl: '',
+      );
+
+      await provider.addSubscription(sub1);
+      await provider.addSubscription(sub2);
+
+      // Total is 45€. If Netflix (-15€) is snoozed, cashflow expense is -30€
+      final adjustedFlow = provider.calculateCashFlowForMonth({'s1'}, DateTime(2026, 3, 1));
+      expect(adjustedFlow, closeTo(-30.0, 0.001));
+    });
+
     test('handles storage failures gracefully without crashing', () async {
       final failingRepo = FailingSubscriptionRepository();
-      final provider = SimplifiedSubscriptionProvider(repository: failingRepo);
+      final failingProvider = SimplifiedSubscriptionProvider(repository: failingRepo);
 
-      // Provider init handles failure by initializing an empty state safely
-      await provider.init();
-      expect(provider.subscriptions, isEmpty);
+      await failingProvider.init();
+      expect(failingProvider.subscriptions, isEmpty);
 
       final testSub = Subscription(
         id: 'test-fail-1',
@@ -173,9 +218,8 @@ void main() {
         logoUrl: '',
       );
 
-      // Attempting to add with failing storage does not throw an unhandled exception
-      await provider.addSubscription(testSub);
-      expect(provider.subscriptions, isEmpty);
+      await failingProvider.addSubscription(testSub);
+      expect(failingProvider.subscriptions, isEmpty);
     });
   });
 }
