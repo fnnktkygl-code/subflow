@@ -7,6 +7,13 @@ CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 os.makedirs("/tmp/subflow_cards", exist_ok=True)
 
+# Actual SVG Logos
+NETFLIX_LOGO = '<img src="file:///Users/richard/Developer/subflow/apps/web/public/logos/netflix.svg" style="width: 34px; height: 34px; border-radius: 10px; background: #000; padding: 4px; object-fit: contain; flex-shrink: 0;" />'
+SPOTIFY_LOGO = '<img src="file:///Users/richard/Developer/subflow/apps/web/public/logos/spotify.svg" style="width: 34px; height: 34px; border-radius: 10px; background: #1DB954; padding: 5px; object-fit: contain; flex-shrink: 0;" />'
+CANAL_LOGO = '<img src="file:///Users/richard/Developer/subflow/apps/web/public/logos/canal_plus.svg" style="width: 34px; height: 34px; border-radius: 10px; background: #000; padding: 5px; object-fit: contain; flex-shrink: 0;" />'
+DUMBBELL_LOGO = '<div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(71,122,86,0.12); color: #477A56; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/></svg></div>'
+SMARTPHONE_LOGO = '<div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(196,130,63,0.12); color: #C4823F; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg></div>'
+
 COMMON_CSS = """
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
@@ -88,16 +95,6 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-.sub-icon {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 12px;
 }
 .sub-names strong {
   display: block;
@@ -212,13 +209,13 @@ body {{
   position: absolute;
   left: 0;
   width: 440px;
-  height: 290px;
+  height: 310px;
   background: #FFFFFF;
   border-radius: 14px;
   box-shadow: 0 25px 60px rgba(27,59,47,0.18), 0 0 0 1px rgba(0,0,0,0.06);
   overflow: hidden;
   border: 1px solid #EAE6DE;
-  transform: translateY(20px);
+  transform: translateY(15px);
 }}
 .desktop-bar {{
   background: #F4F1EA;
@@ -283,14 +280,26 @@ body {{
           <div style="width: 84%; height: 100%; background: #2A5443; border-radius: 4px;"></div>
         </div>
         <div style="display: flex; flex-direction: column; gap: 6px;">
-          <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 6px 10px; background: white; border-radius: 8px; border: 1px solid #EAE6DE;">
-            <span>🎬 Netflix</span><strong>13,49 €</strong>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 6px 10px; background: white; border-radius: 8px; border: 1px solid #EAE6DE;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              {NETFLIX_LOGO}
+              <span>Netflix</span>
+            </div>
+            <strong>13,49 €</strong>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 6px 10px; background: white; border-radius: 8px; border: 1px solid #EAE6DE;">
-            <span>🎵 Spotify Premium</span><strong>11,99 €</strong>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 6px 10px; background: white; border-radius: 8px; border: 1px solid #EAE6DE;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              {SPOTIFY_LOGO}
+              <span>Spotify Premium</span>
+            </div>
+            <strong>11,99 €</strong>
           </div>
-          <div style="display: flex; justify-content: space-between; font-size: 11px; padding: 6px 10px; background: white; border-radius: 8px; border: 1px solid #EAE6DE;">
-            <span>🏋️ Basic-Fit</span><strong>29,99 €</strong>
+          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; padding: 6px 10px; background: white; border-radius: 8px; border: 1px solid #EAE6DE;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              {DUMBBELL_LOGO}
+              <span>Salle de sport</span>
+            </div>
+            <strong>29,90 €</strong>
           </div>
         </div>
       </div>
@@ -321,24 +330,24 @@ body {{
             </div>
             <div class="sub-card">
               <div class="sub-info">
-                <div class="sub-icon" style="background: #000; color: #E50914;">N</div>
+                {NETFLIX_LOGO}
                 <div class="sub-names"><strong>Netflix</strong><span>14 du mois</span></div>
               </div>
               <span class="sub-price">13,49 €</span>
             </div>
             <div class="sub-card">
               <div class="sub-info">
-                <div class="sub-icon" style="background: #1DB954; color: #fff;">♫</div>
+                {SPOTIFY_LOGO}
                 <div class="sub-names"><strong>Spotify</strong><span>18 du mois</span></div>
               </div>
               <span class="sub-price">11,99 €</span>
             </div>
             <div class="sub-card">
               <div class="sub-info">
-                <div class="sub-icon" style="background: #FF6600; color: #fff;">BF</div>
-                <div class="sub-names"><strong>Basic-Fit</strong><span>28 du mois</span></div>
+                {DUMBBELL_LOGO}
+                <div class="sub-names"><strong>Salle de sport</strong><span>28 du mois</span></div>
               </div>
-              <span class="sub-price">29,99 €</span>
+              <span class="sub-price">29,90 €</span>
             </div>
           </div>
         </div>
@@ -439,7 +448,7 @@ body {{
       </div>
       <div class="feature-bullet">
         <span class="bullet-icon">✓</span>
-        <span>Graphique en anneau Japandi (Streaming, Sport, Télécoms)</span>
+        <span>Vrais logos vectoriels de marque (Netflix, Spotify, Canal+)</span>
       </div>
     </div>
   </div>
@@ -492,28 +501,28 @@ body {{
           </div>
         </div>
 
-        <!-- Subscription Items -->
+        <!-- Subscription Items with Real Logos -->
         <div style="font-size: 10px; font-weight: 700; color: #7A8275; letter-spacing: 0.5px; margin-top: 4px;">ABONNEMENTS ACTIFS (5)</div>
         <div class="sub-card">
           <div class="sub-info">
-            <div class="sub-icon" style="background: #000; color: #E50914;">N</div>
+            {NETFLIX_LOGO}
             <div class="sub-names"><strong>Netflix</strong><span>Divertissement · 14 du mois</span></div>
           </div>
           <span class="sub-price">13,49 €</span>
         </div>
         <div class="sub-card">
           <div class="sub-info">
-            <div class="sub-icon" style="background: #1DB954; color: #fff;">♫</div>
+            {SPOTIFY_LOGO}
             <div class="sub-names"><strong>Spotify Premium</strong><span>Musique · 18 du mois</span></div>
           </div>
           <span class="sub-price">11,99 €</span>
         </div>
         <div class="sub-card">
           <div class="sub-info">
-            <div class="sub-icon" style="background: #FF6600; color: #fff;">BF</div>
-            <div class="sub-names"><strong>Basic-Fit</strong><span>Sport & Forme · 28 du mois</span></div>
+            {DUMBBELL_LOGO}
+            <div class="sub-names"><strong>Salle de sport</strong><span>Sport & Forme · 28 du mois</span></div>
           </div>
-          <span class="sub-price">29,99 €</span>
+          <span class="sub-price">29,90 €</span>
         </div>
       </div>
     </div>
@@ -593,11 +602,11 @@ body {{
     <div class="savings-callout">
       <div>
         <div style="font-size: 11px; text-transform: uppercase; color: #A7C1AE; font-weight: 700;">Économie mensuelle simulée</div>
-        <div style="font-size: 28px; font-weight: 800; color: #34D399; margin-top: 2px;">+43,48 € / mois</div>
+        <div style="font-size: 28px; font-weight: 800; color: #34D399; margin-top: 2px;">+43,39 € / mois</div>
       </div>
       <div style="text-align: right;">
         <div style="font-size: 11px; color: #A7C1AE;">Sur 12 mois</div>
-        <div style="font-size: 20px; font-weight: 700; color: #F5EFE6;">+521,76 €</div>
+        <div style="font-size: 20px; font-weight: 700; color: #F5EFE6;">+520,68 €</div>
       </div>
     </div>
   </div>
@@ -618,18 +627,18 @@ body {{
           <span style="font-size: 13px;">🔮</span>
           <strong style="font-size: 12px;">Mode What-If Actif</strong>
         </div>
-        <span style="background: #34D399; color: #1B3B2F; padding: 2px 8px; border-radius: 99px; font-size: 9px; font-weight: 800;">-63%</span>
+        <span style="background: #34D399; color: #1B3B2F; padding: 2px 8px; border-radius: 99px; font-size: 9px; font-weight: 800;">-64%</span>
       </div>
       <div class="screen-body">
         <!-- New Balance Card -->
         <div style="background: #E8ECDF; border: 1px solid #C4D3B8; border-radius: 14px; padding: 12px;">
           <div style="font-size: 9px; color: #5A6A50; font-weight: 700; text-transform: uppercase;">Nouveau Coût Projeté</div>
           <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 2px;">
-            <span style="font-size: 24px; font-weight: 800; color: #244737;">23,89 €</span>
+            <span style="font-size: 24px; font-weight: 800; color: #244737;">23,98 €</span>
             <span style="font-size: 11px; text-decoration: line-through; color: #8F9988;">67,37 €</span>
           </div>
           <div style="font-size: 9px; color: #244737; font-weight: 600; margin-top: 4px;">
-            🎉 Gain annuel : <strong>+521,76 €</strong> préservés
+            🎉 Gain annuel : <strong>+520,68 €</strong> préservés
           </div>
         </div>
 
@@ -638,7 +647,7 @@ body {{
         <!-- Excluded Netflix -->
         <div class="sub-card" style="opacity: 0.55; background: #F5F3ED; border-style: dashed;">
           <div class="sub-info">
-            <div class="sub-icon" style="background: #333; color: #aaa;">N</div>
+            {NETFLIX_LOGO}
             <div class="sub-names">
               <strong style="text-decoration: line-through;">Netflix</strong>
               <span style="color: #E50914; font-weight: 600;">-13,49 € exclu</span>
@@ -647,13 +656,13 @@ body {{
           <span style="font-size: 11px; background: #E8E4DC; padding: 2px 6px; border-radius: 4px; color: #666;">Off</span>
         </div>
 
-        <!-- Excluded Basic-Fit -->
+        <!-- Excluded Salle de sport -->
         <div class="sub-card" style="opacity: 0.55; background: #F5F3ED; border-style: dashed;">
           <div class="sub-info">
-            <div class="sub-icon" style="background: #888; color: #fff;">BF</div>
+            {DUMBBELL_LOGO}
             <div class="sub-names">
-              <strong style="text-decoration: line-through;">Basic-Fit</strong>
-              <span style="color: #FF6600; font-weight: 600;">-29,99 € exclu</span>
+              <strong style="text-decoration: line-through;">Salle de sport</strong>
+              <span style="color: #477A56; font-weight: 600;">-29,90 € exclu</span>
             </div>
           </div>
           <span style="font-size: 11px; background: #E8E4DC; padding: 2px 6px; border-radius: 4px; color: #666;">Off</span>
@@ -662,7 +671,7 @@ body {{
         <!-- Kept Spotify -->
         <div class="sub-card" style="border: 2px solid #244737; box-shadow: 0 4px 10px rgba(36,71,55,0.08);">
           <div class="sub-info">
-            <div class="sub-icon" style="background: #1DB954; color: #fff;">♫</div>
+            {SPOTIFY_LOGO}
             <div class="sub-names">
               <strong>Spotify Premium</strong>
               <span style="color: #244737; font-weight: 600;">Conservé</span>
@@ -810,10 +819,10 @@ body {{
             <span class="cal-cell" style="background: #E8ECDF; font-weight: bold;">2<span class="cal-dot" style="background: #3B82F6;"></span></span>
             <span class="cal-cell">3</span>
             <span class="cal-cell">4</span>
-            <span class="cal-cell">5</span>
+            <span class="cal-cell" style="background: #E8ECDF; font-weight: bold;">5<span class="cal-dot" style="background: #1DB954;"></span></span>
             <span class="cal-cell">6</span>
             <span class="cal-cell">7</span>
-            <span class="cal-cell">8</span>
+            <span class="cal-cell" style="background: #E8ECDF; font-weight: bold;">8<span class="cal-dot" style="background: #C4823F;"></span></span>
             <span class="cal-cell">9</span>
             <span class="cal-cell">10</span>
             <span class="cal-cell">11</span>
@@ -833,7 +842,7 @@ body {{
             <span class="cal-cell">25</span>
             <span class="cal-cell">26</span>
             <span class="cal-cell">27</span>
-            <span class="cal-cell" style="background: #E8ECDF; font-weight: bold;">28<span class="cal-dot" style="background: #FF6600;"></span></span>
+            <span class="cal-cell" style="background: #E8ECDF; font-weight: bold;">28<span class="cal-dot" style="background: #477A56;"></span></span>
             <span class="cal-cell">29</span>
             <span class="cal-cell">30</span>
           </div>
@@ -843,7 +852,7 @@ body {{
         <div style="font-size: 10px; font-weight: 700; color: #7A8275;">ÉCHÉANCES DU 14 SEPTEMBRE</div>
         <div class="sub-card" style="border-left: 3px solid #E50914;">
           <div class="sub-info">
-            <div class="sub-icon" style="background: #000; color: #E50914;">N</div>
+            {NETFLIX_LOGO}
             <div class="sub-names"><strong>Netflix</strong><span>Prélèvement mensuel</span></div>
           </div>
           <span class="sub-price">13,49 €</span>
@@ -852,7 +861,7 @@ body {{
         <div style="font-size: 10px; font-weight: 700; color: #7A8275; margin-top: 4px;">PROCHAINEMENT CE MOIS</div>
         <div class="sub-card" style="border-left: 3px solid #1DB954;">
           <div class="sub-info">
-            <div class="sub-icon" style="background: #1DB954; color: #fff;">♫</div>
+            {SPOTIFY_LOGO}
             <div class="sub-names"><strong>Spotify Premium</strong><span>18 septembre</span></div>
           </div>
           <span class="sub-price">11,99 €</span>
@@ -913,18 +922,18 @@ body {{
 .svg-badge-grid {{
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 12px;
   margin-top: 10px;
 }}
 .svg-card-sample {{
   background: white;
   border: 1px solid #EAE6DE;
   border-radius: 12px;
-  padding: 12px;
+  padding: 12px 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 11px;
   font-weight: 600;
   color: #244737;
@@ -936,27 +945,27 @@ body {{
     <div class="pill-tag">04 · LOGOS VECTORIELS & PRESETS</div>
     <h1 class="marketing-title">
       350+ presets prêts.<br>
-      <span class="font-serif" style="color: #6C7D57;">Logos vectoriels nets.</span>
+      <span class="font-serif" style="color: #6C7D57;">Vrais logos de marque.</span>
     </h1>
     <p class="marketing-desc">
-      Saisie ultra-rapide avec détection automatique du montant et de la périodicité. Chaque catégorie bénéficie d'une bibliothèque de logos SVG natifs haute définition, sans aucun pixel flou.
+      Saisie ultra-rapide avec détection automatique du montant et du logo officiel. Chaque service bénéficie de son vrai logo SVG vectoriel haute définition (Netflix, Spotify, Canal+, ChatGPT, etc.), sans aucun pixel flou.
     </p>
     <div class="svg-badge-grid">
       <div class="svg-card-sample">
-        <span style="font-size: 20px;">🎬</span>
-        <span>Streaming</span>
+        {NETFLIX_LOGO}
+        <span>Netflix</span>
       </div>
       <div class="svg-card-sample">
-        <span style="font-size: 20px;">🏋️</span>
-        <span>Sport</span>
+        {SPOTIFY_LOGO}
+        <span>Spotify</span>
       </div>
       <div class="svg-card-sample">
-        <span style="font-size: 20px;">⚡</span>
-        <span>Énergie</span>
+        {CANAL_LOGO}
+        <span>Canal+</span>
       </div>
       <div class="svg-card-sample">
-        <span style="font-size: 20px;">📱</span>
-        <span>Téléphonie</span>
+        {DUMBBELL_LOGO}
+        <span>Fitness</span>
       </div>
     </div>
   </div>
@@ -979,33 +988,39 @@ body {{
       <div class="screen-body">
         <!-- Logo Avatar Header in Modal -->
         <div style="display: flex; align-items: center; gap: 12px; background: white; border: 1px solid #EAE6DE; border-radius: 14px; padding: 10px 14px;">
-          <div style="width: 44px; height: 44px; border-radius: 12px; background: #1B3B2F; color: #F5EFE6; display: flex; align-items: center; justify-content: center; font-size: 20px;">
-            🏋️
-          </div>
+          {NETFLIX_LOGO}
           <div>
-            <strong style="font-size: 13px; color: #1B3B2F; display: block;">Salle de sport</strong>
-            <span style="font-size: 10px; color: #6A8754; font-weight: 600;">Catégorie : Sport & Bien-être</span>
+            <strong style="font-size: 13px; color: #1B3B2F; display: block;">Netflix</strong>
+            <span style="font-size: 10px; color: #6A8754; font-weight: 600;">Logo officiel reconnu · Divertissement</span>
           </div>
         </div>
 
-        <!-- Preset Selector Grid -->
-        <div style="font-size: 10px; font-weight: 700; color: #7A8275;">SÉLECTION DE L'ICÔNE VECTORIELLE</div>
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
-          <div style="background: #244737; color: white; border-radius: 10px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 16px; border: 2px solid #34D399;">🏋️</div>
-          <div style="background: white; border: 1px solid #EAE6DE; border-radius: 10px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🚴</div>
-          <div style="background: white; border: 1px solid #EAE6DE; border-radius: 10px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🥊</div>
-          <div style="background: white; border: 1px solid #EAE6DE; border-radius: 10px; height: 38px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🧘</div>
+        <!-- Preset Suggestions with Real Logos -->
+        <div style="font-size: 10px; font-weight: 700; color: #7A8275;">PRESETS POPULAIRES RECONNUS</div>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+          <div style="background: white; border: 2px solid #244737; border-radius: 10px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 600;">
+            {NETFLIX_LOGO}
+            <span>Netflix</span>
+          </div>
+          <div style="background: white; border: 1px solid #EAE6DE; border-radius: 10px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 600;">
+            {SPOTIFY_LOGO}
+            <span>Spotify</span>
+          </div>
+          <div style="background: white; border: 1px solid #EAE6DE; border-radius: 10px; padding: 6px; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; font-weight: 600;">
+            {CANAL_LOGO}
+            <span>Canal+</span>
+          </div>
         </div>
 
         <!-- Form fields -->
         <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
           <div style="background: white; border: 1px solid #EAE6DE; border-radius: 10px; padding: 8px 12px; font-size: 11px;">
             <span style="font-size: 9px; color: #7A8275; display: block;">MONTANT</span>
-            <strong>29,99 €</strong>
+            <strong>13,49 €</strong>
           </div>
           <div style="background: white; border: 1px solid #EAE6DE; border-radius: 10px; padding: 8px 12px; font-size: 11px;">
             <span style="font-size: 9px; color: #7A8275; display: block;">FRÉQUENCE</span>
-            <strong>Mensuel (le 28 du mois)</strong>
+            <strong>Mensuel (le 14 du mois)</strong>
           </div>
         </div>
 
@@ -1128,7 +1143,7 @@ body {{
             <span style="font-size: 9px; color: #7A8275;">Art. L215-1</span>
           </div>
           <div style="font-size: 10px; color: #2C3E33; line-height: 1.5; font-family: monospace; background: #FAF7F2; padding: 8px; border-radius: 6px; border: 1px dashed #D6D2C4;">
-            « Objet : Résiliation à échéance du contrat Salle de sport n° 849204... »
+            « Objet : Résiliation à échéance du contrat Netflix n° 849204... »
           </div>
         </div>
 
@@ -1154,7 +1169,7 @@ body {{
 </html>"""
 
 # Execute rendering
-print("Rendering Showcase Cards...")
+print("Rendering Showcase Cards with REAL Brand Logos...")
 render_screenshot(BANNER_HTML, f"{OUTPUT_DIR}/showcase_banner.png", width=1200, height=560)
 render_screenshot(CARD_1_HTML, f"{OUTPUT_DIR}/card_01_dashboard.png", width=1200, height=675)
 render_screenshot(CARD_2_HTML, f"{OUTPUT_DIR}/card_02_whatif.png", width=1200, height=675)
@@ -1162,4 +1177,4 @@ render_screenshot(CARD_3_HTML, f"{OUTPUT_DIR}/card_03_calendar.png", width=1200,
 render_screenshot(CARD_4_HTML, f"{OUTPUT_DIR}/card_04_logos.png", width=1200, height=675)
 render_screenshot(CARD_5_HTML, f"{OUTPUT_DIR}/card_05_loichatel_privacy.png", width=1200, height=675)
 
-print("All cards successfully created.")
+print("All cards successfully updated with REAL SVG logos.")
