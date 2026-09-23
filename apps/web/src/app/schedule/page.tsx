@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useSubscriptionStore } from '../../store/useSubscriptionStore';
 import { useTranslation } from '../../hooks/useTranslation';
-import { calculateTotalMonthlyCost, Subscription } from '@subflow/core';
+import { calculateMonthOccurrences, roundToCents, Subscription } from '@subflow/core';
 import { SubscriptionLogo, Tooltip } from '@subflow/ui';
 
 import { ChevronLeft, ChevronRight, Eye, EyeOff, Receipt, Plus, Sparkles } from 'lucide-react';
@@ -51,21 +51,18 @@ export default function SchedulePage() {
 
   const renewalsByDay = useMemo(() => {
     const map: Record<number, Subscription[]> = {};
-    subscriptions.forEach((sub) => {
-      const date = new Date(sub.startDate);
-      const day = date.getDate();
-      if (!map[day]) map[day] = [];
-      map[day].push(sub);
+    calculateMonthOccurrences(subscriptions, year, month).forEach(({ subscription, dueDate }) => {
+      (map[dueDate.getDate()] ||= []).push(subscription);
     });
     return map;
-  }, [subscriptions]);
+  }, [subscriptions, year, month]);
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7; // Monday = 0
 
   const totalMonthlyCost = useMemo(
-    () => calculateTotalMonthlyCost(subscriptions),
-    [subscriptions]
+    () => roundToCents(Object.values(renewalsByDay).flat().reduce((sum, sub) => sum + sub.amount, 0)),
+    [renewalsByDay]
   );
 
   const selectedDaySubs = renewalsByDay[selectedDay] || [];

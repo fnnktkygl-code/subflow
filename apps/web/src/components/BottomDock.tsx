@@ -50,10 +50,10 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
       >
         {/* Home */}
         <Link
-          href="/"
+          href="/app"
           aria-label={t('nav.home')}
           className={`flex flex-col items-center justify-center w-16 h-12 rounded-japandi-md transition-colors ${
-            pathname === '/'
+            pathname === '/app'
               ? 'text-japandi-pine font-bold'
               : 'text-japandi-muted hover:text-japandi-text'
           }`}

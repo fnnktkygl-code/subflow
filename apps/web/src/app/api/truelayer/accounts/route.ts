@@ -8,14 +8,16 @@ export async function GET(req: NextRequest) {
     }
 
     const res = await fetch('https://api.truelayer.com/data/v1/accounts', {
+      signal: AbortSignal.timeout(15000),
+      cache: 'no-store',
       headers: { Authorization: authHeader }
     });
 
     const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
+    return NextResponse.json(res.ok ? data : { error: 'Bank request failed' }, { status: res.status, headers: { 'Cache-Control': 'no-store' } });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch accounts' },
+      { error: 'Failed to fetch accounts' },
       { status: 500 }
     );
   }

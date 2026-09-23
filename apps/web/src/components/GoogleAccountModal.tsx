@@ -80,7 +80,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
     setErrorMessage(null);
     try {
       await pullFromGoogleDrive();
-      setSuccessNotice(locale === 'fr' ? 'Données restaurées depuis Google Drive !' : 'Data restored from Google Drive!');
+      setSuccessNotice(locale === 'fr' ? 'Données restaurées. Une copie locale précédente est disponible dans Sauvegardes.' : 'Data restored from Google Drive!');
       setTimeout(() => setSuccessNotice(null), 3000);
     } catch (err: any) {
       setErrorMessage(err.message || 'Erreur lors de la restauration.');
@@ -104,7 +104,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
       />
 
       {/* Modal Box */}
-      <div className="relative w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+      <div role="dialog" aria-modal="true" aria-label="Sauvegarde Google Drive" className="relative w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-japandi-border bg-japandi-sand/20">
@@ -185,7 +185,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
 
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>{locale === 'fr' ? 'Synchronisé' : 'Synced'}</span>
+                  <span>{driveSyncStatus === 'synced' ? (locale === 'fr' ? 'Sauvegardé' : 'Saved') : driveSyncStatus === 'syncing' ? 'En cours…' : driveSyncStatus === 'error' ? 'À vérifier' : 'Connecté'}</span>
                 </span>
               </div>
 
@@ -197,8 +197,8 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                 </span>
                 <p className="text-xs text-japandi-muted leading-relaxed">
                   {locale === 'fr'
-                    ? 'Tous vos abonnements et réglages sont sauvegardés sur votre Google Drive privé. Lorsque vous ouvrez SubFlow sur votre téléphone ou un autre ordinateur, vos données se synchronisent automatiquement.'
-                    : 'All your subscriptions and settings are backed up to your private Google Drive and stay up-to-date across all your devices.'}
+                    ? 'Sauvegardez et restaurez manuellement vos données. La restauration remplace les données de cet appareil ; une copie locale permet de revenir en arrière depuis Sauvegardes. Évitez les modifications simultanées sur plusieurs appareils.'
+                    : 'All your subscriptions and settings are backed up to your private Google Drive and can be restored on another device.'}
                 </p>
                 <div className="flex items-center justify-center gap-3 text-xs font-semibold text-japandi-muted pt-2 border-t border-japandi-border/40">
                   <div className="flex items-center gap-1">
@@ -265,7 +265,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
 
                 <p className="text-xs text-japandi-muted leading-relaxed">
                   {locale === 'fr'
-                    ? 'Connectez votre compte Google pour sauvegarder vos abonnements en temps réel sur votre Google Drive privé.'
+                    ? 'Connectez votre compte Google pour sauvegarder vos abonnements en manuelle sur votre Google Drive privé.'
                     : 'Connect your Google account to back up subscriptions in real time to your private Google Drive.'}
                 </p>
 
@@ -276,7 +276,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />
-                    <span>{locale === 'fr' ? 'Restauration depuis votre dernière sauvegarde disponible' : 'Instant recovery if you change or reset your phone'}</span>
+                    <span>{locale === 'fr' ? 'Restauration manuelle de la dernière sauvegarde disponible' : 'Instant recovery if you change or reset your phone'}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />

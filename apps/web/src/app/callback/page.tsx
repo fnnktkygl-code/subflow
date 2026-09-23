@@ -20,6 +20,7 @@ import {
   Subscription,
   TrueLayerTransaction
 } from '@subflow/core';
+import { consumeBankOAuth } from '../../services/bankOAuth';
 import { useSubscriptionStore } from '../../store/useSubscriptionStore';
 import { SubscriptionLogo } from '@subflow/ui';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -64,10 +65,17 @@ function TrueLayerCallbackContent() {
     }
 
     hasProcessedRef.current = true;
-    processTrueLayerAuth(code);
+    try {
+      const transaction = consumeBankOAuth(searchParams.get('state'));
+      void processTrueLayerAuth(code, transaction.verifier);
+    } catch (err) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+      setStatus('error');
+      setErrorMessage((err as Error).message);
+    }
   }, [searchParams]);
 
-    const processTrueLayerAuth = async (code: string) => {
+    const processTrueLayerAuth = async (code: string, verifier: string) => {
     try {
       setStatus('exchanging');
 
@@ -84,7 +92,7 @@ function TrueLayerCallbackContent() {
       const tokenRes = await fetch('/api/truelayer/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code, redirect_uri: redirectUri })
+        body: JSON.stringify({ code, redirect_uri: redirectUri, code_verifier: verifier })
       });
 
       const tokenData = await tokenRes.json().catch(() => ({}));
@@ -103,6 +111,7 @@ function TrueLayerCallbackContent() {
       });
       const accountsData = await accountsRes.json().catch(() => ({ results: [] }));
 
+      if (!accountsRes.ok) throw new Error('Impossible de lire les comptes bancaires. Réessayez.');
       const accountsList = Array.isArray(accountsData?.results) ? accountsData.results : [];
       setAccountsCount(accountsList.length);
 
@@ -121,10 +130,12 @@ function TrueLayerCallbackContent() {
             `/api/truelayer/transactions?accountId=${encodeURIComponent(acc.account_id)}&from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}`,
             { headers: { Authorization: `Bearer ${accessToken}` } }
           );
+          if (!txRes.ok) throw new Error('Analyse bancaire incomplète. Aucun abonnement importé ; réessayez.');
           const txData = await txRes.json().catch(() => ({ results: [] }));
 
           if (Array.isArray(txData?.results)) {
             txData.results.forEach((tx: any) => {
+              if (tx.transaction_type === 'CREDIT' || Number(tx.amount) >= 0) return;
               const txDate = tx.timestamp || tx.date || new Date().toISOString();
               allTransactions.push({
                 id: tx.transaction_id || tx.id || String(Math.random()),
@@ -139,7 +150,7 @@ function TrueLayerCallbackContent() {
               });
             });
           }
-        } catch (_) {}
+        } catch (error) { throw error; }
       }
 
 

@@ -31,13 +31,13 @@ export const NotificationSettingsCard: React.FC = () => {
     const firstSub = subscriptions[0];
     const item = upcoming[0] || {
       title: firstSub ? `🔔 SubFlow : ${firstSub.name}` : '🔔 SubFlow Notifications',
-      body: firstSub ? `Votre abonnement ${firstSub.name} arrive bientôt à échéance.` : 'Les notifications de prélèvement sont actives !'
+      body: firstSub ? `Votre abonnement ${firstSub.name} arrive bientôt à échéance.` : 'Ceci est une notification de test.'
     };
 
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
       new Notification(item.title, {
         body: item.body,
-        icon: firstSub?.logoUrl || '/icon-192.png'
+        icon: '/subflow-logo-120.png'
       });
     }
 
@@ -58,7 +58,7 @@ export const NotificationSettingsCard: React.FC = () => {
               {t('notifications.title')}
             </h3>
             <p className="text-[11px] text-japandi-muted">
-              {t('notifications.subtitle')}
+              Test manuel uniquement : les rappels automatiques en arrière-plan ne sont pas disponibles sur le web.
             </p>
           </div>
         </div>
@@ -66,7 +66,7 @@ export const NotificationSettingsCard: React.FC = () => {
         {permission === 'granted' ? (
           <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-japandi-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
             <Check className="w-3 h-3" />
-            <span>{t('common.active')}</span>
+            <span>Autorisation accordée</span>
           </span>
         ) : (
           <button
@@ -113,7 +113,7 @@ export const NotificationSettingsCard: React.FC = () => {
 
       <div className="p-3 rounded-japandi-lg bg-japandi-sand/40 border border-japandi-border flex items-center gap-2 text-[11px] text-japandi-muted">
         <ShieldCheck className="w-4 h-4 text-japandi-pine flex-shrink-0" />
-        <span>{t('notifications.subtitle')}</span>
+        <span>Test manuel uniquement : les rappels automatiques en arrière-plan ne sont pas disponibles sur le web.</span>
       </div>
     </div>
   );

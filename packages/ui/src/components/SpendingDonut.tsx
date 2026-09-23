@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { SubscriptionCategory, Subscription, formatCurrency } from '@subflow/core';
+import { SubscriptionCategory, Subscription } from '@subflow/core';
 import { X } from 'lucide-react';
 import { Tooltip } from './Tooltip';
 
@@ -15,6 +15,10 @@ export interface SpendingDonutProps {
   categorySubscriptions?: Subscription[];
   isAmountBlurred?: boolean;
   themeMode?: string;
+  totalLabel?: string;
+  resetLabel?: string;
+  ofTotalLabel?: string;
+  formatAmount?: (amount: number) => string;
 }
 
 export const BARBIE_CATEGORY_COLORS: Record<string, string> = {
@@ -116,7 +120,11 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
   onSelectCategory,
   categorySubscriptions = [],
   isAmountBlurred = false,
-  themeMode
+  themeMode,
+  totalLabel = 'TOTAL / MONTH',
+  resetLabel = 'Reset',
+  ofTotalLabel = 'of total',
+  formatAmount = (amount) => `${currencySymbol}${amount.toFixed(2)}`
 }) => {
 
   const entries = Object.entries(categories);
@@ -138,7 +146,7 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
             onClick={() => onSelectCategory?.(null)}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-japandi-full bg-japandi-sand/80 border border-japandi-border text-xs font-bold text-japandi-text hover:bg-japandi-sand transition-colors shadow-xs"
           >
-            <span>Reset</span>
+            <span>{resetLabel}</span>
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -210,10 +218,10 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
 
 
             <span className={`text-base font-extrabold text-japandi-text tracking-tight ${isAmountBlurred ? 'privacy-blur' : ''}`}>
-              {currencySymbol}{selectedData.total.toFixed(2)}
+              {formatAmount(selectedData.total)}
             </span>
             <span className="text-[10px] font-medium text-japandi-muted">
-              {selectedData.percentage.toFixed(1)}% of total
+              {selectedData.percentage.toFixed(1)}% {ofTotalLabel}
             </span>
           </div>
         </Tooltip>
@@ -222,10 +230,10 @@ export const SpendingDonut: React.FC<SpendingDonutProps> = ({
           /* Default Center Total */
           <div className="absolute flex flex-col items-center justify-center text-center select-none pointer-events-none">
             <span className="text-[10px] uppercase font-bold text-japandi-muted tracking-wider">
-              TOTAL / MONTH
+              {totalLabel}
             </span>
             <span className={`text-2xl font-extrabold text-japandi-text tracking-tight ${isAmountBlurred ? 'privacy-blur' : ''}`}>
-              {currencySymbol}{totalMonthlyAmount.toFixed(2)}
+              {formatAmount(totalMonthlyAmount)}
             </span>
           </div>
         )}

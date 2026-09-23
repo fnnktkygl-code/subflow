@@ -24,23 +24,21 @@ interface TrueLayerSyncModalProps {
   onClose: () => void;
 }
 
-export function getTrueLayerAuthUrl(bankId: string = 'stet-boursorama') {
-  const clientId = 'subflow-6571e7';
-  const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-  const redirectUri = isLocal ? 'http://localhost:3000/callback' : 'https://subflowapp.vercel.app/callback';
-  return `https://auth.truelayer.com/?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=info%20accounts%20balance%20transactions%20offline_access&country_code=FR&providers=${bankId}&provider_id=${bankId}`;
-}
+export { beginBankOAuth as getTrueLayerAuthUrl } from '../services/bankOAuth';
+import { beginBankOAuth } from '../services/bankOAuth';
 
 export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, onClose }) => {
   useEscapeKey(isOpen, onClose);
   const { locale } = useTranslation();
   const [connectingBankId, setConnectingBankId] = useState<string | null>(null);
 
+  const [connectionError, setConnectionError] = useState<string | null>(null);
   if (!isOpen) return null;
 
-  const handleConnectBankOAuth = (bank: TrueLayerBankProvider) => {
+  const handleConnectBankOAuth = async (bank: TrueLayerBankProvider) => {
     setConnectingBankId(bank.id);
-    const authUrl = getTrueLayerAuthUrl(bank.id);
+    let authUrl: string;
+    try { authUrl = await beginBankOAuth(bank.id); } catch { setConnectingBankId(null); setConnectionError("Connexion indisponible : autorisez le stockage de session puis réessayez."); return; }
     if (typeof window !== 'undefined') {
       window.location.href = authUrl;
     }
@@ -58,7 +56,7 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
       />
 
       {/* Modal Card */}
-      <div className="relative w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+      <div role="dialog" aria-modal="true" aria-label="Connexion bancaire" className="relative w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-japandi-border bg-japandi-sand/20">
@@ -90,6 +88,7 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
         {/* Content Body */}
         <div className="p-5 overflow-y-auto flex-1 flex flex-col gap-4">
           
+          {connectionError && <p role="alert">{connectionError}</p>}
           {/* Highlight BoursoBank Quick Connect */}
           <div className="p-4 rounded-japandi-xl bg-japandi-pine/10 border border-japandi-pine/30 flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">

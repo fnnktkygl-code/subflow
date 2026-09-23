@@ -6,7 +6,7 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { SubscriptionLogo, Tooltip } from '@subflow/ui';
 
-import { Subscription, calculateTotalMonthlyCost, calculateTotalYearlyCost } from '@subflow/core';
+import { Subscription, calculateUpcomingOccurrences, calculateTotalMonthlyCost, calculateTotalYearlyCost } from '@subflow/core';
 import {
   ClipboardList,
   Calendar,
@@ -63,69 +63,22 @@ export default function SubsPage() {
   // Group subscriptions into sections: "Paid Earlier This Month", "Due Today", "September 2026" / future months
   const groupedSections = useMemo(() => {
     const today = new Date();
-    const todayDay = today.getDate();
-    const todayMonth = today.getMonth();
-    const todayYear = today.getFullYear();
-
     const past: GroupedOccurrence[] = [];
     const dueToday: GroupedOccurrence[] = [];
     const futureByMonth: Record<string, GroupedOccurrence[]> = {};
-
-    subscriptions.forEach((sub) => {
-      const subDate = new Date(sub.startDate);
-      const subDay = subDate.getDate();
-
-      const dateObj = new Date(todayYear, todayMonth, subDay);
-      const formattedDate = dateObj.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short'
-      });
-
-      // 1. Check if paid earlier this month (day < todayDay in current month)
-      if (subDay < todayDay) {
-        past.push({
-          subscription: sub,
-          dateStr: sub.startDate,
-          formattedDate,
-          isToday: false
-        });
+    const occurrences = calculateUpcomingOccurrences(subscriptions, today, 36500);
+    for (const { subscription, dueDate, daysRemaining } of occurrences) {
+      const item = { subscription, dateStr: subscription.startDate, formattedDate: dueDate.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' }), isToday: daysRemaining === 0 };
+      if (daysRemaining === 0) dueToday.push(item);
+      else {
+        const label = dueDate.toLocaleDateString(locale, { month: 'long', year: 'numeric' });
+        (futureByMonth[label] ||= []).push(item);
       }
-
-      // 2. Check if due today (day == todayDay)
-      if (subDay === todayDay) {
-        dueToday.push({
-          subscription: sub,
-          dateStr: sub.startDate,
-          formattedDate,
-          isToday: true
-        });
-      }
-
-      // 3. Next month occurrence
-      const nextMonthIndex = (todayMonth + 1) % 12;
-      const nextMonthYear = todayMonth === 11 ? todayYear + 1 : todayYear;
-      const nextDate = new Date(nextMonthYear, nextMonthIndex, subDay);
-      const nextMonthLabel = nextDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
-        month: 'long',
-        year: 'numeric'
-      });
-      const nextFormattedDate = nextDate.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short'
-      });
-
-      if (!futureByMonth[nextMonthLabel]) {
-        futureByMonth[nextMonthLabel] = [];
-      }
-      futureByMonth[nextMonthLabel].push({
-        subscription: sub,
-        dateStr: `${nextMonthYear}-${String(nextMonthIndex + 1).padStart(2, '0')}-${String(subDay).padStart(2, '0')}`,
-        formattedDate: nextFormattedDate,
-        isToday: false
-      });
-    });
+    }
+    for (const subscription of subscriptions.filter(sub => sub.status === 'paused')) {
+      const label = locale === 'fr' ? 'En pause' : 'Paused';
+      (futureByMonth[label] ||= []).push({ subscription, dateStr: subscription.startDate, formattedDate: label, isToday: false });
+    }
 
     return { past, dueToday, futureByMonth };
   }, [subscriptions, locale]);
@@ -194,7 +147,7 @@ export default function SubsPage() {
       >
         <div className="flex items-center justify-between">
           <span className="text-xs uppercase tracking-wider text-japandi-muted font-bold">
-            {t('home.spendingTitle')}
+            {locale === 'fr' ? 'Coût mensuel équivalent' : 'Monthly equivalent cost'}
           </span>
           <span className="text-xs font-bold px-2.5 py-1 rounded-full text-japandi-pine bg-japandi-pine/10">
             {t('home.activeCount', { count: remainingSubsCount })}

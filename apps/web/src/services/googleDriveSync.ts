@@ -27,6 +27,7 @@ export const DEFAULT_GOOGLE_CLIENT_ID =
  * Initializes and requests token authorization from Google Identity Services (GIS).
  */
 export async function requestGoogleDriveAccess(clientId?: string): Promise<string> {
+  if (typeof window !== 'undefined' && window.location.pathname.startsWith('/demo')) throw new Error('Connexion Google indisponible dans la démonstration');
   const activeClientId = clientId || useSubscriptionStore.getState().googleClientId || DEFAULT_GOOGLE_CLIENT_ID;
 
   await loadGoogleIdentity();
@@ -111,49 +112,10 @@ export async function loginWithGoogleAndSync(customClientId?: string): Promise<v
       lastSyncedAt: new Date().toISOString()
     };
 
-    // Do not enable background writes until restoration has finished.
-
-    // 1. Search for existing cloud backup
-    const existingBackupFile = await searchAppDataBackup(accessToken);
-
-    if (existingBackupFile) {
-      // 2. Download and restore cloud data
-      const cloudData = await downloadAppDataBackup<{
-        subscriptions?: Subscription[];
-        profile?: Partial<UserProfile>;
-        version?: number;
-      }>(accessToken, existingBackupFile.id);
-
-      if (cloudData && Array.isArray(cloudData.subscriptions)) {
-        store.restoreFromCloud({
-          subscriptions: cloudData.subscriptions,
-          profile: cloudData.profile
-        });
-      } else {
-        // Cloud backup exists but empty: sync current local data to it
-        await uploadAppDataBackup(
-          accessToken,
-          {
-            version: 1,
-            exportedAt: new Date().toISOString(),
-            subscriptions: store.subscriptions,
-            profile: store.profile
-          },
-          existingBackupFile.id
-        );
-      }
-    } else {
-      // 3. No backup on Drive yet: perform initial upload
-      await uploadAppDataBackup(accessToken, {
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        subscriptions: store.subscriptions,
-        profile: store.profile
-      });
-    }
-
+    // Connection never uploads or replaces data. The user selects a backup action.
+    knownRemoteRevision = undefined;
     store.setGoogleAccount(account);
-    store.setDriveSyncStatus('synced');
+    store.setDriveSyncStatus('idle');
   } catch (err: any) {
     store.setDriveSyncStatus('error', err.message || 'Échec de la connexion à Google Drive');
     throw err;
@@ -163,7 +125,11 @@ export async function loginWithGoogleAndSync(customClientId?: string): Promise<v
 /**
  * Manually or automatically pushes current store snapshot to Google Drive appDataFolder.
  */
+let knownRemoteRevision: string | null | undefined;
+let driveOperationActive = false;
+
 export async function pushToGoogleDrive(): Promise<void> {
+  if (driveOperationActive) throw new Error('Une opération Drive est déjà en cours.');
   const store = useSubscriptionStore.getState();
   const account = store.googleAccount;
 
@@ -178,7 +144,9 @@ export async function pushToGoogleDrive(): Promise<void> {
   store.setDriveSyncStatus('syncing');
 
   try {
+    driveOperationActive = true;
     const existingBackupFile = await searchAppDataBackup(account.accessToken);
+    if (existingBackupFile && existingBackupFile.modifiedTime !== knownRemoteRevision) throw new Error('Une sauvegarde distante existe ou a changé. Restaurez-la avant de sauvegarder pour éviter de l’écraser.');
 
     const payload = {
       version: 1,
@@ -187,23 +155,25 @@ export async function pushToGoogleDrive(): Promise<void> {
       profile: store.profile
     };
 
-    await uploadAppDataBackup(
+    const uploaded = await uploadAppDataBackup(
       account.accessToken,
       payload,
       existingBackupFile ? existingBackupFile.id : undefined
     );
 
+    knownRemoteRevision = uploaded?.modifiedTime || null;
     store.setDriveSyncStatus('synced');
   } catch (err: any) {
     store.setDriveSyncStatus('error', err.message || 'Échec de la sauvegarde Google Drive');
     throw err;
-  }
+  } finally { driveOperationActive = false; }
 }
 
 /**
  * Pulls and restores the latest snapshot from Google Drive.
  */
 export async function pullFromGoogleDrive(): Promise<void> {
+  if (driveOperationActive) throw new Error('Une opération Drive est déjà en cours.');
   const store = useSubscriptionStore.getState();
   const account = store.googleAccount;
 
@@ -218,6 +188,7 @@ export async function pullFromGoogleDrive(): Promise<void> {
   store.setDriveSyncStatus('syncing');
 
   try {
+    driveOperationActive = true;
     const existingBackupFile = await searchAppDataBackup(account.accessToken);
 
     if (!existingBackupFile) {
@@ -231,12 +202,13 @@ export async function pullFromGoogleDrive(): Promise<void> {
 
     if (cloudData) {
       store.restoreFromCloud(cloudData);
+      knownRemoteRevision = existingBackupFile.modifiedTime;
     }
     store.setDriveSyncStatus('synced');
   } catch (err: any) {
     store.setDriveSyncStatus('error', err.message || 'Erreur lors de la récupération Google Drive');
     throw err;
-  }
+  } finally { driveOperationActive = false; }
 }
 
 /**

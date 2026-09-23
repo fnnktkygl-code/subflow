@@ -1,8 +1,9 @@
 'use client';
 
+import { browserStorage, setBrowserStorageItemStrict } from './browserStorage';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { Subscription, UserProfile, fetchLogo, subscriptionSchema } from '@subflow/core';
+import { Subscription, UserProfile, fetchLogo, subscriptionSchema, userProfileSchema } from '@subflow/core';
 
 export interface GoogleAccount {
   email: string;
@@ -39,6 +40,7 @@ interface SubFlowState {
   addSubscription: (sub: Omit<Subscription, 'id'>) => void;
   updateSubscription: (id: string, updates: Partial<Subscription>) => void;
   deleteSubscription: (id: string) => void;
+  importSubscriptions: (data: unknown) => number;
   toggleSelectionMode: () => void;
   toggleExcludedId: (id: string) => void;
   selectAllExcludedIds: () => void;
@@ -70,10 +72,21 @@ const DEFAULT_PROFILE: UserProfile = {
   themeMode: 'light'
 };
 
+const STORAGE_KEY = 'subflow-storage-v2';
+
+function persistedState(state: SubFlowState) {
+  const { subscriptions, profile, isAmountBlurred, hasCompletedOnboarding, storageMode, googleClientId } = state;
+  return { subscriptions, profile, isAmountBlurred, hasCompletedOnboarding, storageMode, googleClientId };
+}
+
+function persistBeforeCommit(state: SubFlowState): void {
+  setBrowserStorageItemStrict(STORAGE_KEY, JSON.stringify({ state: persistedState(state), version: 0 }));
+}
+
 
 export const useSubscriptionStore = create<SubFlowState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       subscriptions: DEFAULT_SUBSCRIPTIONS,
       profile: DEFAULT_PROFILE,
       isSelectionMode: false,
@@ -103,18 +116,33 @@ export const useSubscriptionStore = create<SubFlowState>()(
           storageMode: null
         }),
 
-      addSubscription: (newSub) =>
-
-        set((state) => ({
+      addSubscription: (input) => {
+        const newSub = subscriptionSchema.omit({ id: true }).parse(input);
+        return set((state) => ({
           subscriptions: [
             ...state.subscriptions,
             {
               ...newSub,
               logoUrl: newSub.logoUrl || fetchLogo(newSub.name),
-              id: `sub-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`
+              id: crypto.randomUUID()
             }
           ]
-        })),
+        }));
+      },
+
+      importSubscriptions: (data) => {
+        const incoming = subscriptionSchema.array().max(10000).parse(data);
+        const state = get();
+        const fingerprint = (sub: Subscription) => JSON.stringify([sub.name.trim().toLowerCase(), sub.amount, sub.currency || 'EUR', sub.cycle.toLowerCase(), sub.startDate]);
+        const keys = new Set(state.subscriptions.map(fingerprint));
+        const ids = new Set(state.subscriptions.map(sub => sub.id));
+        const additions = incoming.filter(sub => { const key = fingerprint(sub); if (keys.has(key) || ids.has(sub.id)) return false; keys.add(key); ids.add(sub.id); return true; });
+        if (state.subscriptions.length + additions.length > 10000) throw new Error('Maximum 10 000 prélèvements');
+        const subscriptions = [...state.subscriptions, ...additions];
+        persistBeforeCommit({ ...state, subscriptions });
+        set({ subscriptions });
+        return additions.length;
+      },
 
       updateSubscription: (id, updates) =>
         set((state) => ({
@@ -122,7 +150,7 @@ export const useSubscriptionStore = create<SubFlowState>()(
             sub.id === id
               ? {
                   ...sub,
-                  ...updates,
+                  ...subscriptionSchema.parse({ ...sub, ...updates, id: sub.id }),
                   logoUrl: updates.logoUrl || (updates.name ? fetchLogo(updates.name) : sub.logoUrl)
                 }
               : sub
@@ -178,7 +206,7 @@ export const useSubscriptionStore = create<SubFlowState>()(
           googleAccount: account,
           storageMode: account ? 'cloud' : 'local',
           hasCompletedOnboarding: account ? true : state.hasCompletedOnboarding,
-          driveSyncStatus: account ? 'syncing' : 'idle',
+          driveSyncStatus: 'idle',
           driveSyncError: null
         })),
 
@@ -197,35 +225,26 @@ export const useSubscriptionStore = create<SubFlowState>()(
 
       setGoogleClientId: (clientId) => set({ googleClientId: clientId }),
 
-      restoreFromCloud: (data) =>
-        set((state) => ({
-          subscriptions: Array.isArray(data.subscriptions)
-            ? data.subscriptions.map(sub => subscriptionSchema.parse(sub))
-            : state.subscriptions,
-          profile: data.profile
-            ? { ...state.profile, ...data.profile }
-            : state.profile,
-          driveSyncStatus: 'synced',
-          driveSyncError: null
-        }))
+      restoreFromCloud: (data) => {
+        const incoming = subscriptionSchema.array().max(10000).parse(data.subscriptions);
+        const incomingProfile = data.profile ? userProfileSchema.partial().parse(data.profile) : {};
+        const state = get();
+        const profile = { ...state.profile, ...incomingProfile };
+        setBrowserStorageItemStrict('subflow-recovery-v1', JSON.stringify({ subscriptions: state.subscriptions, profile: state.profile }));
+        persistBeforeCommit({ ...state, subscriptions: incoming, profile });
+        set({ subscriptions: incoming, profile, excludedIds: [], isSelectionMode: false, driveSyncStatus: 'synced', driveSyncError: null });
+      }
+
     }),
 
     {
-      name: 'subflow-storage-v2',
-      partialize: ({ subscriptions, profile, isAmountBlurred, hasCompletedOnboarding, storageMode, googleClientId }) => ({ subscriptions, profile, isAmountBlurred, hasCompletedOnboarding, storageMode, googleClientId }),
+      name: STORAGE_KEY,
+      partialize: persistedState,
       merge: (persisted, current) => {
         const saved = (persisted || {}) as Partial<SubFlowState>;
-        return { ...current, ...saved, googleAccount: null, driveSyncStatus: 'idle', driveSyncError: null, isSelectionMode: false, excludedIds: [] };
+        return { ...current, subscriptions: Array.isArray(saved.subscriptions) ? saved.subscriptions : current.subscriptions, profile: saved.profile && typeof saved.profile === 'object' ? { ...current.profile, ...saved.profile } : current.profile, isAmountBlurred: saved.isAmountBlurred === true, hasCompletedOnboarding: saved.hasCompletedOnboarding === true, storageMode: saved.storageMode === 'cloud' ? 'cloud' : 'local', googleClientId: typeof saved.googleClientId === 'string' ? saved.googleClientId : null };
       },
-      storage: createJSONStorage(() =>
-        typeof window !== 'undefined'
-          ? window.localStorage
-          : {
-              getItem: () => null,
-              setItem: () => {},
-              removeItem: () => {}
-            }
-      ),
+      storage: createJSONStorage(() => browserStorage),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         if ((state.profile?.themeMode as string) === 'vibrant') {

@@ -36,7 +36,7 @@ describe('TrueLayer Serverless Proxy API Routes', () => {
 
       const req = new NextRequest('http://localhost:3000/api/truelayer/token', {
         method: 'POST',
-        body: JSON.stringify({ code: 'valid_auth_code_123' })
+        body: JSON.stringify({ code: 'valid_auth_code_123', redirect_uri: 'http://localhost:3000/callback', code_verifier: 'a'.repeat(43) })
       });
 
       const res = await tokenRoute(req);
@@ -51,14 +51,14 @@ describe('TrueLayer Serverless Proxy API Routes', () => {
 
       const req = new NextRequest('http://localhost:3000/api/truelayer/token', {
         method: 'POST',
-        body: JSON.stringify({ code: 'valid_auth_code_123' })
+        body: JSON.stringify({ code: 'valid_auth_code_123', redirect_uri: 'http://localhost:3000/callback', code_verifier: 'a'.repeat(43) })
       });
 
       const res = await tokenRoute(req);
       expect(res.status).toBe(500);
 
       const json = await res.json();
-      expect(json.error).toBe('Network error');
+      expect(json.error).toBe('Token exchange failed');
     });
   });
 

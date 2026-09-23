@@ -62,3 +62,15 @@
 - **Impacts & Conséquences** : 109 tests automatisés au vert, déploiement Vercel mis à jour immédiatement en production.
 
 
+
+### 2026-09-12 | Gouvernance : point d’entrée unique et délégation proportionnée
+- **Contexte** : le cadre universel impose toute écriture aux workers tandis que les anciennes règles imposent toute écriture au responsable ; surveillance périodique et relectures globales augmentent le contexte.
+- **Décision** : AGENTS.md est la source active ; un auteur à la fois, responsable par défaut, deux agents maximum sur tâches indépendantes ; suivi sur événement, preuve de résultat, documentation contextuelle.
+- **Raison** : adaptation demandée par le propriétaire et documentation officielle OpenAI du 11 septembre 2026. Le framework original reste intact comme référence.
+- **Impact** : aucun réglage global Codex ni plugin supplémentaire ; ne pas charger les cinq fichiers génériques à chaque tâche.
+
+### 2026-09-13 | Orchestration : routage explicite des modèles et de l’effort
+- **Contexte / Problème** : des sous-agents lancés sans paramètres ont hérité de GPT-6 Astra et de l’effort élevé du responsable, consommant le quota que la gouvernance devait préserver.
+- **Décision tranchée** : chaque délégation fixe explicitement modèle, effort et contexte minimal. Défaut projet : `gpt-5.6-terra`/`low`; `gpt-5.6-luna` pour les missions étroites ; `gpt-5.6-sol` pour une complexité justifiée. GPT-6 Astra est interdit aux sous-agents sans demande explicite du propriétaire.
+- **Raison / Pourquoi** : la documentation OpenAI établit l’héritage implicite du parent et l’augmentation de tokens avec l’effort de raisonnement. Une règle textuelle sans réglage effectif n’était pas suffisante.
+- **Impacts & Conséquences** : `.codex/config.toml` borne le défaut et la concurrence ; `AGENTS.md` impose les valeurs explicites à chaque lancement et interdit l’historique complet par défaut.

@@ -2,16 +2,16 @@
 
 # 🌿 SubFlow
 
-**Mindful Japandi Subscription & Recurring Finance Tracker**
+**Suivi clair des abonnements et prélèvements récurrents**
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.x-02569B?style=for-the-badge&logo=flutter&logoColor=white)
 ![Dart](https://img.shields.io/badge/Dart-3.x-0175C2?style=for-the-badge&logo=dart&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![Security](https://img.shields.io/badge/Local--First-Encrypted-success?style=for-the-badge)
+![Security](https://img.shields.io/badge/Local--First-Privacy-success?style=for-the-badge)
 
-**Experience serene, intentional financial awareness with frictionless entry and mindful spending habits.**
+**Anticipez ce qui revient, visualisez les prochaines échéances et simulez vos économies.**
 
-[Features](#-features) • [Live App](https://subflowapp.vercel.app) • [Getting Started](#-getting-started)
+[Fonctionnalités](#-features) • [Application](https://subflowapp.vercel.app) • [Qualification](docs/QUALIFICATION_SUBFLOW.md)
 
 </div>
 
@@ -19,7 +19,7 @@
 
 ## 🎯 About SubFlow
 
-**SubFlow** is a serene, local-first personal finance application inspired by Japanese minimalism and Scandinavian functionality (*Japandi*). It empowers you to track subscriptions, simulate "What-If" scenarios, and align recurring commitments with personal goals—without anxiety or visual clutter.
+**SubFlow** est une application locale par défaut consacrée aux abonnements et prélèvements récurrents. Elle permet de suivre les échéances, de comparer le coût mensuel équivalent au montant réellement prélevé et de simuler des économies sans modifier les données réelles.
 
 ## ✨ Features
 
@@ -30,43 +30,44 @@
 
 ### ⚡ **1-Tap Frictionless Entry**
 - Single-view subscription creation modal
-- Region-aware 1-tap presets with real local market rates (€, £, $, CA$, A$)
+- Catalogue régional avec montants illustratifs à vérifier avant enregistrement
 - Automatic cycle and category detection
 
-### 🔮 **"What-If" Scenario Simulation**
+### 🔮 **Simulation d’économies**
 - Selectively exclude subscriptions to see instant real-time savings
 - Visualize impact on monthly buffer and annual commitments
 
-### 🔒 **Local-First & GDPR Compliant**
-- All financial data stored encrypted locally on your device
-- Full GDPR compliance (Articles 17 & 20: instant JSON export & data erasure)
-- Secure Open Banking integration via TrueLayer (PSD2 / OAuth2 PKCE)
+### 🔒 **Local storage & portable backups**
+- Web data lives in browser storage, without application-level encryption. Protect your device and export backups.
+- CSV exports and password-encrypted backup files; local data deletion is separate from cloud backup deletion.
+- Optional TrueLayer integration with state and PKCE; real provider authorization still requires deployment validation.
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### Web — prérequis
 
-- Flutter SDK 3.x or higher ([Install Flutter](https://flutter.dev/docs/get-started/install))
-- Dart SDK 3.x or higher
+- Node.js et pnpm 9
 
 ### Installation
 
-1. **Install dependencies**
+1. **Installer les dépendances**
    ```bash
-   flutter pub get
+   pnpm install
    ```
 
-2. **Run tests**
+2. **Exécuter les tests**
    ```bash
-   flutter test
+   pnpm test
    ```
 
-3. **Run the app**
+3. **Démarrer le web**
    ```bash
-   flutter run -d chrome
+   pnpm --filter @subflow/web dev
    ```
+
+L’implémentation Flutter à la racine est distincte du web. Elle exige Flutter 3.x, `flutter pub get` et `flutter test` avant toute livraison native.
 
 ---
 

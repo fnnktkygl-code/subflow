@@ -96,7 +96,10 @@ export default function SettingsPage() {
   };
 
   const handleConfirmDeleteAll = () => {
-    localStorage.clear();
+    localStorage.removeItem('subflow-storage-v2');
+    localStorage.removeItem('subflow-recovery-v1');
+    sessionStorage.removeItem('subflow_gdrive_token');
+    sessionStorage.removeItem('subflow_gdrive_user');
     window.location.reload();
   };
 

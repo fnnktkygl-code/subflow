@@ -233,3 +233,22 @@ export function calculateNextRenewalDate(lastChargeDateStr: string, cycle = 'mon
   const next = nextOccurrence(start, cycle, referenceDate, false);
   return `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}-${String(next.getDate()).padStart(2, '0')}`;
 }
+
+/** All scheduled charges in a calendar month, retaining the original cycle anchor. */
+export function calculateMonthOccurrences(subscriptions: Subscription[], year: number, month: number): UpcomingOccurrence[] {
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month + 1, 0);
+  if (!Number.isFinite(first.getTime()) || !Number.isFinite(last.getTime())) return [];
+  const result: UpcomingOccurrence[] = [];
+  for (const subscription of subscriptions) {
+    if (subscription.status === 'paused') continue;
+    const start = parseCalendarDate(subscription.startDate);
+    if (!start) continue;
+    let dueDate = nextOccurrence(start, subscription.cycle, first);
+    while (dueDate <= last) {
+      result.push({ subscription, dueDate, daysRemaining: dueDate.getDate() - 1, formattedDate: String(dueDate.getDate()) });
+      dueDate = nextOccurrence(start, subscription.cycle, dueDate, true);
+    }
+  }
+  return result.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+}

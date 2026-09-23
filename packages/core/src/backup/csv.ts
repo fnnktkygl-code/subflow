@@ -1,102 +1,51 @@
 import { Subscription } from '../types';
+import { subscriptionSchema } from '../validation/schemas';
 
+function escapeField(value: string): string {
+  // Neutralize spreadsheet formulas, including leading control characters.
+  const safe = /^[\s]*[=+@-]|^[\t\r\n]/.test(value) ? `'${value}` : value;
+  return `"${safe.replace(/"/g, '""')}"`;
+}
 export function exportSubscriptionsToCSV(subscriptions: Subscription[]): string {
-  const headers = ['Name', 'Amount', 'Currency', 'Category', 'Cycle', 'StartDate', 'Status', 'Notes'];
-  
-  const rows = subscriptions.map((sub) => {
-    return [
-      escapeCSVField(sub.name),
-      sub.amount.toString(),
-      escapeCSVField(sub.currency || 'EUR'),
-      escapeCSVField(String(sub.category || 'General')),
-      escapeCSVField(String(sub.cycle || 'Monthly')),
-      sub.startDate,
-      sub.status || 'active',
-      escapeCSVField(sub.notes || '')
-    ].join(',');
-  });
-
-  return [headers.join(','), ...rows].join('\n');
+  return ['Name,Amount,Currency,Category,Cycle,StartDate,Status,Notes', ...subscriptions.map(s =>
+    [s.name, String(s.amount), s.currency || 'EUR', s.category || 'General', s.cycle || 'Monthly', s.startDate, s.status || 'active', s.notes || ''].map(escapeField).join(',')
+  )].join('\r\n');
 }
 
+function readRows(text: string): string[][] {
+  const rows: string[][] = []; let row: string[] = []; let field = ''; let quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (c === '"') {
+      if (quoted && text[i + 1] === '"') { field += '"'; i++; }
+      else quoted = !quoted;
+    } else if (!quoted && (c === ',' || c === '\n' || c === '\r')) {
+      row.push(field); field = '';
+      if (c !== ',') { if (row.some(x => x.trim())) rows.push(row); row = []; if (c === '\r' && text[i + 1] === '\n') i++; }
+    } else field += c;
+  }
+  if (quoted) throw new Error('Unclosed CSV quote');
+  row.push(field); if (row.some(x => x.trim())) rows.push(row);
+  return rows;
+}
 export function parseSubscriptionsFromCSV(csvContent: string): Subscription[] {
-  const lines = csvContent.trim().split(/\r?\n/);
-  if (lines.length < 2) return [];
-
-  const headers = lines[0]?.split(',').map((h) => h.trim().toLowerCase()) || [];
-  const nameIdx = headers.findIndex((h) => h.includes('name') || h.includes('nom'));
-  const amountIdx = headers.findIndex((h) => h.includes('amount') || h.includes('montant') || h.includes('prix'));
-  const categoryIdx = headers.findIndex((h) => h.includes('category') || h.includes('catégorie'));
-  const cycleIdx = headers.findIndex((h) => h.includes('cycle') || h.includes('frequence') || h.includes('fréquence'));
-  const dateIdx = headers.findIndex((h) => h.includes('start') || h.includes('date'));
-  const notesIdx = headers.findIndex((h) => h.includes('note'));
-
-  const results: Subscription[] = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const rawLine = lines[i]?.trim();
-    if (!rawLine) continue;
-
-    const fields = parseCSVLine(rawLine);
-    const name = nameIdx >= 0 ? fields[nameIdx] : fields[0];
-    const rawAmount = amountIdx >= 0 ? fields[amountIdx] : fields[1];
-    const amount = parseFloat(rawAmount?.replace(/[^0-9\.\,]/g, '').replace(',', '.') || '0');
-
-    if (!name || isNaN(amount) || amount <= 0) continue;
-
-    const category = (categoryIdx >= 0 && fields[categoryIdx]) ? fields[categoryIdx] : 'General';
-    const cycle = (cycleIdx >= 0 && fields[cycleIdx]) ? fields[cycleIdx] : 'Monthly';
-    const startDate = (dateIdx >= 0 && fields[dateIdx] && /^\d{4}-\d{2}-\d{2}/.test(fields[dateIdx]))
-      ? fields[dateIdx]!
-      : new Date().toISOString().split('T')[0]!;
-
-    const notes = (notesIdx >= 0 && fields[notesIdx]) ? fields[notesIdx] : '';
-
-    results.push({
-      id: `imported-${Date.now()}-${i}`,
-      name: name.trim(),
-      amount,
-      category,
-      cycle,
-      startDate,
-      notes,
-      currency: 'EUR',
-      currencySymbol: '€',
-      status: 'active'
+  if (csvContent.length > 5 * 1024 * 1024) throw new Error('CSV too large');
+  const rows = readRows(csvContent.replace(/^\uFEFF/, ''));
+  const headers = rows.shift()?.map(x => x.trim().toLowerCase()) || [];
+  const index = (names: string[]) => headers.findIndex(x => names.includes(x));
+  const name = index(['name','nom']), amount = index(['amount','montant','prix']);
+  if (name < 0 || amount < 0) throw new Error('Missing name or amount column');
+  if (rows.length > 10000) throw new Error('Too many rows');
+  return rows.map((row, i) => {
+    const field = (names: string[], fallback: string) => row[index(names)] || fallback;
+    const currency = field(['currency','devise'], 'EUR');
+    return subscriptionSchema.parse({
+      id: `csv-${i}-${encodeURIComponent(row[name] || '').slice(0, 60)}`,
+      name: row[name]?.trim(), amount: Number(row[amount]?.trim().replace(',', '.')),
+      currency, currencySymbol: currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency === 'GBP' ? '£' : currency,
+      category: field(['category','catégorie'], 'General'), cycle: field(['cycle','frequence','fréquence'], 'Monthly'),
+      startDate: field(['startdate','date'], new Date().toISOString().slice(0, 10)),
+      status: field(['status','statut'], 'active'), notes: field(['notes','note'], '')
     });
-  }
-
-  return results;
-}
-
-function escapeCSVField(field: string): string {
-  if (field.includes(',') || field.includes('"') || field.includes('\n')) {
-    return `"${field.replace(/"/g, '""')}"`;
-  }
-  return field;
-}
-
-function parseCSVLine(line: string): string[] {
-  const fields: string[] = [];
-  let current = '';
-  let inQuotes = false;
-
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if (char === ',' && !inQuotes) {
-      fields.push(current.trim());
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  fields.push(current.trim());
-  return fields;
+  });
 }

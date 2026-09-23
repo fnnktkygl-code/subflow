@@ -41,7 +41,7 @@ class TruelayerService {
   })  : clientId = clientId ??
             (dotenv.isInitialized ? dotenv.env['TRUELAYER_CLIENT_ID'] : null) ??
             const String.fromEnvironment('TRUELAYER_CLIENT_ID', defaultValue: 'trhack-0b37ee'),
-        clientSecret = clientSecret ?? (dotenv.isInitialized ? dotenv.env['TRUELAYER_CLIENT_SECRET'] : null),
+        clientSecret = clientSecret,
         redirectUri = redirectUri ?? 'http://localhost:3000/callback',
         bffUrl = bffUrl ?? const String.fromEnvironment('BFF_URL', defaultValue: '');
 
@@ -143,7 +143,10 @@ class TruelayerService {
         }
       }
 
-      // 2. Direct exchange fallback
+      // Production builds must exchange authorization through a trusted backend.
+      if (!kDebugMode) return null;
+
+      // Development-only exchange for test fixtures. Never package secrets.
       final body = {
         'grant_type': 'authorization_code',
         'client_id': clientId,

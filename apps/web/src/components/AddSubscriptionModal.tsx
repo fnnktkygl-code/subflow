@@ -17,7 +17,7 @@ import { useEscapeKey } from '../hooks/useEscapeKey';
 import { CategoryIcon } from './CategoryIcon';
 import { JapandiDatePicker } from './JapandiDatePicker';
 import { CancellationAssistantModal } from './CancellationAssistantModal';
-import { TrueLayerSyncModal, getTrueLayerAuthUrl } from './TrueLayerSyncModal';
+import { TrueLayerSyncModal } from './TrueLayerSyncModal';
 import { SvgIconPickerModal } from './SvgIconPickerModal';
 import { X, Sparkles, FileText, Building2, ExternalLink, Zap, Image as ImageIcon } from 'lucide-react';
 
@@ -27,6 +27,7 @@ interface AddSubscriptionModalProps {
   onClose: () => void;
   defaultDate?: string;
   editSubscription?: Subscription | null;
+  allowBankSync?: boolean;
 }
 
 const CATEGORIES: SubscriptionCategory[] = [
@@ -54,7 +55,8 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   isOpen,
   onClose,
   defaultDate,
-  editSubscription
+  editSubscription,
+  allowBankSync = true
 }) => {
   const { addSubscription, updateSubscription, profile } = useSubscriptionStore();
   const { t, locale } = useTranslation();
@@ -80,6 +82,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
   const [isTrueLayerOpen, setIsTrueLayerOpen] = useState(false);
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
 
@@ -127,8 +130,10 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const parsedAmount = parseFloat(amount.replace(',', '.'));
-    if (!name.trim() || isNaN(parsedAmount) || parsedAmount <= 0) return;
+    setSubmitError(null);
+    const parsedAmount = Number(amount.replace(',', '.'));
+    try {
+    if (!name.trim() || !Number.isFinite(parsedAmount) || parsedAmount <= 0) throw new Error('Invalid amount');
 
     const finalLogo: string = logoUrl || fetchLogo(name);
     const finalStartDate: string = startDate || getTodayString();
@@ -156,6 +161,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
       });
     }
     onClose();
+    } catch { setSubmitError('Vérifiez le nom (100 caractères maximum), le montant et la date du prélèvement.'); }
   };
 
   const categoryOptions: DropdownOption[] = CATEGORIES.map((cat) => ({
@@ -225,13 +231,14 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           </button>
         </div>
 
+        {submitError && <p role="alert" className="mx-5 mt-3 p-3 rounded-xl bg-red-50 text-red-800 text-sm">{submitError}</p>}
         {/* Content body */}
         <div className="p-5 overflow-y-auto flex-1 flex flex-col gap-5">
           {/* Quick Pick Presets & Bank Sync */}
           {!editSubscription && (
             <div className="flex flex-col gap-2.5">
               {/* Direct BoursoBank Connect & All Banks */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {allowBankSync && <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setIsTrueLayerOpen(true)}
@@ -255,7 +262,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                   </div>
                   <span className="text-[10px] font-semibold text-japandi-muted">DSP2</span>
                 </button>
-              </div>
+              </div>}
 
 
 
@@ -323,7 +330,8 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                   type="text"
                   required
                   placeholder={t('modal.namePlaceholder')}
-                  value={name}
+                  maxLength={100}
+                    value={name}
                   onChange={(e) => {
                     setName(e.target.value);
                     setShowSuggestions(true);
@@ -475,7 +483,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
       )}
 
       {/* TrueLayer Bank Sync Modal */}
-      {isTrueLayerOpen && (
+      {allowBankSync && isTrueLayerOpen && (
         <TrueLayerSyncModal
           isOpen={isTrueLayerOpen}
           onClose={() => {
@@ -500,5 +508,4 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
     </div>
   );
 };
-
 

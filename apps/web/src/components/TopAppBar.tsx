@@ -83,7 +83,7 @@ export const TopAppBar: React.FC = () => {
     <header className="sticky top-0 z-30 w-full bg-japandi-canvas/80 backdrop-blur-md border-b border-japandi-border/60">
       <div className="max-w-[1120px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/app" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-japandi-lg bg-japandi-pine text-white flex items-center justify-center shadow-japandi-xs group-hover:scale-105 transition-transform">
               <svg className="w-4 h-4" viewBox="0 0 512 512" fill="none">
                 <path
@@ -112,7 +112,7 @@ export const TopAppBar: React.FC = () => {
           <Tooltip
             content={
               googleAccount
-                ? `Google Drive : ${googleAccount.name} (${locale === 'fr' ? 'Synchronisé' : 'Synced'})`
+                ? `Google Drive : ${googleAccount.name} (${driveSyncStatus === 'synced' ? 'Sauvegardé' : 'Connecté'})`
                 : (locale === 'fr' ? 'Connexion Google & Sauvegarde Drive' : 'Sign in with Google & Cloud Sync')
             }
             side="bottom"

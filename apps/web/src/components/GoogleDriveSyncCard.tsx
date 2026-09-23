@@ -50,7 +50,7 @@ export const GoogleDriveSyncCard: React.FC<GoogleDriveSyncCardProps> = ({ varian
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h4 className="text-xs sm:text-sm font-bold text-japandi-text truncate">
-                  {locale === 'fr' ? 'Sauvegarde Google Drive temps réel' : 'Real-Time Google Drive Backup'}
+                  {locale === 'fr' ? 'Sauvegarde Google Drive manuelle' : 'Manual Google Drive Backup'}
                 </h4>
                 <span className="text-[10px] font-black px-1.5 py-0.2 rounded bg-japandi-pine text-white uppercase tracking-tight hidden sm:inline-block">
                   Cloud
@@ -116,14 +116,14 @@ export const GoogleDriveSyncCard: React.FC<GoogleDriveSyncCardProps> = ({ varian
               {googleAccount && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>{locale === 'fr' ? 'Synchronisé' : 'Synced'}</span>
+                  <span>{driveSyncStatus === 'synced' ? (locale === 'fr' ? 'Sauvegardé' : 'Saved') : driveSyncStatus === 'syncing' ? 'En cours…' : driveSyncStatus === 'error' ? 'À vérifier' : 'Connecté'}</span>
                 </span>
               )}
             </div>
             <span className="text-[11px] text-japandi-muted block truncate">
               {googleAccount
                 ? googleAccount.email
-                : (locale === 'fr' ? 'Sauvegardes automatiques en temps réel' : 'Real-time automatic cloud backups')}
+                : (locale === 'fr' ? 'Sauvegardes automatiques en manuelle' : 'Real-time automatic cloud backups')}
             </span>
           </div>
         </div>

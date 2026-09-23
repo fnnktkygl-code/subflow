@@ -41,7 +41,7 @@ export const fr = {
     remainingBudget: 'Reste disponible',
     targetMet: 'Objectif respecté',
     targetExceeded: 'Objectif dépassé',
-    whatIfTitle: 'Simulateur What-If',
+    whatIfTitle: 'Simulateur d\'économies',
     whatIfSubtitle: 'Testez l\'impact de résiliations sur votre budget sans modifier vos vraies données.',
     whatIfButton: 'Simuler des économies',
     upcomingTitle: 'Prochains renouvellements',
@@ -133,7 +133,7 @@ export const fr = {
     submitEdit: 'Enregistrer les modifications'
   },
   whatIf: {
-    modeActive: 'Mode What-If Activé',
+    modeActive: 'Simulation active',
     bannerText: 'Sélectionnez des abonnements pour simuler vos économies potentielles.',
     savingsTitle: 'Économies potentielles',
     monthlySavings: 'Économie mensuelle',
@@ -248,4 +248,3 @@ export const fr = {
     resetConfirm: 'Êtes-vous sûr de vouloir supprimer tous vos abonnements ?'
   }
 };
-

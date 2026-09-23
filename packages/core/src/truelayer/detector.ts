@@ -86,7 +86,7 @@ export function detectSubscriptionsFromTransactions(
   const maxTimestamp = Date.now() + 45 * 86400000; // tolérance pour les cycles mensuels courants et tests
   const debitTxs = transactions.filter((t) => {
     const amt = typeof t.amount === 'number' ? Math.abs(t.amount) : 0;
-    if (amt <= 0.5) return false; // Ignorer les micro-transactions < 0.50 €
+    if (!Number.isFinite(amt) || amt <= 0.5) return false; // Ignorer les micro-transactions < 0.50 €
     const txTime = new Date(t.date).getTime();
     if (isNaN(txTime) || txTime > maxTimestamp) return false; // Ignorer les dates corrompues ou lointaines
     return true;
@@ -99,7 +99,7 @@ export function detectSubscriptionsFromTransactions(
 
   for (const tx of debitTxs) {
     const rawName = tx.counterpartyName || tx.description || 'Inconnu';
-    const cleanedKey = cleanTransactionDescription(rawName).toLowerCase();
+    const cleanedKey = JSON.stringify([cleanTransactionDescription(rawName).toLowerCase(), tx.accountId || '', tx.currency || currency]);
 
     const existing = groups.get(cleanedKey) || [];
     existing.push(tx);
