@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { NATIVE_SVG_ICONS, NativeSvgIcon } from '@subflow/core';
+import { NATIVE_SVG_ICONS, NativeSvgIcon, pick } from '@subflow/core';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { X, Search, Check } from 'lucide-react';
+import { useTranslation } from '../hooks/useTranslation';
 
 interface SvgIconPickerModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ export const SvgIconPickerModal: React.FC<SvgIconPickerModalProps> = ({
   onSelectIcon,
   subscriptionCategory
 }) => {
+  const { locale } = useTranslation();
   const [activeTab, setActiveTab] = useState<string>(subscriptionCategory || 'all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -64,16 +66,16 @@ export const SvgIconPickerModal: React.FC<SvgIconPickerModalProps> = ({
         <div className="p-4 sm:p-5 flex items-center justify-between border-b border-japandi-border bg-japandi-elevated">
           <div>
             <h3 id="icon-picker-title" className="font-bold text-base sm:text-lg text-japandi-text">
-              Choisir une icône SVG native
+              {pick(locale, { fr: 'Choisir une icône SVG', en: 'Choose an SVG icon', es: 'Elige un icono SVG' })}
             </h3>
             <p className="text-xs text-japandi-muted">
-              Icônes vectorielles nettes et élégantes selon les standards Japandi
+              {pick(locale, { fr: 'Icônes vectorielles nettes, style Japandi', en: 'Crisp vector icons, Japandi style', es: 'Iconos vectoriales nítidos, estilo Japandi' })}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={pick(locale, { fr: 'Fermer', en: 'Close', es: 'Cerrar' })}
             className="p-2 rounded-japandi-md text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/40 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -87,7 +89,7 @@ export const SvgIconPickerModal: React.FC<SvgIconPickerModalProps> = ({
             <Search className="w-4 h-4 text-japandi-muted absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Rechercher une icône (ex: film, vélo, sport, café, banque)..."
+              placeholder={pick(locale, { fr: 'Rechercher une icône (ex : film, vélo, sport, café, banque)...', en: 'Search an icon (e.g. film, bike, sport, coffee, bank)...', es: 'Buscar un icono (p. ej. película, bici, deporte, café, banco)...' })}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-3 py-2 rounded-japandi-md bg-japandi-elevated border border-japandi-border text-japandi-text text-xs focus:outline-none focus:ring-2 focus:ring-japandi-pine transition-all"
@@ -169,20 +171,20 @@ export const SvgIconPickerModal: React.FC<SvgIconPickerModalProps> = ({
 
           {filteredIcons.length === 0 && (
             <div className="col-span-full py-8 text-center text-japandi-muted text-xs">
-              Aucune icône ne correspond à votre recherche.
+              {pick(locale, { fr: 'Aucune icône ne correspond à votre recherche.', en: 'No icon matches your search.', es: 'Ningún icono coincide con tu búsqueda.' })}
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div className="p-3 sm:p-4 border-t border-japandi-border bg-japandi-elevated flex items-center justify-between text-xs text-japandi-muted">
-          <span>{filteredIcons.length} icônes vectorielles disponibles</span>
+          <span>{filteredIcons.length} {pick(locale, { fr: 'icônes vectorielles disponibles', en: 'vector icons available', es: 'iconos vectoriales disponibles' })}</span>
           <button
             type="button"
             onClick={onClose}
             className="px-3.5 py-1.5 rounded-japandi-md border border-japandi-border text-japandi-text hover:bg-japandi-sand/30 font-semibold transition-colors"
           >
-            Fermer
+            {pick(locale, { fr: 'Fermer', en: 'Close', es: 'Cerrar' })}
           </button>
         </div>
       </div>

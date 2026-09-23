@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useSubscriptionStore } from '../../store/useSubscriptionStore';
 import { useTranslation } from '../../hooks/useTranslation';
-import { calculateMonthOccurrences, roundToCents, Subscription } from '@subflow/core';
+import { calculateMonthOccurrences, roundToCents, Subscription, LOCALE_TAG, Locale, pick } from '@subflow/core';
 import { SubscriptionLogo, Tooltip } from '@subflow/ui';
 
 import { ChevronLeft, ChevronRight, Eye, EyeOff, Receipt, Plus, Sparkles } from 'lucide-react';
@@ -37,16 +37,18 @@ export default function SchedulePage() {
   const month = currentMonthDate.getMonth();
 
   const monthLabel = useMemo(() => {
-    return currentMonthDate.toLocaleString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+    return currentMonthDate.toLocaleString(LOCALE_TAG[locale as Locale] || 'en-US', {
       month: 'long',
       year: 'numeric'
     });
   }, [currentMonthDate, locale]);
 
   const weekDayNames = useMemo(() => {
-    return locale === 'fr'
-      ? ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-      : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return pick(locale, {
+      fr: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
+      en: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      es: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+    });
   }, [locale]);
 
   const renewalsByDay = useMemo(() => {
@@ -164,13 +166,14 @@ export default function SchedulePage() {
         <div className="lg:col-span-7 rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-5 bg-japandi-surface border border-japandi-border shadow-japandi-sm">
           {/* Calendar Header: Month Name + Prev/Next Arrows */}
           <div className="flex items-center justify-between">
-            <h2 className="text-base font-extrabold capitalize text-japandi-text">
+            <h2 className="text-base font-extrabold text-japandi-text first-letter:uppercase">
               {monthLabel}
             </h2>
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                aria-label="Previous month"
+                aria-label={pick(locale, { fr: 'Mois précédent', en: 'Previous month', es: 'Mes anterior' })}
+                data-nav="prev-month"
                 onClick={handlePrevMonth}
                 className="p-1.5 rounded-japandi-md transition-colors text-japandi-muted hover:text-japandi-text hover:bg-japandi-elevated"
               >
@@ -178,7 +181,8 @@ export default function SchedulePage() {
               </button>
               <button
                 type="button"
-                aria-label="Next month"
+                aria-label={pick(locale, { fr: 'Mois suivant', en: 'Next month', es: 'Mes siguiente' })}
+                data-nav="next-month"
                 onClick={handleNextMonth}
                 className="p-1.5 rounded-japandi-md transition-colors text-japandi-muted hover:text-japandi-text hover:bg-japandi-elevated"
               >
@@ -217,7 +221,8 @@ export default function SchedulePage() {
                   role="button"
                   tabIndex={0}
                   aria-selected={isSelected}
-                  aria-label={`${dayNum} ${monthLabel}, ${subsOnDay.length} subscriptions`}
+                  aria-label={`${dayNum} ${monthLabel}, ${subsOnDay.length} ${pick(locale, { fr: 'prélèvement(s)', en: 'payment(s)', es: 'cargo(s)' })}`}
+                  data-day-count={subsOnDay.length}
                   onPointerDown={() => handlePointerDown(dayNum)}
                   onPointerUp={() => handlePointerUp(dayNum)}
                   onPointerCancel={handlePointerCancel}
@@ -274,7 +279,7 @@ export default function SchedulePage() {
               <span className="text-[11px] font-bold uppercase tracking-wider text-japandi-muted">
                 {t('schedule.selectedDay')}
               </span>
-              <h3 className="text-base font-extrabold capitalize text-japandi-text truncate">
+              <h3 className="text-base font-extrabold text-japandi-text truncate first-letter:uppercase">
                 {selectedDay} {monthLabel}
               </h3>
             </div>
@@ -284,7 +289,7 @@ export default function SchedulePage() {
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-japandi-xl text-xs font-bold shadow-xs whitespace-nowrap bg-japandi-pine text-white hover:bg-japandi-pine-light transition-all flex-shrink-0"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>{locale === 'fr' ? 'Ajouter' : t('subs.addSubscription')}</span>
+              <span>{pick(locale, { fr: 'Ajouter', en: t('subs.addSubscription'), es: 'Añadir' })}</span>
             </button>
           </div>
 

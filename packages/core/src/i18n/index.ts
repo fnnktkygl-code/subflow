@@ -1,12 +1,24 @@
 import { fr } from './locales/fr';
 import { en } from './locales/en';
+import { es } from './locales/es';
 
-export type Locale = 'fr' | 'en';
+export type Locale = 'fr' | 'en' | 'es';
 
 export const LOCALES: Record<Locale, typeof fr> = {
   fr,
-  en
+  en,
+  es
 };
+
+/** BCP 47 tag used for dates and numbers. */
+export const LOCALE_TAG: Record<Locale, string> = { fr: 'fr-FR', en: 'en-US', es: 'es-ES' };
+export const LOCALE_NAMES: Record<Locale, string> = { fr: 'Français', en: 'English', es: 'Español' };
+export const isLocale = (v: unknown): v is Locale => v === 'fr' || v === 'en' || v === 'es';
+
+/** Picks the text for a locale: { fr, en, es } (es falls back to en). */
+export function pick<T>(locale: Locale | string | undefined, texts: { fr: T; en: T; es?: T }): T {
+  return locale === 'fr' ? texts.fr : locale === 'es' ? (texts.es ?? texts.en) : texts.en;
+}
 
 export type NestedKeyOf<ObjectType extends object> = {
   [Key in keyof ObjectType & (string | number)]: ObjectType[Key] extends object
@@ -63,6 +75,7 @@ export function detectUserLanguage(): Locale {
   try {
     const lang = (navigator.language || navigator.languages?.[0] || '').toLowerCase();
     if (lang.startsWith('fr')) return 'fr';
+    if (lang.startsWith('es')) return 'es';
     return 'en';
   } catch (_) {
     return 'fr';
@@ -93,7 +106,7 @@ export function formatCurrency(
   let symbol = '€';
   let code = (currencyCodeOrSymbol || 'EUR').toUpperCase();
 
-  if (symbolOrLocale === 'fr' || symbolOrLocale === 'en') {
+  if (isLocale(symbolOrLocale)) {
     locale = symbolOrLocale;
   } else if (symbolOrLocale) {
     symbol = symbolOrLocale;
@@ -122,15 +135,15 @@ export function formatCurrency(
     code = 'JPY';
   }
 
-  const formattedNum = safeAmount.toLocaleString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+  const formattedNum = safeAmount.toLocaleString(LOCALE_TAG[locale] || 'fr-FR', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });
 
-  if (locale === 'fr') {
+  if (locale === 'fr' || locale === 'es') {
     return `${formattedNum} ${symbol}`;
   }
   return `${symbol}${formattedNum}`;
 }
 
-export { fr, en };
+export { fr, en, es };

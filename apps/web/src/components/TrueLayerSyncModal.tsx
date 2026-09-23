@@ -13,8 +13,7 @@ import {
 } from 'lucide-react';
 import {
   POPULAR_FRENCH_BANKS,
-  TrueLayerBankProvider
-} from '@subflow/core';
+  TrueLayerBankProvider, pick } from '@subflow/core';
 import { BankLogo } from './BankLogo';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useTranslation } from '../hooks/useTranslation';
@@ -38,7 +37,7 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
   const handleConnectBankOAuth = async (bank: TrueLayerBankProvider) => {
     setConnectingBankId(bank.id);
     let authUrl: string;
-    try { authUrl = await beginBankOAuth(bank.id); } catch { setConnectingBankId(null); setConnectionError("Connexion indisponible : autorisez le stockage de session puis réessayez."); return; }
+    try { authUrl = await beginBankOAuth(bank.id); } catch { setConnectingBankId(null); setConnectionError(pick(locale, { fr: 'Connexion indisponible : autorisez le stockage de session puis réessayez.', en: 'Connection unavailable: allow session storage, then try again.', es: 'Conexión no disponible: permite el almacenamiento de sesión e inténtalo de nuevo.' })); return; }
     if (typeof window !== 'undefined') {
       window.location.href = authUrl;
     }
@@ -56,7 +55,7 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
       />
 
       {/* Modal Card */}
-      <div role="dialog" aria-modal="true" aria-label="Connexion bancaire" className="relative w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+      <div role="dialog" aria-modal="true" aria-label={pick(locale, { fr: 'Connexion bancaire', en: 'Bank connection', es: 'Conexión bancaria' })} className="relative w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-japandi-border bg-japandi-sand/20">
@@ -66,11 +65,11 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
             </div>
             <div>
               <h2 className="text-base font-bold text-japandi-text">
-                {locale === 'fr' ? 'Connexion Bancaire Live (DSP2)' : 'Live Open Banking (PSD2)'}
+                {pick(locale, { fr: 'Connexion Bancaire Live (DSP2)', en: 'Live Open Banking (PSD2)', es: 'Open Banking en directo (PSD2)' })}
               </h2>
               <p className="text-[11px] text-japandi-muted flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-japandi-pine" />
-                {locale === 'fr' ? 'TrueLayer Live • Historique 90 jours' : 'TrueLayer Live • 90-Day Analysis'}
+                {pick(locale, { fr: 'TrueLayer Live • Historique 90 jours', en: 'TrueLayer Live • 90-Day Analysis', es: 'TrueLayer en directo • Análisis de 90 días' })}
               </p>
             </div>
           </div>
@@ -78,7 +77,7 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer la modal"
+            aria-label={pick(locale, { fr: 'Fermer', en: 'Close', es: 'Cerrar' })}
             className="p-2 rounded-japandi-md text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/60 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -118,7 +117,7 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-japandi-muted uppercase tracking-wider">
-                {locale === 'fr' ? 'Autres banques françaises' : 'Other French Banks'}
+                {pick(locale, { fr: 'Autres banques françaises', en: 'Other French Banks', es: 'Otros bancos franceses' })}
               </label>
               <span className="text-[10px] font-semibold text-japandi-pine bg-japandi-pine/10 px-2 py-0.5 rounded-full">
                 DSP2 Live
@@ -172,7 +171,7 @@ export const TrueLayerSyncModal: React.FC<TrueLayerSyncModalProps> = ({ isOpen, 
             onClick={onClose}
             className="px-4 py-2 rounded-japandi-lg border border-japandi-border text-japandi-muted hover:text-japandi-text text-xs font-semibold transition-colors"
           >
-            {locale === 'fr' ? 'Fermer' : 'Close'}
+            {pick(locale, { fr: 'Fermer', en: 'Close', es: 'Cerrar' })}
           </button>
         </div>
       </div>

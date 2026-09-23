@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSubscriptionStore } from '../../store/useSubscriptionStore';
 import { useTranslation } from '../../hooks/useTranslation';
 
-import { ThemeMode, Locale } from '@subflow/core';
+import { ThemeMode, Locale, pick } from '@subflow/core';
 
 import { StarterPackModal } from '../../components/StarterPackModal';
 import { BackupManagerModal } from '../../components/BackupManagerModal';
@@ -51,7 +51,8 @@ export default function SettingsPage() {
   const { profile, updateProfile, subscriptions } = useSubscriptionStore();
   const { t, locale, setLocale } = useTranslation();
 
-  const [userName, setUserName] = useState(profile.name || 'Richard');
+  // The store's default name ("Bienvenue") is a placeholder, not a first name.
+  const [userName, setUserName] = useState(profile.name && profile.name !== 'Bienvenue' ? profile.name : '');
   const [isNameSaved, setIsNameSaved] = useState(false);
   const [spendingGoal, setSpendingGoal] = useState((profile.spendingGoal ?? 80).toString());
   const [monthlyIncome, setMonthlyIncome] = useState((profile.monthlyIncome ?? 2500).toString());
@@ -150,7 +151,7 @@ export default function SettingsPage() {
             className="px-4 py-2.5 rounded-japandi-md text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-japandi-xs flex-shrink-0 bg-japandi-pine hover:bg-japandi-pine/90 text-white"
           >
             {isNameSaved ? <Check className="w-4 h-4" /> : null}
-            <span>{isNameSaved ? (t('settings.saveNameSuccess') || 'Enregistré !') : t('common.save')}</span>
+            <span>{isNameSaved ? t('settings.saveNameSuccess') : t('common.save')}</span>
           </button>
         </form>
       </div>
@@ -169,33 +170,26 @@ export default function SettingsPage() {
               {t('settings.languageLabel')}
             </label>
             <p className="text-[11px] text-japandi-muted">
-              Français ou English
+              Français, English, Español
             </p>
           </div>
 
-          <div className="flex rounded-japandi-xl bg-japandi-elevated border border-japandi-border p-1">
-            <button
-              type="button"
-              onClick={() => setLocale('fr')}
-              className={`px-4 py-2 rounded-japandi-md text-xs font-bold transition-all ${
-                locale === 'fr'
-                  ? 'bg-japandi-pine text-white shadow-japandi-xs'
-                  : 'text-japandi-muted hover:text-japandi-text'
-              }`}
-            >
-              🇫🇷 Français
-            </button>
-            <button
-              type="button"
-              onClick={() => setLocale('en')}
-              className={`px-4 py-2 rounded-japandi-md text-xs font-bold transition-all ${
-                locale === 'en'
-                  ? 'bg-japandi-pine text-white shadow-japandi-xs'
-                  : 'text-japandi-muted hover:text-japandi-text'
-              }`}
-            >
-              🇬🇧 English
-            </button>
+          <div className="flex rounded-japandi-xl bg-japandi-elevated border border-japandi-border p-1" role="group" aria-label={t('settings.languageLabel')}>
+            {([['fr', '🇫🇷 Français'], ['en', '🇬🇧 English'], ['es', '🇪🇸 Español']] as const).map(([code, label]) => (
+              <button
+                key={code}
+                type="button"
+                aria-pressed={locale === code}
+                onClick={() => setLocale(code)}
+                className={`px-3 sm:px-4 py-2 rounded-japandi-md text-xs font-bold transition-all ${
+                  locale === code
+                    ? 'bg-japandi-pine text-white shadow-japandi-xs'
+                    : 'text-japandi-muted hover:text-japandi-text'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -206,7 +200,7 @@ export default function SettingsPage() {
               {t('settings.currencyLabel')}
             </label>
             <p className="text-[11px] text-japandi-muted">
-              {locale === 'fr' ? 'Choisissez votre devise principale d\'affichage' : 'Choose your primary display currency'}
+              {pick(locale, { fr: 'Choisissez votre devise principale d\'affichage', en: 'Choose your primary display currency', es: 'Elige tu moneda principal' })}
             </p>
           </div>
 
@@ -344,9 +338,9 @@ export default function SettingsPage() {
               </div>
               <div>
                 <h3 className="font-bold text-xs text-japandi-text">
-                  {locale === 'fr' ? 'Synchro Bancaire' : 'TrueLayer Bank Sync'}
+                  {pick(locale, { fr: 'Synchro Bancaire', en: 'TrueLayer Bank Sync', es: 'Sincronización bancaria TrueLayer' })}
                 </h3>
-                <span className="text-[10px] text-japandi-muted">DSP2 & Détection auto</span>
+                <span className="text-[10px] text-japandi-muted">{pick(locale, { fr: 'DSP2 & détection auto', en: 'PSD2 & auto-detection', es: 'PSD2 y detección automática' })}</span>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-japandi-muted group-hover:text-japandi-pine transition-colors" />
@@ -426,7 +420,7 @@ export default function SettingsPage() {
             className="self-end px-5 py-2.5 rounded-japandi-md bg-japandi-pine hover:bg-japandi-pine/90 text-white font-bold text-xs flex items-center gap-2 transition-all shadow-japandi-xs"
           >
             {isSaved ? <CheckCircle2 className="w-4 h-4" /> : null}
-            <span>{isSaved ? t('common.saved', {} as any) || 'Enregistré !' : t('common.save')}</span>
+            <span>{isSaved ? pick(locale, { fr: 'Enregistré !', en: 'Saved!', es: '¡Guardado!' }) : t('common.save')}</span>
           </button>
         </form>
       </div>
@@ -436,7 +430,7 @@ export default function SettingsPage() {
         <div className="flex items-center gap-2">
           <Shield className="w-4 h-4 text-japandi-pine" />
           <h2 className="text-sm font-bold text-japandi-text">
-            {locale === 'fr' ? 'À propos & Confidentialité' : 'About & Privacy'}
+            {pick(locale, { fr: 'À propos & Confidentialité', en: 'About & Privacy', es: 'Acerca de y privacidad' })}
           </h2>
         </div>
 
@@ -446,7 +440,7 @@ export default function SettingsPage() {
             className="py-2.5 flex items-center justify-between text-japandi-text hover:text-japandi-pine transition-colors group"
           >
             <span className="font-semibold">
-              {locale === 'fr' ? 'Politique de Confidentialité' : 'Privacy Policy'}
+              {pick(locale, { fr: 'Politique de Confidentialité', en: 'Privacy Policy', es: 'Política de privacidad' })}
             </span>
             <ChevronRight className="w-4 h-4 text-japandi-muted group-hover:translate-x-0.5 transition-transform" />
           </Link>
@@ -456,7 +450,7 @@ export default function SettingsPage() {
             className="py-2.5 flex items-center justify-between text-japandi-text hover:text-japandi-pine transition-colors group"
           >
             <span className="font-semibold">
-              {locale === 'fr' ? "Conditions Générales d'Utilisation" : 'Terms of Service'}
+              {pick(locale, { fr: "Conditions Générales d'Utilisation", en: 'Terms of Service', es: 'Condiciones de uso' })}
             </span>
             <ChevronRight className="w-4 h-4 text-japandi-muted group-hover:translate-x-0.5 transition-transform" />
           </Link>

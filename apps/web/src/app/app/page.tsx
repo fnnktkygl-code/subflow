@@ -11,8 +11,7 @@ import {
   calculateCategoryBreakdown,
   normalizeMonthlyAmount,
   SubscriptionCategory,
-  Subscription
-} from '@subflow/core';
+  Subscription, pick } from '@subflow/core';
 import { SpendingDonut, SubscriptionLogo, Tooltip } from '@subflow/ui';
 
 import { CategoryIcon } from '../../components/CategoryIcon';
@@ -123,7 +122,7 @@ export default function HomePage() {
             <div className="flex items-center gap-2">
               <span className="text-lg">💰</span>
               <h3 className="font-bold text-sm text-japandi-muted">
-                {locale === 'fr' ? 'Coût mensuel équivalent' : 'Monthly equivalent cost'}
+                {pick(locale, { fr: 'Coût mensuel équivalent', en: 'Monthly equivalent cost', es: 'Coste mensual equivalente' })}
               </h3>
             </div>
             <button
@@ -156,13 +155,13 @@ export default function HomePage() {
                 : 'bg-japandi-pine/10 border-japandi-pine/20 text-japandi-pine dark:text-emerald-400 shadow-xs'
             }`}>
               <span className="text-[10px] opacity-75 font-normal uppercase tracking-wider">
-                {locale === 'fr' ? 'Soit' : 'Equiv.'}
+                {pick(locale, { fr: 'Soit', en: 'Equiv.', es: 'Equiv.' })}
               </span>
               <span className={isAmountBlurred ? 'privacy-blur' : 'font-extrabold'}>
                 {isAmountBlurred ? '•••• €' : format(totalYearly)}
               </span>
               <span className="text-[10px] opacity-75 font-normal">
-                / {locale === 'fr' ? 'an' : 'yr'}
+                / {pick(locale, { fr: 'an', en: 'yr', es: 'año' })}
               </span>
             </span>
           </div>
@@ -198,7 +197,7 @@ export default function HomePage() {
             </div>
           )}
 
-          <p className="text-xs text-japandi-muted">{locale === 'fr' ? 'Les paiements annuels sont répartis sur 12 mois. Consultez le calendrier pour les montants réellement prévus.' : 'Annual payments are spread over 12 months. See the calendar for actual scheduled amounts.'}</p>
+          <p className="text-xs text-japandi-muted">{pick(locale, { fr: 'Les paiements annuels sont répartis sur 12 mois. Consultez le calendrier pour les montants réellement prévus.', en: 'Annual payments are spread over 12 months. See the calendar for actual scheduled amounts.', es: 'Los pagos anuales se reparten en 12 meses. Consulta el calendario para ver los importes reales previstos.' })}</p>
           {/* Unified What-If Simulator Action Trigger */}
           <div className="pt-2">
             <button
@@ -215,8 +214,9 @@ export default function HomePage() {
                 <span className="w-2 h-2 rounded-full animate-pulse bg-japandi-pine" />
                 <span>{isSelectionMode ? t('whatIf.modeActive') : t('home.whatIfTitle')}</span>
               </div>
-              <span className="text-[11px] text-japandi-muted">
-                {isSelectionMode ? t('whatIf.exitMode') : t('home.whatIfButton')} →
+              <span className="text-[11px] text-japandi-muted flex items-center gap-1">
+                <span className="hidden sm:inline">{isSelectionMode ? t('whatIf.exitMode') : t('home.whatIfButton')}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </button>
           </div>
@@ -250,9 +250,9 @@ export default function HomePage() {
                 onSelectCategory={setSelectedCategory}
                 isAmountBlurred={isAmountBlurred}
                 themeMode={profile.themeMode}
-                totalLabel={locale === 'fr' ? 'TOTAL / MOIS' : 'TOTAL / MONTH'}
-                resetLabel={locale === 'fr' ? 'Réinitialiser' : 'Reset'}
-                ofTotalLabel={locale === 'fr' ? 'du total' : 'of total'}
+                totalLabel={pick(locale, { fr: 'TOTAL / MOIS', en: 'TOTAL / MONTH', es: 'TOTAL / MES' })}
+                resetLabel={pick(locale, { fr: 'Réinitialiser', en: 'Reset', es: 'Restablecer' })}
+                ofTotalLabel={pick(locale, { fr: 'du total', en: 'of total', es: 'del total' })}
                 formatAmount={format}
               />
             </div>
@@ -312,7 +312,7 @@ export default function HomePage() {
                         {t(`categories.${selectedCategory}` as any) || selectedCategory}
                       </h4>
                       <span className="text-[10px] text-japandi-muted">
-                        {activeCategoryData.subscriptions.length} service{activeCategoryData.subscriptions.length > 1 ? 's' : ''} • {format(activeCategoryData.total)} / mois ({activeCategoryData.percentage.toFixed(0)}% du total)
+                        {activeCategoryData.subscriptions.length} service{activeCategoryData.subscriptions.length > 1 ? 's' : ''} • {format(activeCategoryData.total)} {pick(locale, { fr: '/ mois', en: '/ month', es: '/ mes' })} ({activeCategoryData.percentage.toFixed(0)}% {pick(locale, { fr: 'du total', en: 'of total', es: 'del total' })})
                       </span>
                     </div>
                   </div>
@@ -322,7 +322,7 @@ export default function HomePage() {
                     onClick={() => setSelectedCategory(null)}
                     className="px-2.5 py-1 rounded-japandi-md bg-japandi-elevated hover:bg-japandi-sand/60 border border-japandi-border text-[11px] font-bold text-japandi-muted hover:text-japandi-text transition-all"
                   >
-                    ✕ {locale === 'fr' ? 'Réinitialiser' : 'Show all'}
+                    ✕ {pick(locale, { fr: 'Réinitialiser', en: 'Show all', es: 'Ver todo' })}
                   </button>
                 </div>
 
@@ -358,10 +358,10 @@ export default function HomePage() {
 
                         <div className="flex flex-col items-end flex-shrink-0">
                           <span className={`font-extrabold text-xs text-japandi-text ${isAmountBlurred ? 'privacy-blur' : ''}`}>
-                            {format(monthlyEquivalent)} / mois
+                            {format(monthlyEquivalent)} {pick(locale, { fr: '/ mois', en: '/ month', es: '/ mes' })}
                           </span>
                           <span className="text-[10px] font-semibold text-japandi-pine">
-                            {subPercentage.toFixed(0)}% du pôle
+                            {subPercentage.toFixed(0)}% {pick(locale, { fr: 'du pôle', en: 'of the category', es: 'de la categoría' })}
                           </span>
                         </div>
                       </div>
@@ -395,8 +395,8 @@ export default function HomePage() {
 
         {calculateUpcomingOccurrences(subscriptions).length === 0 ? (
           <div className="py-8 text-center text-xs text-japandi-muted flex flex-col items-center gap-2">
-            <span>{subscriptions.length ? 'Aucune échéance dans les 60 prochains jours.' : t('home.emptyStateSubtitle')}</span>
-            {!subscriptions.length && <button onClick={() => setIsAddModalOpen(true)} className="mt-2 px-5 py-3 bg-japandi-pine text-white rounded-xl font-semibold">Ajouter mon premier prélèvement</button>}
+            <span>{subscriptions.length ? pick(locale, { fr: 'Aucune échéance dans les 60 prochains jours.', en: 'No payments in the next 60 days.', es: 'Ningún cargo en los próximos 60 días.' }) : t('home.emptyStateSubtitle')}</span>
+            {!subscriptions.length && <button onClick={() => setIsAddModalOpen(true)} className="mt-2 px-5 py-3 bg-japandi-pine text-white rounded-xl font-semibold">{pick(locale, { fr: 'Ajouter mon premier prélèvement', en: 'Add my first payment', es: 'Añadir mi primer cargo' })}</button>}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

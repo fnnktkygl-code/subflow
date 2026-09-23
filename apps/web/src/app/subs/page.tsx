@@ -6,9 +6,8 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { useEscapeKey } from '../../hooks/useEscapeKey';
 import { SubscriptionLogo, Tooltip } from '@subflow/ui';
 
-import { Subscription, calculateUpcomingOccurrences, calculateTotalMonthlyCost, calculateTotalYearlyCost } from '@subflow/core';
+import { Subscription, calculateUpcomingOccurrences, calculateTotalMonthlyCost, calculateTotalYearlyCost, pick } from '@subflow/core';
 import {
-  ClipboardList,
   Calendar,
   TrendingUp,
   Bell,
@@ -21,6 +20,7 @@ import {
   Plus,
   AlertCircle
 } from 'lucide-react';
+import { UkoMascot } from '../../components/uko/UkoMascot';
 import { AddSubscriptionModal } from '../../components/AddSubscriptionModal';
 
 interface GroupedOccurrence {
@@ -76,7 +76,7 @@ export default function SubsPage() {
       }
     }
     for (const subscription of subscriptions.filter(sub => sub.status === 'paused')) {
-      const label = locale === 'fr' ? 'En pause' : 'Paused';
+      const label = pick(locale, { fr: 'En pause', en: 'Paused', es: 'En pausa' });
       (futureByMonth[label] ||= []).push({ subscription, dateStr: subscription.startDate, formattedDate: label, isToday: false });
     }
 
@@ -147,7 +147,7 @@ export default function SubsPage() {
       >
         <div className="flex items-center justify-between">
           <span className="text-xs uppercase tracking-wider text-japandi-muted font-bold">
-            {locale === 'fr' ? 'Coût mensuel équivalent' : 'Monthly equivalent cost'}
+            {pick(locale, { fr: 'Coût mensuel équivalent', en: 'Monthly equivalent cost', es: 'Coste mensual equivalente' })}
           </span>
           <span className="text-xs font-bold px-2.5 py-1 rounded-full text-japandi-pine bg-japandi-pine/10">
             {t('home.activeCount', { count: remainingSubsCount })}
@@ -169,13 +169,13 @@ export default function SubsPage() {
               : 'bg-japandi-pine/10 border-japandi-pine/20 text-japandi-pine dark:text-emerald-400 shadow-xs'
           }`}>
             <span className="text-[10px] opacity-75 font-normal uppercase tracking-wider">
-              {locale === 'fr' ? 'Soit' : 'Equiv.'}
+              {pick(locale, { fr: 'Soit', en: 'Equiv.', es: 'Equiv.' })}
             </span>
             <span className={isAmountBlurred ? 'privacy-blur' : 'font-extrabold'}>
               {isAmountBlurred ? '•••• €' : format(totalYearly)}
             </span>
             <span className="text-[10px] opacity-75 font-normal">
-              / {locale === 'fr' ? 'an' : 'yr'}
+              / {pick(locale, { fr: 'an', en: 'yr', es: 'año' })}
             </span>
           </span>
         </div>
@@ -187,8 +187,8 @@ export default function SubsPage() {
 
       {/* 3. Empty State */}
       {subscriptions.length === 0 && (
-        <div className="rounded-japandi-2xl bg-japandi-surface border border-japandi-border p-12 text-center flex flex-col items-center gap-4">
-          <ClipboardList className="w-10 h-10 text-japandi-muted" />
+        <div className="rounded-japandi-2xl bg-japandi-surface border border-japandi-border px-6 py-10 sm:p-12 text-center flex flex-col items-center gap-4">
+          <UkoMascot state="empty" className="w-24 h-36 -mb-2" label={pick(locale, { fr: 'Uko : aucun abonnement pour l’instant', en: 'Uko: no subscriptions yet', es: 'Uko: aún no hay suscripciones' })} />
           <div>
             <h3 className="font-bold text-base text-japandi-text">{t('home.emptyStateTitle')}</h3>
             <p className="text-xs text-japandi-muted max-w-sm mt-1">{t('home.emptyStateSubtitle')}</p>
@@ -244,7 +244,7 @@ export default function SubsPage() {
               <div className="flex items-center gap-2 px-1">
                 <History className="w-4 h-4 text-slate-400" />
                 <h3 className="text-xs font-extrabold uppercase tracking-wider text-slate-400">
-                  Prélèvements passés ce mois-ci
+                  {pick(locale, { fr: 'Prélèvements passés ce mois-ci', en: 'Payments already made this month', es: 'Cargos ya realizados este mes' })}
                 </h3>
               </div>
 

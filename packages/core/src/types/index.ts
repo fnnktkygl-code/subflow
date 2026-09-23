@@ -40,7 +40,7 @@ export interface UserProfile {
   monthlyIncome: number;
   isIncomeConfigured: boolean;
   themeMode: ThemeMode;
-  language?: 'fr' | 'en';
+  language?: 'fr' | 'en' | 'es';
 }
 
 export interface PresetCatalogItem {

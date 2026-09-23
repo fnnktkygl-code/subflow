@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
-import { getUpcomingRenewalsForNotification } from '@subflow/core';
+import { getUpcomingRenewalsForNotification, pick } from '@subflow/core';
 import { Bell, Check, BellRing, ShieldCheck, Sparkles, Send } from 'lucide-react';
 
 export const NotificationSettingsCard: React.FC = () => {
   const { subscriptions } = useSubscriptionStore();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const [permission, setPermission] = useState<NotificationPermission>('default');
   const [leadTime, setLeadTime] = useState<number>(2); // 2 days = 48h
   const [testSent, setTestSent] = useState(false);
@@ -31,7 +31,7 @@ export const NotificationSettingsCard: React.FC = () => {
     const firstSub = subscriptions[0];
     const item = upcoming[0] || {
       title: firstSub ? `🔔 SubFlow : ${firstSub.name}` : '🔔 SubFlow Notifications',
-      body: firstSub ? `Votre abonnement ${firstSub.name} arrive bientôt à échéance.` : 'Ceci est une notification de test.'
+      body: firstSub ? pick(locale, { fr: `Votre abonnement ${firstSub.name} arrive bientôt à échéance.`, en: `Your ${firstSub.name} subscription renews soon.`, es: `Tu suscripción ${firstSub.name} se renueva pronto.` }) : pick(locale, { fr: 'Ceci est une notification de test.', en: 'This is a test notification.', es: 'Esta es una notificación de prueba.' })
     };
 
     if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
@@ -58,7 +58,7 @@ export const NotificationSettingsCard: React.FC = () => {
               {t('notifications.title')}
             </h3>
             <p className="text-[11px] text-japandi-muted">
-              Test manuel uniquement : les rappels automatiques en arrière-plan ne sont pas disponibles sur le web.
+              {pick(locale, { fr: 'Test manuel uniquement : les rappels automatiques en arrière-plan ne sont pas disponibles sur le web.', en: 'Manual test only: automatic background reminders are not available on the web.', es: 'Solo prueba manual: los recordatorios automáticos en segundo plano no están disponibles en la web.' })}
             </p>
           </div>
         </div>
@@ -66,7 +66,7 @@ export const NotificationSettingsCard: React.FC = () => {
         {permission === 'granted' ? (
           <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-japandi-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
             <Check className="w-3 h-3" />
-            <span>Autorisation accordée</span>
+            <span>{pick(locale, { fr: 'Autorisation accordée', en: 'Permission granted', es: 'Permiso concedido' })}</span>
           </span>
         ) : (
           <button
@@ -113,7 +113,7 @@ export const NotificationSettingsCard: React.FC = () => {
 
       <div className="p-3 rounded-japandi-lg bg-japandi-sand/40 border border-japandi-border flex items-center gap-2 text-[11px] text-japandi-muted">
         <ShieldCheck className="w-4 h-4 text-japandi-pine flex-shrink-0" />
-        <span>Test manuel uniquement : les rappels automatiques en arrière-plan ne sont pas disponibles sur le web.</span>
+        <span>{pick(locale, { fr: 'Test manuel uniquement : les rappels automatiques en arrière-plan ne sont pas disponibles sur le web.', en: 'Manual test only: automatic background reminders are not available on the web.', es: 'Solo prueba manual: los recordatorios automáticos en segundo plano no están disponibles en la web.' })}</span>
       </div>
     </div>
   );

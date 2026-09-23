@@ -1,4 +1,5 @@
 'use client';
+import { pick } from '@subflow/core';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
@@ -15,6 +16,7 @@ import {
   Sparkles,
   AlertCircle
 } from 'lucide-react';
+import { UkoMascot } from './uko/UkoMascot';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { loginWithGoogleAndSync } from '../services/googleDriveSync';
@@ -34,9 +36,7 @@ export const OnboardingWelcomeScreen: React.FC = () => {
     } catch (err: any) {
       setErrorMessage(
         err.message ||
-        (locale === 'fr'
-          ? 'Impossible de se connecter à Google. Vous pouvez réessayer ou continuer en mode local.'
-          : 'Failed to connect to Google. You can retry or continue in local mode.')
+        (pick(locale, { fr: 'Impossible de se connecter à Google. Vous pouvez réessayer ou continuer en mode local.', en: 'Failed to connect to Google. You can retry or continue in local mode.', es: 'No se pudo conectar con Google. Puedes reintentarlo o continuar en modo local.' }))
       );
     } finally {
       setIsLoading(false);
@@ -53,25 +53,13 @@ export const OnboardingWelcomeScreen: React.FC = () => {
         
         {/* Brand Header */}
         <div className="text-center flex flex-col items-center gap-2 pt-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-japandi-2xl bg-japandi-pine text-white shadow-japandi-md mb-1 ring-4 ring-japandi-pine/10">
-            <svg className="w-8 h-8" viewBox="0 0 512 512" fill="none">
-              <path
-                d="M 100 256 C 180 176, 220 176, 256 256 C 292 336, 332 336, 412 256"
-                stroke="#F5EFE6"
-                strokeWidth="52"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
+          <UkoMascot state="welcome" oneShot="loop" className="w-28 h-40 -mb-2" label={pick(locale, { fr: 'Uko vous souhaite la bienvenue', en: 'Uko says hello', es: 'Uko te saluda' })} />
 
           <h1 className="text-2xl sm:text-3xl font-extrabold text-japandi-text tracking-tight">
             SubFlow
           </h1>
           <p className="text-sm text-japandi-muted max-w-md mx-auto leading-relaxed">
-            {locale === 'fr'
-              ? 'Gérez vos abonnements et maîtrisez vos prélèvements récurrents en toute sérénité.'
-              : 'Track and master your subscriptions and recurring expenses effortlessly.'}
+            {pick(locale, { fr: 'Gérez vos abonnements et maîtrisez vos prélèvements récurrents en toute sérénité.', en: 'Track and master your subscriptions and recurring expenses effortlessly.', es: 'Sigue y controla tus suscripciones y gastos recurrentes sin esfuerzo.' })}
           </p>
         </div>
 
@@ -100,7 +88,7 @@ export const OnboardingWelcomeScreen: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm sm:text-base font-extrabold text-japandi-text">
-                    {locale === 'fr' ? 'Sauvegarde Cloud Google Drive' : 'Google Drive Cloud Sync'}
+                    {pick(locale, { fr: 'Sauvegarde Cloud Google Drive', en: 'Google Drive Cloud Sync', es: 'Sincronización con Google Drive' })}
                   </h3>
                   <span className="text-[11px] text-japandi-muted flex items-center gap-1 font-medium">
                     <Smartphone className="w-3 h-3 text-japandi-pine" />
@@ -113,39 +101,31 @@ export const OnboardingWelcomeScreen: React.FC = () => {
               </div>
 
               <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full bg-japandi-pine text-white shadow-xs">
-                {locale === 'fr' ? 'Recommandé' : 'Recommended'}
+                {pick(locale, { fr: 'Recommandé', en: 'Recommended', es: 'Recomendado' })}
               </span>
             </div>
 
             <p className="text-xs text-japandi-muted leading-relaxed">
-              {locale === 'fr'
-                ? 'Sauvegardez vos données en temps réel sur votre Google Drive privé pour les retrouver instantanément sur tous vos appareils.'
-                : 'Automatically back up subscriptions in real time to your private Google Drive across all devices.'}
+              {pick(locale, { fr: 'Sauvegardez vos données en temps réel sur votre Google Drive privé pour les retrouver instantanément sur tous vos appareils.', en: 'Automatically back up subscriptions in real time to your private Google Drive across all devices.', es: 'Guarda automáticamente tus suscripciones en tu Google Drive privado, en todos tus dispositivos.' })}
             </p>
 
             <div className="flex flex-col gap-2 text-xs text-japandi-text bg-japandi-sand/30 p-3.5 rounded-japandi-xl border border-japandi-border">
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-japandi-pine flex-shrink-0 mt-0.5" />
                 <span>
-                  {locale === 'fr'
-                    ? 'Synchronisation temps réel entre votre téléphone et votre ordinateur'
-                    : 'Real-time multi-device sync'}
+                  {pick(locale, { fr: 'Synchronisation temps réel entre votre téléphone et votre ordinateur', en: 'Real-time multi-device sync', es: 'Sincronización en tiempo real entre dispositivos' })}
                 </span>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-japandi-pine flex-shrink-0 mt-0.5" />
                 <span>
-                  {locale === 'fr'
-                    ? 'Restauration automatique si vous changez ou réinitialisez votre appareil'
-                    : 'Instant restore on any new device or reinstall'}
+                  {pick(locale, { fr: 'Restauration automatique si vous changez ou réinitialisez votre appareil', en: 'Instant restore on any new device or reinstall', es: 'Restauración inmediata en un dispositivo nuevo o tras reinstalar' })}
                 </span>
               </div>
               <div className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-japandi-pine flex-shrink-0 mt-0.5" />
                 <span>
-                  {locale === 'fr'
-                    ? '100% privé : vos données vous appartiennent dans votre Drive sécurisé'
-                    : '100% private: stored in your own secure Google Drive'}
+                  {pick(locale, { fr: '100% privé : vos données vous appartiennent dans votre Drive sécurisé', en: '100% private: stored in your own secure Google Drive', es: 'Privado: guardado en tu propio Google Drive' })}
                 </span>
               </div>
             </div>
@@ -178,8 +158,8 @@ export const OnboardingWelcomeScreen: React.FC = () => {
               </svg>
               <span>
                 {isLoading
-                  ? (locale === 'fr' ? 'Connexion à Google en cours...' : 'Connecting...')
-                  : (locale === 'fr' ? 'Continuer avec Google' : 'Continue with Google')}
+                  ? (pick(locale, { fr: 'Connexion à Google en cours...', en: 'Connecting...', es: 'Conectando...' }))
+                  : (pick(locale, { fr: 'Continuer avec Google', en: 'Continue with Google', es: 'Continuar con Google' }))}
               </span>
             </button>
           </div>
@@ -192,10 +172,10 @@ export const OnboardingWelcomeScreen: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-xs sm:text-sm font-bold text-japandi-text">
-                  {locale === 'fr' ? 'Mode Local Uniquement (Hors-ligne)' : 'Local Only Mode (Offline)'}
+                  {pick(locale, { fr: 'Mode Local Uniquement (Hors-ligne)', en: 'Local Only Mode (Offline)', es: 'Modo local (sin conexión)' })}
                 </h3>
                 <p className="text-[11px] text-japandi-muted">
-                  {locale === 'fr' ? 'Aucune connexion requise' : 'No account required'}
+                  {pick(locale, { fr: 'Aucune connexion requise', en: 'No account required', es: 'Sin cuenta' })}
                 </p>
               </div>
             </div>
@@ -204,9 +184,7 @@ export const OnboardingWelcomeScreen: React.FC = () => {
               <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
               <div className="leading-relaxed">
                 <span>
-                  {locale === 'fr'
-                    ? 'Vos abonnements sont stockés uniquement sur cet appareil. Ils ne seront pas synchronisés et seront perdus si vous videz le cache de votre navigateur.'
-                    : 'Data is stored exclusively on this device. You will not be able to sync across devices or recover data if you clear browser storage.'}
+                  {pick(locale, { fr: 'Vos abonnements sont stockés uniquement sur cet appareil. Ils ne seront pas synchronisés et seront perdus si vous videz le cache de votre navigateur.', en: 'Data is stored exclusively on this device. You will not be able to sync across devices or recover data if you clear browser storage.', es: 'Los datos se guardan solo en este dispositivo. No podrás sincronizar entre dispositivos ni recuperarlos si borras los datos del navegador.' })}
                 </span>
               </div>
             </div>
@@ -217,7 +195,7 @@ export const OnboardingWelcomeScreen: React.FC = () => {
               onClick={handleLocalMode}
               className="w-full py-2.5 px-4 rounded-japandi-xl border border-japandi-border bg-japandi-elevated hover:bg-japandi-sand/60 hover:border-japandi-pine text-japandi-text text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <span>{locale === 'fr' ? 'Utiliser en mode local (sans compte)' : 'Continue in Local Mode'}</span>
+              <span>{pick(locale, { fr: 'Utiliser en mode local (sans compte)', en: 'Continue in Local Mode', es: 'Continuar en modo local' })}</span>
               <ArrowRight className="w-3.5 h-3.5 text-japandi-muted" />
             </button>
           </div>
@@ -229,13 +207,23 @@ export const OnboardingWelcomeScreen: React.FC = () => {
           <p className="text-[11px] text-japandi-muted flex items-center justify-center gap-1.5 font-medium">
             <ShieldCheck className="w-3.5 h-3.5 text-japandi-pine" />
             <span>
-              {locale === 'fr'
-                ? 'Zéro publicité • Vos données vous appartiennent • Modifiable à tout moment'
-                : 'Zero ads • Your data stays yours • Switch anytime in Settings'}
+              {pick(locale, { fr: 'Zéro publicité • Vos données vous appartiennent • Modifiable à tout moment', en: 'Zero ads • Your data stays yours • Switch anytime in Settings', es: 'Sin anuncios • Tus datos son tuyos • Puedes cambiar cuando quieras en Ajustes' })}
             </span>
           </p>
           <p className="text-[11px] text-japandi-muted">
-            {locale === 'fr' ? (
+            {locale === 'es' ? (
+              <>
+                Al continuar, aceptas nuestras{' '}
+                <Link href="/terms" className="text-japandi-pine hover:underline font-semibold">
+                  Condiciones de uso
+                </Link>{' '}
+                y nuestra{' '}
+                <Link href="/privacy" className="text-japandi-pine hover:underline font-semibold">
+                  Política de privacidad
+                </Link>
+                .
+              </>
+            ) : locale === 'fr' ? (
               <>
                 En continuant, vous acceptez nos{' '}
                 <Link href="/terms" className="text-japandi-pine hover:underline font-semibold">

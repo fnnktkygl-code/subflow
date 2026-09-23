@@ -18,8 +18,7 @@ import {
   detectSubscriptionsFromTransactions,
   formatCurrency,
   Subscription,
-  TrueLayerTransaction
-} from '@subflow/core';
+  TrueLayerTransaction, pick } from '@subflow/core';
 import { consumeBankOAuth } from '../../services/bankOAuth';
 import { useSubscriptionStore } from '../../store/useSubscriptionStore';
 import { SubscriptionLogo } from '@subflow/ui';
@@ -53,7 +52,7 @@ function TrueLayerCallbackContent() {
     if (error) {
       hasProcessedRef.current = true;
       setStatus('error');
-      setErrorMessage(errorDescription || error || 'Autorisation TrueLayer annulée ou refusée.');
+      setErrorMessage(errorDescription || error || pick(locale, { fr: 'Autorisation TrueLayer annulée ou refusée.', en: 'TrueLayer authorisation cancelled or refused.', es: 'Autorización de TrueLayer cancelada o rechazada.' }));
       return;
     }
 
@@ -98,7 +97,7 @@ function TrueLayerCallbackContent() {
       const tokenData = await tokenRes.json().catch(() => ({}));
 
       if (!tokenRes.ok || !tokenData || !tokenData.access_token) {
-        const errDetail = tokenData?.error_description || tokenData?.error || 'Échec de l\'échange de token avec votre banque.';
+        const errDetail = tokenData?.error_description || tokenData?.error || pick(locale, { fr: 'Échec de l\'échange de token avec votre banque.', en: 'The token exchange with your bank failed.', es: 'Falló el intercambio de token con tu banco.' });
         throw new Error(errDetail);
       }
 
@@ -111,7 +110,7 @@ function TrueLayerCallbackContent() {
       });
       const accountsData = await accountsRes.json().catch(() => ({ results: [] }));
 
-      if (!accountsRes.ok) throw new Error('Impossible de lire les comptes bancaires. Réessayez.');
+      if (!accountsRes.ok) throw new Error(pick(locale, { fr: 'Impossible de lire les comptes bancaires. Réessayez.', en: 'Could not read the bank accounts. Try again.', es: 'No se pudieron leer las cuentas. Inténtalo de nuevo.' }));
       const accountsList = Array.isArray(accountsData?.results) ? accountsData.results : [];
       setAccountsCount(accountsList.length);
 
@@ -130,7 +129,7 @@ function TrueLayerCallbackContent() {
             `/api/truelayer/transactions?accountId=${encodeURIComponent(acc.account_id)}&from=${encodeURIComponent(fromDate)}&to=${encodeURIComponent(toDate)}`,
             { headers: { Authorization: `Bearer ${accessToken}` } }
           );
-          if (!txRes.ok) throw new Error('Analyse bancaire incomplète. Aucun abonnement importé ; réessayez.');
+          if (!txRes.ok) throw new Error(pick(locale, { fr: 'Analyse bancaire incomplète. Aucun abonnement importé ; réessayez.', en: 'Bank analysis incomplete. Nothing was imported; try again.', es: 'Análisis bancario incompleto. No se importó nada; inténtalo de nuevo.' }));
           const txData = await txRes.json().catch(() => ({ results: [] }));
 
           if (Array.isArray(txData?.results)) {
@@ -224,11 +223,11 @@ function TrueLayerCallbackContent() {
             </div>
             <div>
               <h1 className="text-base font-bold text-japandi-text">
-                {locale === 'fr' ? 'Synchronisation TrueLayer Live' : 'TrueLayer Live Bank Sync'}
+                {pick(locale, { fr: 'Synchronisation TrueLayer Live', en: 'TrueLayer Live Bank Sync', es: 'Sincronización bancaria TrueLayer en directo' })}
               </h1>
               <p className="text-[11px] text-japandi-muted flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-japandi-pine" />
-                {locale === 'fr' ? 'DSP2 Sécurisé • Analyse 90 jours' : 'PSD2 Encrypted • 90-Day Analysis'}
+                {pick(locale, { fr: 'DSP2 Sécurisé • Analyse 90 jours', en: 'PSD2 Encrypted • 90-Day Analysis', es: 'Cifrado PSD2 • Análisis de 90 días' })}
               </p>
             </div>
           </div>
@@ -245,13 +244,11 @@ function TrueLayerCallbackContent() {
               <div>
                 <h2 className="text-sm font-bold text-japandi-text">
                   {status === 'exchanging'
-                    ? (locale === 'fr' ? 'Validation de l\'autorisation bancaire...' : 'Validating authorization...')
-                    : (locale === 'fr' ? `Analyse des relevés de ${bankName}...` : `Analyzing statements from ${bankName}...`)}
+                    ? (pick(locale, { fr: 'Validation de l\'autorisation bancaire...', en: 'Validating authorization...', es: 'Validando la autorización...' }))
+                    : (pick(locale, { fr: `Analyse des relevés de ${bankName}...`, en: `Analyzing statements from ${bankName}...`, es: `Analizando los movimientos de ${bankName}...` }))}
                 </h2>
                 <p className="text-xs text-japandi-muted mt-1 max-w-xs mx-auto">
-                  {locale === 'fr'
-                    ? 'Détection automatique des prélèvements et abonnements récurrents sur vos 90 derniers jours.'
-                    : 'Discovering recurring debits and subscriptions from the last 90 days.'}
+                  {pick(locale, { fr: 'Détection automatique des prélèvements et abonnements récurrents sur vos 90 derniers jours.', en: 'Discovering recurring debits and subscriptions from the last 90 days.', es: 'Buscando cargos recurrentes y suscripciones de los últimos 90 días.' })}
                 </p>
               </div>
             </div>
@@ -265,7 +262,7 @@ function TrueLayerCallbackContent() {
               </div>
               <div>
                 <h2 className="text-sm font-bold text-japandi-text">
-                  {locale === 'fr' ? 'Échec de la synchronisation' : 'Sync Failed'}
+                  {pick(locale, { fr: 'Échec de la synchronisation', en: 'Sync Failed', es: 'Error de sincronización' })}
                 </h2>
                 <p className="text-xs text-japandi-muted mt-1 max-w-xs mx-auto">
                   {errorMessage}
@@ -277,7 +274,7 @@ function TrueLayerCallbackContent() {
                 className="mt-2 px-5 py-2.5 rounded-japandi-md bg-japandi-pine text-white text-xs font-bold hover:bg-japandi-pine/90 transition-all flex items-center gap-2 shadow-japandi-xs"
               >
                 <Home className="w-4 h-4" />
-                <span>{locale === 'fr' ? 'Retour au tableau de bord' : 'Return to Dashboard'}</span>
+                <span>{pick(locale, { fr: 'Retour au tableau de bord', en: 'Return to Dashboard', es: 'Volver al panel' })}</span>
               </button>
             </div>
           )}
@@ -290,10 +287,10 @@ function TrueLayerCallbackContent() {
                   <Sparkles className="w-4 h-4 text-japandi-pine" />
                   <div>
                     <span className="text-xs font-bold text-japandi-pine block">
-                      {detectedSubs.length} abonnements détectés ({bankName})
+                      {detectedSubs.length} {pick(locale, { fr: 'abonnements détectés', en: 'subscriptions found', es: 'suscripciones detectadas' })} ({bankName})
                     </span>
                     <span className="text-[11px] text-japandi-muted">
-                      Total sélectionné : {formatCurrency(totalMonthlyDetected, profile.currency || 'EUR', locale)} / mois
+                      {pick(locale, { fr: 'Total sélectionné :', en: 'Selected total:', es: 'Total seleccionado:' })} {formatCurrency(totalMonthlyDetected, profile.currency || 'EUR', locale)} {pick(locale, { fr: '/ mois', en: '/ month', es: '/ mes' })}
                     </span>
                   </div>
                 </div>
@@ -303,13 +300,13 @@ function TrueLayerCallbackContent() {
                   onClick={toggleSelectAll}
                   className="text-xs font-bold text-japandi-pine hover:underline"
                 >
-                  {selectedIds.size === detectedSubs.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                  {selectedIds.size === detectedSubs.length ? pick(locale, { fr: 'Tout désélectionner', en: 'Deselect all', es: 'Deseleccionar todo' }) : pick(locale, { fr: 'Tout sélectionner', en: 'Select all', es: 'Seleccionar todo' })}
                 </button>
               </div>
 
               {detectedSubs.length === 0 ? (
                 <div className="py-8 text-center text-xs text-japandi-muted">
-                  Aucun prélèvement récurrent détecté sur les 90 derniers jours.
+                  {pick(locale, { fr: 'Aucun prélèvement récurrent détecté sur les 90 derniers jours.', en: 'No recurring payments found in the last 90 days.', es: 'No se detectaron cargos recurrentes en los últimos 90 días.' })}
                 </div>
               ) : (
                 <div className="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
@@ -347,7 +344,7 @@ function TrueLayerCallbackContent() {
                               {sub.name}
                             </span>
                             <span className="text-[10px] text-japandi-muted block truncate">
-                              {sub.occurrencesCount} prélèvements • Dernier : {sub.lastChargeDate}
+                              {sub.occurrencesCount} {pick(locale, { fr: 'prélèvements • Dernier :', en: 'payments • Last:', es: 'cargos • Último:' })} {sub.lastChargeDate}
                             </span>
                           </div>
                         </div>
@@ -357,7 +354,7 @@ function TrueLayerCallbackContent() {
                             {formatCurrency(sub.amount, sub.currency, locale)}
                           </span>
                           <span className="text-[10px] text-japandi-muted">
-                            / {sub.cycle === 'monthly' ? 'mois' : sub.cycle}
+                            / {sub.cycle === 'monthly' ? pick(locale, { fr: 'mois', en: 'month', es: 'mes' }) : sub.cycle}
                           </span>
                         </div>
                       </div>
@@ -372,7 +369,7 @@ function TrueLayerCallbackContent() {
                   onClick={() => router.push('/')}
                   className="px-4 py-2 rounded-japandi-md border border-japandi-border text-japandi-text text-xs font-bold hover:bg-japandi-sand/40 transition-colors"
                 >
-                  Annuler
+                  {pick(locale, { fr: 'Annuler', en: 'Cancel', es: 'Cancelar' })}
                 </button>
 
                 <button
@@ -382,7 +379,7 @@ function TrueLayerCallbackContent() {
                   className="px-5 py-2.5 rounded-japandi-md bg-japandi-pine text-white text-xs font-bold hover:bg-japandi-pine/90 disabled:opacity-50 transition-all flex items-center gap-1.5 shadow-japandi-xs"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Importer ({selectedIds.size})</span>
+                  <span>{pick(locale, { fr: 'Importer', en: 'Import', es: 'Importar' })} ({selectedIds.size})</span>
                 </button>
               </div>
             </div>
@@ -396,10 +393,10 @@ function TrueLayerCallbackContent() {
               </div>
               <div>
                 <h2 className="text-base font-bold text-japandi-text">
-                  {importedCount} abonnements importés avec succès !
+                  {importedCount} {pick(locale, { fr: 'abonnements importés avec succès !', en: 'subscriptions imported!', es: 'suscripciones importadas' })}
                 </h2>
                 <p className="text-xs text-japandi-muted mt-1 max-w-xs mx-auto">
-                  Vos abonnements issus de {bankName} sont désormais synchronisés dans SubFlow.
+                  {pick(locale, { fr: 'Vos abonnements issus de', en: 'Your subscriptions from', es: 'Tus suscripciones de' })} {bankName} {pick(locale, { fr: 'sont désormais synchronisés dans SubFlow.', en: 'are now in SubFlow.', es: 'ya están en SubFlow.' })}
                 </p>
               </div>
               <button

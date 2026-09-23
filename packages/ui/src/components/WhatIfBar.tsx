@@ -6,12 +6,26 @@ import { X, Sparkles, MinusCircle, TrendingDown, PiggyBank, CheckCircle2, AlignJ
 import { Tooltip } from './Tooltip';
 
 
+export interface WhatIfBarLabels {
+  title: string; hint: string; excluded: string; saves: string; perMonth: string; details: string;
+  collapse: string; exit: string; monthly: string; yearly: string; selectAll: string; clearAll: string;
+}
+
+const FR_LABELS: WhatIfBarLabels = {
+  title: 'Simulation', hint: 'Touchez un abonnement pour l’écarter', excluded: 'écartés', saves: 'Économie',
+  perMonth: '/mois', details: 'Détails', collapse: 'Réduire', exit: 'Quitter la simulation',
+  monthly: 'Par mois', yearly: 'Par an', selectAll: 'Tout écarter', clearAll: 'Tout remettre'
+};
+
 export interface WhatIfBarProps {
   savings: WhatIfSavings;
   currencySymbol?: string;
   onSelectAll?: () => void;
   onClearAll: () => void;
   onExit: () => void;
+  /** Replaces the sparkle tile (e.g. the Uko mascot reacting to the savings). */
+  leading?: React.ReactNode;
+  labels?: Partial<WhatIfBarLabels>;
 }
 
 export const WhatIfBar: React.FC<WhatIfBarProps> = ({
@@ -19,8 +33,11 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
   currencySymbol = '€',
   onSelectAll,
   onClearAll,
-  onExit
+  onExit,
+  leading,
+  labels
 }) => {
+  const L = { ...FR_LABELS, ...labels };
   const [isExpanded, setIsExpanded] = useState(false);
   const progressRatio = savings.totalCount > 0 ? Math.min(savings.excludedCount / savings.totalCount, 1) : 0;
 
@@ -35,16 +52,18 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
             onClick={() => setIsExpanded(true)}
             className="flex items-center gap-2.5 text-left flex-1 min-w-0 hover:opacity-80 transition-opacity"
           >
-            <div className="w-7 h-7 rounded-japandi-sm bg-japandi-sand/80 flex-shrink-0 flex items-center justify-center text-japandi-text shadow-2xs">
-              <Sparkles className="w-4 h-4 text-japandi-pine" />
-            </div>
+            {leading ?? (
+              <div className="w-7 h-7 rounded-japandi-sm bg-japandi-sand/80 flex-shrink-0 flex items-center justify-center text-japandi-text shadow-2xs">
+                <Sparkles className="w-4 h-4 text-japandi-pine" />
+              </div>
+            )}
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 font-bold text-xs text-japandi-text truncate">
-                <span>{savings.excludedCount}/{savings.totalCount} excluded</span>
+                <span>{savings.excludedCount}/{savings.totalCount} {L.excluded}</span>
                 <span className="text-japandi-muted">•</span>
-                <span className="text-japandi-terracotta">Saves {currencySymbol}{savings.monthlySavings.toFixed(0)}/mo</span>
+                <span className="text-japandi-terracotta">{L.saves} {savings.monthlySavings.toFixed(0)} {currencySymbol}{L.perMonth}</span>
               </div>
-              <p className="text-[10px] text-japandi-muted font-medium">Tap cards to exclude</p>
+              <p className="text-[10px] text-japandi-muted font-medium truncate">{L.hint}</p>
             </div>
           </button>
 
@@ -55,16 +74,16 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
               onClick={() => setIsExpanded(true)}
               className="flex items-center gap-1 px-2.5 py-1.5 rounded-japandi-md bg-japandi-elevated border border-japandi-border text-[11px] font-bold text-japandi-text hover:bg-japandi-sand transition-colors"
             >
-              <span>Details</span>
+              <span>{L.details}</span>
               <ChevronUp className="w-3.5 h-3.5 text-japandi-muted" />
             </button>
 
-            <Tooltip content="Quitter le mode Simulation" side="top">
+            <Tooltip content={L.exit} side="top">
               <button
                 type="button"
                 onClick={onExit}
                 className="p-1.5 rounded-japandi-md text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand transition-colors"
-                aria-label="Exit What If Mode"
+                aria-label={L.exit}
               >
                 <X className="w-4 h-4" />
               </button>
@@ -77,32 +96,34 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-japandi-sm bg-japandi-sand/80 flex items-center justify-center text-japandi-text">
-                <Sparkles className="w-4 h-4 text-japandi-pine" />
-              </div>
+              {leading ?? (
+                <div className="w-7 h-7 rounded-japandi-sm bg-japandi-sand/80 flex items-center justify-center text-japandi-text">
+                  <Sparkles className="w-4 h-4 text-japandi-pine" />
+                </div>
+              )}
               <div>
-                <h4 className="font-bold text-sm text-japandi-text tracking-tight">What If Mode</h4>
-                <p className="text-[11px] text-japandi-muted">Tap cards to exclude</p>
+                <h4 className="font-bold text-sm text-japandi-text tracking-tight">{L.title}</h4>
+                <p className="text-[11px] text-japandi-muted">{L.hint}</p>
               </div>
             </div>
 
             <div className="flex items-center gap-1">
-              <Tooltip content="Réduire" side="top">
+              <Tooltip content={L.collapse} side="top">
                 <button
                   type="button"
                   onClick={() => setIsExpanded(false)}
                   className="p-1.5 rounded-japandi-sm text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/40 transition-colors"
-                  aria-label="Collapse details"
+                  aria-label={L.collapse}
                 >
                   <ChevronDown className="w-4 h-4" />
                 </button>
               </Tooltip>
-              <Tooltip content="Quitter le mode Simulation" side="top">
+              <Tooltip content={L.exit} side="top">
                 <button
                   type="button"
                   onClick={onExit}
                   className="p-1.5 rounded-japandi-sm text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/40 transition-colors"
-                  aria-label="Exit What If Mode"
+                  aria-label={L.exit}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -123,7 +144,7 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
                   {savings.excludedCount} / {savings.totalCount}
                 </span>
                 <span className="text-[9px] font-bold uppercase tracking-wider text-japandi-muted mt-0.5">
-                  EXCLUDED
+                  {L.excluded}
                 </span>
               </div>
 
@@ -133,10 +154,10 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
                   <TrendingDown className="w-4 h-4" />
                 </div>
                 <span className="font-extrabold text-base text-japandi-slate tracking-tight">
-                  {currencySymbol}{savings.monthlySavings.toFixed(0)}
+                  {savings.monthlySavings.toFixed(0)} {currencySymbol}
                 </span>
                 <span className="text-[9px] font-bold uppercase tracking-wider text-japandi-muted mt-0.5">
-                  MONTHLY SAVINGS
+                  {L.monthly}
                 </span>
               </div>
 
@@ -146,10 +167,10 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
                   <PiggyBank className="w-4 h-4" />
                 </div>
                 <span className="font-extrabold text-base text-japandi-terracotta tracking-tight">
-                  {currencySymbol}{savings.yearlySavings.toFixed(0)}
+                  {savings.yearlySavings.toFixed(0)} {currencySymbol}
                 </span>
                 <span className="text-[9px] font-bold uppercase tracking-wider text-japandi-muted mt-0.5">
-                  YEARLY SAVINGS
+                  {L.yearly}
                 </span>
               </div>
             </div>
@@ -171,7 +192,7 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
               className="py-2.5 px-3 rounded-japandi-md bg-japandi-elevated border border-japandi-border text-japandi-text font-bold text-xs hover:border-japandi-border-strong transition-all flex items-center justify-center gap-2 shadow-xs"
             >
               <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine" />
-              <span>Select All</span>
+              <span>{L.selectAll}</span>
             </button>
 
             <button
@@ -180,7 +201,7 @@ export const WhatIfBar: React.FC<WhatIfBarProps> = ({
               className="py-2.5 px-3 rounded-japandi-md bg-japandi-elevated border border-japandi-border text-japandi-text font-bold text-xs hover:border-japandi-border-strong transition-all flex items-center justify-center gap-2 shadow-xs"
             >
               <AlignJustify className="w-3.5 h-3.5 text-japandi-muted" />
-              <span>Clear All</span>
+              <span>{L.clearAll}</span>
             </button>
           </div>
         </div>

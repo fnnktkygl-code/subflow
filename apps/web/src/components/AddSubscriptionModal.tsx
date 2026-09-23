@@ -8,11 +8,12 @@ import {
   fetchLogo,
   getRegionalPresets,
   searchPresetCatalog,
-  RegionalPreset
-} from '@subflow/core';
+  RegionalPreset, pick } from '@subflow/core';
 import { SubscriptionLogo, CustomDropdown, DropdownOption } from '@subflow/ui';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
+import { ukoBus } from './uko/ukoBus';
+import { UkoMascot } from './uko/UkoMascot';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { CategoryIcon } from './CategoryIcon';
 import { JapandiDatePicker } from './JapandiDatePicker';
@@ -161,7 +162,12 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
       });
     }
     onClose();
-    } catch { setSubmitError('Vérifiez le nom (100 caractères maximum), le montant et la date du prélèvement.'); }
+    // Uko celebrates on the dashboard once the modal is closed.
+    window.setTimeout(() => ukoBus.emit('success'), 180);
+    } catch {
+      setSubmitError(pick(locale, { fr: 'Vérifiez le nom (100 caractères maximum), le montant et la date du prélèvement.', en: 'Check the name (100 characters max), the amount and the payment date.', es: 'Revisa el nombre (100 caracteres como máximo), el importe y la fecha del cargo.' }));
+      ukoBus.emit('error');
+    }
   };
 
   const categoryOptions: DropdownOption[] = CATEGORIES.map((cat) => ({
@@ -194,7 +200,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
               onClick={() => setIsIconPickerOpen(true)}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsIconPickerOpen(true); }}
               className="relative group cursor-pointer"
-              title="Cliquez pour changer le logo ou l'icône SVG"
+              title={pick(locale, { fr: 'Cliquez pour changer le logo ou l\'icône SVG', en: 'Click to change the logo or SVG icon', es: 'Haz clic para cambiar el logo o el icono SVG' })}
             >
               <SubscriptionLogo
                 name={name}
@@ -231,7 +237,12 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
           </button>
         </div>
 
-        {submitError && <p role="alert" className="mx-5 mt-3 p-3 rounded-xl bg-red-50 text-red-800 text-sm">{submitError}</p>}
+        {submitError && (
+          <div role="alert" className="mx-5 mt-3 flex items-center gap-3 p-2.5 pr-3 rounded-xl bg-japandi-akane/10 border border-japandi-akane/25 text-japandi-text text-sm">
+            <UkoMascot state="error" interactive={false} oneShot="loop" className="w-11 h-16 shrink-0" label="Uko signale une erreur" />
+            <span>{submitError}</span>
+          </div>
+        )}
         {/* Content body */}
         <div className="p-5 overflow-y-auto flex-1 flex flex-col gap-5">
           {/* Quick Pick Presets & Bank Sync */}
@@ -258,7 +269,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                 >
                   <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4 text-japandi-muted" />
-                    <span>{locale === 'fr' ? 'Autres banques...' : 'Other banks...'}</span>
+                    <span>{pick(locale, { fr: 'Autres banques...', en: 'Other banks...', es: 'Otros bancos...' })}</span>
                   </div>
                   <span className="text-[10px] font-semibold text-japandi-muted">DSP2</span>
                 </button>
@@ -302,10 +313,10 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                   type="button"
                   onClick={() => setIsIconPickerOpen(true)}
                   className="text-[11px] font-semibold text-japandi-pine hover:underline flex items-center gap-1 transition-all"
-                  title="Choisir une icône vectorielle ou un logo"
+                  title={pick(locale, { fr: 'Choisir une icône vectorielle ou un logo', en: 'Choose a vector icon or a logo', es: 'Elige un icono vectorial o un logo' })}
                 >
                   <ImageIcon className="w-3 h-3" />
-                  <span>{logoUrl?.startsWith('svg:') ? 'Icône SVG choisie' : 'Changer d\'icône'}</span>
+                  <span>{logoUrl?.startsWith('svg:') ? pick(locale, { fr: 'Icône SVG choisie', en: 'SVG icon selected', es: 'Icono SVG elegido' }) : pick(locale, { fr: 'Changer d\'icône', en: 'Change icon', es: 'Cambiar el icono' })}</span>
                 </button>
               </div>
 
@@ -315,7 +326,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                   type="button"
                   onClick={() => setIsIconPickerOpen(true)}
                   className="absolute left-2.5 z-10 hover:scale-105 transition-transform flex-shrink-0 focus:outline-none"
-                  title="Cliquez pour changer le logo ou l'icône SVG"
+                  title={pick(locale, { fr: 'Cliquez pour changer le logo ou l\'icône SVG', en: 'Click to change the logo or SVG icon', es: 'Haz clic para cambiar el logo o el icono SVG' })}
                 >
                   <SubscriptionLogo
                     name={name}

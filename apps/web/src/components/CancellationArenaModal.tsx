@@ -1,4 +1,5 @@
 'use client';
+import { pick, LOCALE_TAG, Locale } from '@subflow/core';
 
 import React, { useState } from 'react';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
@@ -37,7 +38,7 @@ export const CancellationArenaModal: React.FC<CancellationArenaModalProps> = ({ 
   };
 
   const getLetterTemplate = () => {
-    const today = new Date().toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US');
+    const today = new Date().toLocaleDateString(LOCALE_TAG[locale as Locale] || 'en-US');
     const userName = profile.name || 'Titulaire du compte';
     const subName = currentSub?.name || 'Abonnement';
     const amount = currentSub ? format(currentSub.amount) : '';
@@ -84,7 +85,7 @@ ${userName}`;
             </div>
             <div>
               <h2 className="text-base font-black tracking-tight text-white">
-                {locale === 'fr' ? 'Arène de Résiliation 1-Clic' : '1-Click Cancellation Arena'}
+                {pick(locale, { fr: 'Arène de Résiliation 1-Clic', en: '1-Click Cancellation Arena', es: 'Centro de bajas' })}
               </h2>
               <span className="text-[10px] font-bold text-pink-400 uppercase tracking-wider">
                 Loi Chatel • Art. L. 215-1
@@ -95,7 +96,7 @@ ${userName}`;
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={pick(locale, { fr: 'Fermer', en: 'Close', es: 'Cerrar' })}
             className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
@@ -105,7 +106,7 @@ ${userName}`;
         {/* Subscription Picker */}
         <div className="flex flex-col gap-2">
           <label className="text-xs font-black uppercase tracking-wider text-slate-400">
-            {locale === 'fr' ? 'Sélectionnez le service à trancher :' : 'Select service to cancel:'}
+            {pick(locale, { fr: 'Sélectionnez le service à trancher :', en: 'Select service to cancel:', es: 'Elige el servicio que quieres dar de baja:' })}
           </label>
           <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
             {subscriptions.map((sub) => (
@@ -149,7 +150,7 @@ ${userName}`;
                 rel="noopener noreferrer"
                 className="btn-3d-coral w-full py-3 rounded-xl font-black text-xs text-white flex items-center justify-center gap-2 text-center"
               >
-                <span>🔗 Ouvrir la page de résiliation officielle</span>
+                <span>🔗 {pick(locale, { fr: 'Ouvrir la page de résiliation du service', en: 'Open the service’s cancellation page', es: 'Abrir la página de baja del servicio' })}</span>
                 <ExternalLink className="w-4 h-4" />
               </a>
             </div>
@@ -160,7 +161,7 @@ ${userName}`;
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="w-4 h-4 text-teal-300" />
                   <h4 className="font-black text-xs text-white">
-                    {locale === 'fr' ? 'Lettre Juridique Prête à l’Emploi' : 'Legal Cancellation Notice'}
+                    {pick(locale, { fr: 'Lettre Juridique Prête à l’Emploi', en: 'Legal Cancellation Notice', es: 'Carta de baja' })}
                   </h4>
                 </div>
                 <button
@@ -169,7 +170,7 @@ ${userName}`;
                   className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-teal-300 flex items-center gap-1.5 transition-all"
                 >
                   {copiedLetter ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5 text-teal-300" />}
-                  <span>{copiedLetter ? 'Copié !' : 'Copier le texte'}</span>
+                  <span>{copiedLetter ? pick(locale, { fr: 'Copié !', en: 'Copied!', es: '¡Copiado!' }) : pick(locale, { fr: 'Copier le texte', en: 'Copy the text', es: 'Copiar el texto' })}</span>
                 </button>
               </div>
 

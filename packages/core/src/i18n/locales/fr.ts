@@ -128,7 +128,7 @@ export const fr = {
     cycleLabel: 'Fréquence de facturation',
     startDateLabel: 'Date du premier / prochain prélèvement',
     popularPresets: 'Suggestions populaires (France / Europe)',
-    cancellationAssistantBtn: 'Assistant de résiliation & loi Chatel',
+    cancellationAssistantBtn: 'Assistant de résiliation',
     submitAdd: 'Ajouter au budget',
     submitEdit: 'Enregistrer les modifications'
   },
@@ -145,14 +145,14 @@ export const fr = {
     clearSelection: 'Réinitialiser la sélection'
   },
   cancellation: {
-    title: 'Assistant de Résiliation 1-Clic',
-    subtitle: 'Conformité Loi Chatel, Loi 3 clics et résiliation sans frais',
-    directLinkTitle: 'Accès Direct Résiliation en Ligne',
-    directLinkDesc: 'Accédez directement à la page de désabonnement officiel en 1 clic :',
-    openOfficialPage: 'Ouvrir la page officielle de résiliation',
-    threeClicksNotice: 'Conforme à la loi française de résiliation en 3 clics',
-    legalLetterTitle: 'Générateur de Lettre Juridique Recommandée',
-    legalLetterSubtitle: 'Modèle conforme aux articles L. 215-1 (Loi Chatel) et L. 224-33 du Code de la consommation',
+    title: 'Assistant de résiliation',
+    subtitle: 'Page de résiliation, préavis indicatif et lettre type',
+    directLinkTitle: 'Résilier en ligne',
+    directLinkDesc: 'Ouvrez la page de résiliation du service :',
+    openOfficialPage: 'Ouvrir la page de résiliation',
+    threeClicksNotice: 'Résiliation en ligne proposée par le service',
+    legalLetterTitle: 'Lettre de résiliation',
+    legalLetterSubtitle: 'Lettre type à relire et compléter avant envoi (de préférence en recommandé)',
     yourName: 'Votre Nom complet',
     yourAddress: 'Votre Adresse postale',
     contractNumber: 'Numéro de contrat / client',
@@ -161,10 +161,10 @@ export const fr = {
     motiveLoiChatel: 'Non-respect du préavis de reconduction (Loi Chatel art. L. 215-1)',
     motiveHausseTarif: 'Refus de hausse unilatérale de tarif (Loi art. L. 224-33)',
     motiveLegitime: 'Motif légitime (déménagement, chômage, cas de force majeure)',
-    generatedLetter: 'Contenu du courrier officiel à envoyer :',
+    generatedLetter: 'Votre lettre :',
     copyLetter: 'Copier la lettre dans le presse-papier',
-    noticePeriod: 'Délai de préavis légal : {days} jours',
-    tipsTitle: 'Conseil juridique SubFlow :'
+    noticePeriod: 'Préavis indicatif : {days} jours',
+    tipsTitle: 'Bon à savoir :'
   },
   starterPack: {
     title: 'Pack de Démarrage 1-Tap',

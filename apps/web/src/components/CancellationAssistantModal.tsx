@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useId } from 'react';
-import { Subscription } from '@subflow/core';
+import { Subscription, pick } from '@subflow/core';
 import { getCancellationGuide, generateCancellationLetter } from '@subflow/core';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
@@ -23,7 +23,7 @@ export const CancellationAssistantModal: React.FC<CancellationAssistantModalProp
   onClose
 }) => {
   const { profile } = useSubscriptionStore();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const titleId = useId();
   const targetName = subscription?.name || subscriptionName || 'Abonnement';
 
@@ -241,7 +241,7 @@ export const CancellationAssistantModal: React.FC<CancellationAssistantModalProp
         {/* Footer info */}
         <div className="pt-3 border-t border-japandi-border flex items-center justify-between text-[11px] text-japandi-muted">
           <span>{guide?.legalEntityName || targetName}</span>
-          <span className="font-semibold text-japandi-pine">100% Gratuit & Conforme</span>
+          <span className="font-semibold text-japandi-pine">{pick(locale, { fr: 'Gratuit', en: 'Free', es: 'Gratis' })}</span>
         </div>
       </div>
     </div>

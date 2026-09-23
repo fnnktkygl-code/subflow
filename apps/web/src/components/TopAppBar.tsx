@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { Sun, Moon, Sparkles, Eye, EyeOff, Languages, Cloud } from 'lucide-react';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
-import { ThemeMode } from '@subflow/core';
+import { ThemeMode, pick, LOCALE_NAMES } from '@subflow/core';
 import { Tooltip } from '@subflow/ui';
 import { GoogleAccountModal } from './GoogleAccountModal';
 
@@ -64,7 +64,7 @@ export const TopAppBar: React.FC = () => {
   };
 
   const toggleLanguage = () => {
-    const nextLocale = locale === 'fr' ? 'en' : 'fr';
+    const nextLocale = locale === 'fr' ? 'en' : locale === 'en' ? 'es' : 'fr';
     setLocale(nextLocale);
   };
 
@@ -112,8 +112,8 @@ export const TopAppBar: React.FC = () => {
           <Tooltip
             content={
               googleAccount
-                ? `Google Drive : ${googleAccount.name} (${driveSyncStatus === 'synced' ? 'Sauvegardé' : 'Connecté'})`
-                : (locale === 'fr' ? 'Connexion Google & Sauvegarde Drive' : 'Sign in with Google & Cloud Sync')
+                ? `Google Drive : ${googleAccount.name} (${driveSyncStatus === 'synced' ? pick(locale, { fr: 'Sauvegardé', en: 'Saved', es: 'Guardado' }) : pick(locale, { fr: 'Connecté', en: 'Connected', es: 'Conectado' })})`
+                : (pick(locale, { fr: 'Connexion Google & Sauvegarde Drive', en: 'Sign in with Google & Cloud Sync', es: 'Iniciar sesión con Google y sincronizar' }))
             }
             side="bottom"
           >
@@ -169,23 +169,23 @@ export const TopAppBar: React.FC = () => {
             </button>
           </Tooltip>
 
-          {/* Quick Language Toggle with National Flags (🇫🇷 FR / 🇬🇧 EN) */}
-          <Tooltip content={`Langue : ${locale === 'fr' ? 'Français 🇫🇷' : 'English 🇬🇧'} (Changer)`} side="bottom">
+          {/* Quick language switch: FR → EN → ES */}
+          <Tooltip content={`${LOCALE_NAMES[locale]} → ${LOCALE_NAMES[locale === 'fr' ? 'en' : locale === 'en' ? 'es' : 'fr']}`} side="bottom">
             <button
               type="button"
               onClick={toggleLanguage}
-              aria-label={`Switch language from ${locale.toUpperCase()} to ${locale === 'fr' ? 'EN' : 'FR'}`}
-              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-japandi-md border border-japandi-border bg-japandi-surface text-japandi-text text-xs font-bold hover:border-japandi-pine transition-all shadow-xs"
+              aria-label={pick(locale, { fr: 'Changer de langue', en: 'Change language', es: 'Cambiar de idioma' })}
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-japandi-md border border-japandi-border bg-japandi-surface text-japandi-text text-xs font-bold hover:border-japandi-pine transition-all shadow-xs"
             >
-              <span className="text-sm select-none" role="img" aria-label={locale === 'fr' ? 'Drapeau français' : 'British flag'}>
-                {locale === 'fr' ? '🇫🇷' : '🇬🇧'}
+              <span className="text-sm select-none" aria-hidden="true">
+                {pick(locale, { fr: '🇫🇷', en: '🇬🇧', es: '🇪🇸' })}
               </span>
               <span className="uppercase tracking-wider">{locale}</span>
             </button>
           </Tooltip>
 
           {/* Amount Blur Toggle */}
-          <Tooltip content={isAmountBlurred ? (locale === 'fr' ? 'Afficher les montants' : 'Show amounts') : (locale === 'fr' ? 'Masquer les montants' : 'Hide amounts')} side="bottom">
+          <Tooltip content={isAmountBlurred ? (pick(locale, { fr: 'Afficher les montants', en: 'Show amounts', es: 'Mostrar los importes' })) : (pick(locale, { fr: 'Masquer les montants', en: 'Hide amounts', es: 'Ocultar los importes' }))} side="bottom">
             <button
               type="button"
               onClick={toggleAmountBlur}
@@ -197,7 +197,7 @@ export const TopAppBar: React.FC = () => {
           </Tooltip>
 
           {/* Theme Cycler (Light -> Dark -> Pinkbie) */}
-          <Tooltip content={locale === 'fr' ? 'Changer de thème' : 'Switch theme'} side="bottom">
+          <Tooltip content={pick(locale, { fr: 'Changer de thème', en: 'Switch theme', es: 'Cambiar de tema' })} side="bottom">
             <button
               type="button"
               onClick={cycleTheme}
@@ -209,8 +209,8 @@ export const TopAppBar: React.FC = () => {
                 {currentTheme === 'barbie'
                   ? 'Pinkbie'
                   : currentTheme === 'dark'
-                  ? (locale === 'fr' ? 'Sombre' : 'Dark')
-                  : (locale === 'fr' ? 'Clair' : 'Light')}
+                  ? (pick(locale, { fr: 'Sombre', en: 'Dark', es: 'Oscuro' }))
+                  : (pick(locale, { fr: 'Clair', en: 'Light', es: 'Claro' }))}
               </span>
             </button>
           </Tooltip>

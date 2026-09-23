@@ -1,3 +1,8 @@
+// Theme colours are CSS variables (they switch with light / dark / pink).
+// Tailwind cannot apply an opacity modifier (bg-japandi-pine/10) to a plain
+// var(), so those classes were silently dropped; color-mix keeps them working.
+const withAlpha = (v) => `color-mix(in srgb, var(${v}) calc(<alpha-value> * 100%), transparent)`;
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ['class'],
@@ -9,24 +14,24 @@ module.exports = {
     extend: {
       colors: {
         japandi: {
-          bg: 'var(--color-bg-canvas)',
-          canvas: 'var(--color-bg-canvas)',
-          surface: 'var(--color-bg-surface)',
-          elevated: 'var(--color-bg-elevated)',
-          border: 'var(--color-border-subtle)',
-          'border-strong': 'var(--color-border-strong)',
-          'border-faint': 'var(--color-border-faint)',
-          text: 'var(--color-text-primary)',
-          muted: 'var(--color-text-secondary)',
-          subtle: 'var(--color-text-tertiary)',
-          pine: 'var(--color-accent-pine)',
-          'pine-light': 'var(--color-accent-pine-light)',
-          terracotta: 'var(--color-accent-terracotta)',
-          'terracotta-light': 'var(--color-accent-terracotta-light)',
-          clay: 'var(--color-accent-clay)',
-          sand: 'var(--color-accent-sand)',
-          slate: 'var(--color-accent-slate)',
-          akane: 'var(--color-accent-akane)'
+          bg: withAlpha('--color-bg-canvas'),
+          canvas: withAlpha('--color-bg-canvas'),
+          surface: withAlpha('--color-bg-surface'),
+          elevated: withAlpha('--color-bg-elevated'),
+          border: withAlpha('--color-border-subtle'),
+          'border-strong': withAlpha('--color-border-strong'),
+          'border-faint': withAlpha('--color-border-faint'),
+          text: withAlpha('--color-text-primary'),
+          muted: withAlpha('--color-text-secondary'),
+          subtle: withAlpha('--color-text-tertiary'),
+          pine: withAlpha('--color-accent-pine'),
+          'pine-light': withAlpha('--color-accent-pine-light'),
+          terracotta: withAlpha('--color-accent-terracotta'),
+          'terracotta-light': withAlpha('--color-accent-terracotta-light'),
+          clay: withAlpha('--color-accent-clay'),
+          sand: withAlpha('--color-accent-sand'),
+          slate: withAlpha('--color-accent-slate'),
+          akane: withAlpha('--color-accent-akane')
         }
       },
       fontFamily: {

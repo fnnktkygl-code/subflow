@@ -1,4 +1,5 @@
 'use client';
+import { pick } from '@subflow/core';
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Dashboard from '../app/page';
@@ -9,6 +10,7 @@ import { AddSubscriptionModal } from '../../components/AddSubscriptionModal';
 import { CancellationArenaModal } from '../../components/CancellationArenaModal';
 import { Plus, RotateCcw, Play, Pause, Smartphone, Sparkles, SlidersHorizontal, Calendar, Zap, ShieldCheck } from 'lucide-react';
 import type { Subscription } from '@subflow/core';
+import { useTranslation } from '../../hooks/useTranslation';
 
 interface AutomodeScene {
   id: string;
@@ -20,6 +22,7 @@ interface AutomodeScene {
 }
 
 export default function DemoPage() {
+  const { locale } = useTranslation();
   const [ready, setReady] = useState(false);
   const [tab, setTab] = useState<'overview' | 'subs' | 'schedule'>('overview');
   const [adding, setAdding] = useState(false);
@@ -143,9 +146,9 @@ export default function DemoPage() {
   const SCENES: AutomodeScene[] = [
     {
       id: 'overview',
-      title: 'Vue d\'ensemble & Budget',
+      title: pick(locale, { fr: 'Vue d\'ensemble & budget', en: 'Overview & budget', es: 'Resumen y presupuesto' }),
       shortLabel: '01. Dashboard',
-      badge: 'Vos prélèvements sous contrôle · 67,37 €/mois',
+      badge: pick(locale, { fr: 'Vos prélèvements sous contrôle · 67,37 €/mois', en: 'Your payments under control · €67.37/month', es: 'Tus cargos bajo control · 67,37 €/mes' }),
       tab: 'overview',
       action: () => {
         const store = useSubscriptionStore.getState();
@@ -156,9 +159,9 @@ export default function DemoPage() {
     },
     {
       id: 'whatif',
-      title: 'Mode Simulation What-If',
-      shortLabel: '02. Économies',
-      badge: '-43,39 € / mois économisés en direct !',
+      title: pick(locale, { fr: 'Mode simulation', en: 'Simulation mode', es: 'Modo simulación' }),
+      shortLabel: pick(locale, { fr: '02. Économies', en: '02. Savings', es: '02. Ahorro' }),
+      badge: pick(locale, { fr: '-43,39 € / mois en simulation', en: '-€43.39 / month in simulation', es: '-43,39 € / mes en simulación' }),
       tab: 'overview',
       action: () => {
         const store = useSubscriptionStore.getState();
@@ -171,9 +174,9 @@ export default function DemoPage() {
     },
     {
       id: 'schedule',
-      title: 'Calendrier des Échéances',
-      shortLabel: '03. Calendrier',
-      badge: 'Zéro surprise en fin de mois · Calendrier prévisionnel',
+      title: pick(locale, { fr: 'Calendrier des échéances', en: 'Payment calendar', es: 'Calendario de cargos' }),
+      shortLabel: pick(locale, { fr: '03. Calendrier', en: '03. Calendar', es: '03. Calendario' }),
+      badge: pick(locale, { fr: 'Zéro surprise en fin de mois · Calendrier prévisionnel', en: 'No month-end surprises · Payment calendar', es: 'Sin sorpresas a fin de mes · Calendario previsto' }),
       tab: 'schedule',
       action: () => {
         setAdding(false);
@@ -182,9 +185,9 @@ export default function DemoPage() {
     },
     {
       id: 'add',
-      title: 'Ajout & Vrais Logos de Marque',
-      shortLabel: '04. Ajout & Logos',
-      badge: 'Catalogue 350+ presets · Vrais logos vectoriels',
+      title: pick(locale, { fr: 'Ajout et logos des marques', en: 'Adding & brand logos', es: 'Añadir y logos de marca' }),
+      shortLabel: pick(locale, { fr: '04. Ajout & logos', en: '04. Add & logos', es: '04. Añadir y logos' }),
+      badge: pick(locale, { fr: '357 services pré-remplis · Logos des marques', en: '357 pre-filled services · Brand logos', es: '357 servicios predefinidos · Logos de marca' }),
       tab: 'overview',
       action: () => {
         setIsCancellationOpen(false);
@@ -193,9 +196,9 @@ export default function DemoPage() {
     },
     {
       id: 'loichatel',
-      title: 'Assistant Loi Châtel',
-      shortLabel: '05. Loi Châtel',
-      badge: 'Résiliation en 3 clics · Modèle officiel certifié',
+      title: pick(locale, { fr: 'Assistant de résiliation', en: 'Cancellation assistant', es: 'Asistente de baja' }),
+      shortLabel: pick(locale, { fr: '05. Résiliation', en: '05. Cancellation', es: '05. Baja' }),
+      badge: pick(locale, { fr: 'Page de résiliation · Lettre type à compléter', en: 'Cancellation page · Template letter', es: 'Página de baja · Carta modelo' }),
       tab: 'overview',
       action: () => {
         setAdding(false);
@@ -281,10 +284,10 @@ export default function DemoPage() {
       {/* Top Banner (Desktop only) */}
       {!isEmbed && (
         <div className="demo-notice">
-          <span>DÉMONSTRATION · APPLICATION RÉELLE (DONNÉES ISOLÉES)</span>
+          <span>{pick(locale, { fr: 'DÉMONSTRATION · APPLICATION RÉELLE (DONNÉES ISOLÉES)', en: 'DEMO · REAL APP (SEPARATE DATA)', es: 'DEMO · APP REAL (DATOS AISLADOS)' })}</span>
           <button
             onClick={() => window.location.reload()}
-            aria-label="Réinitialiser la démonstration"
+            aria-label={pick(locale, { fr: 'Réinitialiser la démonstration', en: 'Reset the demo', es: 'Reiniciar la demo' })}
             className="p-1 hover:bg-[#D5DDCB] rounded-sm transition-all"
           >
             <RotateCcw size={14} />
@@ -351,17 +354,17 @@ export default function DemoPage() {
             className="demo-add text-xs py-1.5 px-3 rounded-lg flex items-center gap-1.5 shadow-xs font-semibold"
           >
             <Plus size={15} />
-            <span>Ajouter</span>
+            <span>{pick(locale, { fr: 'Ajouter', en: 'Add', es: 'Añadir' })}</span>
           </button>
         </div>
       </header>
 
       {/* Navigation Tabs (Overview, Subs, Schedule) */}
-      <nav className={`demo-tabs ${isEmbed ? 'px-3 py-1.5' : ''}`} aria-label="Navigation de la démonstration">
+      <nav className={`demo-tabs ${isEmbed ? 'px-3 py-1.5' : ''}`} aria-label={pick(locale, { fr: 'Navigation de la démonstration', en: 'Demo navigation', es: 'Navegación de la demo' })}>
         {[
-          ['overview', 'Vue d’ensemble'],
-          ['subs', 'Prélèvements'],
-          ['schedule', 'Calendrier']
+          ['overview', pick(locale, { fr: 'Vue d’ensemble', en: 'Overview', es: 'Resumen' })],
+          ['subs', pick(locale, { fr: 'Prélèvements', en: 'Payments', es: 'Cargos' })],
+          ['schedule', pick(locale, { fr: 'Calendrier', en: 'Calendar', es: 'Calendario' })]
         ].map(([key, label]) => (
           <button
             key={key}

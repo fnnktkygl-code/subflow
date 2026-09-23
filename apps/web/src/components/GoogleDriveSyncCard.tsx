@@ -1,4 +1,5 @@
 'use client';
+import { pick } from '@subflow/core';
 
 import React, { useState } from 'react';
 import { Cloud, CheckCircle2, RefreshCw, Smartphone, Laptop, Sparkles, ChevronRight, ShieldCheck } from 'lucide-react';
@@ -50,16 +51,14 @@ export const GoogleDriveSyncCard: React.FC<GoogleDriveSyncCardProps> = ({ varian
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h4 className="text-xs sm:text-sm font-bold text-japandi-text truncate">
-                  {locale === 'fr' ? 'Sauvegarde Google Drive manuelle' : 'Manual Google Drive Backup'}
+                  {pick(locale, { fr: 'Sauvegarde Google Drive manuelle', en: 'Manual Google Drive Backup', es: 'Copia manual en Google Drive' })}
                 </h4>
                 <span className="text-[10px] font-black px-1.5 py-0.2 rounded bg-japandi-pine text-white uppercase tracking-tight hidden sm:inline-block">
                   Cloud
                 </span>
               </div>
               <p className="text-[11px] text-japandi-muted truncate">
-                {locale === 'fr'
-                  ? 'Synchronisez vos abonnements entre votre mobile et votre ordinateur.'
-                  : 'Sync your subscriptions seamlessly across phone and computer.'}
+                {pick(locale, { fr: 'Synchronisez vos abonnements entre votre mobile et votre ordinateur.', en: 'Sync your subscriptions seamlessly across phone and computer.', es: 'Sincroniza tus suscripciones entre el móvil y el ordenador.' })}
               </p>
             </div>
           </div>
@@ -72,7 +71,7 @@ export const GoogleDriveSyncCard: React.FC<GoogleDriveSyncCardProps> = ({ varian
             }}
             className="px-3.5 py-1.5 rounded-japandi-lg bg-japandi-surface border border-japandi-border text-japandi-text group-hover:border-japandi-pine text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs flex-shrink-0"
           >
-            <span>{locale === 'fr' ? 'Activer' : 'Enable'}</span>
+            <span>{pick(locale, { fr: 'Activer', en: 'Enable', es: 'Activar' })}</span>
             <ChevronRight className="w-3.5 h-3.5 text-japandi-muted group-hover:text-japandi-pine transition-colors" />
           </button>
         </div>
@@ -111,26 +110,26 @@ export const GoogleDriveSyncCard: React.FC<GoogleDriveSyncCardProps> = ({ varian
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-xs sm:text-sm text-japandi-text truncate">
-                {googleAccount ? googleAccount.name : (locale === 'fr' ? 'Compte Google & Drive' : 'Google Account & Drive')}
+                {googleAccount ? googleAccount.name : (pick(locale, { fr: 'Compte Google & Drive', en: 'Google Account & Drive', es: 'Cuenta de Google y Drive' }))}
               </h3>
               {googleAccount && (
                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded-full">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>{driveSyncStatus === 'synced' ? (locale === 'fr' ? 'Sauvegardé' : 'Saved') : driveSyncStatus === 'syncing' ? 'En cours…' : driveSyncStatus === 'error' ? 'À vérifier' : 'Connecté'}</span>
+                  <span>{driveSyncStatus === 'synced' ? (pick(locale, { fr: 'Sauvegardé', en: 'Saved', es: 'Guardado' })) : driveSyncStatus === 'syncing' ? 'En cours…' : driveSyncStatus === 'error' ? 'À vérifier' : 'Connecté'}</span>
                 </span>
               )}
             </div>
             <span className="text-[11px] text-japandi-muted block truncate">
               {googleAccount
                 ? googleAccount.email
-                : (locale === 'fr' ? 'Sauvegardes automatiques en manuelle' : 'Real-time automatic cloud backups')}
+                : (pick(locale, { fr: 'Sauvegardes automatiques en manuelle', en: 'Real-time automatic cloud backups', es: 'Copias automáticas en la nube en tiempo real' }))}
             </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
           <span className="text-xs font-semibold text-japandi-pine hidden sm:inline">
-            {googleAccount ? (locale === 'fr' ? 'Gérer' : 'Manage') : (locale === 'fr' ? 'Connecter' : 'Connect')}
+            {googleAccount ? (pick(locale, { fr: 'Gérer', en: 'Manage', es: 'Gestionar' })) : (pick(locale, { fr: 'Connecter', en: 'Connect', es: 'Conectar' }))}
           </span>
           <ChevronRight className="w-4 h-4 text-japandi-muted group-hover:text-japandi-pine transition-colors" />
         </div>

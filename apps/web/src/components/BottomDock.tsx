@@ -7,7 +7,8 @@ import { Home, Calendar, List, Settings, Plus } from 'lucide-react';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { WhatIfBar } from '@subflow/ui';
-import { calculateWhatIfSavings } from '@subflow/core';
+import { WhatIfUko } from './uko/WhatIfUko';
+import { calculateWhatIfSavings, pick } from '@subflow/core';
 
 interface BottomDockProps {
   onOpenAddModal: () => void;
@@ -24,16 +25,22 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
     toggleSelectionMode,
     profile
   } = useSubscriptionStore();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
 
   const savings = calculateWhatIfSavings(subscriptions, new Set(excludedIds));
 
   return (
-    <div className="fixed bottom-6 inset-x-0 z-40 flex flex-col items-center pointer-events-none px-4">
+    <div className="fixed bottom-[calc(1.25rem+env(safe-area-inset-bottom))] inset-x-0 z-40 flex flex-col items-center pointer-events-none px-4">
       {/* What-If Floating Action Bar */}
       {isSelectionMode && (
         <div className="w-full max-w-[580px] mb-3 pointer-events-auto animate-in slide-in-from-bottom-3 duration-200">
           <WhatIfBar
+            leading={<WhatIfUko excludedCount={excludedIds.length} />}
+            labels={pick(locale, {
+              fr: undefined,
+              en: { title: 'What-if', hint: 'Tap a subscription to set it aside', excluded: 'set aside', saves: 'Saves', perMonth: '/mo', details: 'Details', collapse: 'Collapse', exit: 'Exit simulation', monthly: 'Monthly', yearly: 'Yearly', selectAll: 'Set all aside', clearAll: 'Restore all' },
+              es: { title: 'Simulación', hint: 'Toca una suscripción para dejarla fuera', excluded: 'fuera', saves: 'Ahorro', perMonth: '/mes', details: 'Detalles', collapse: 'Reducir', exit: 'Salir de la simulación', monthly: 'Al mes', yearly: 'Al año', selectAll: 'Dejar todo fuera', clearAll: 'Volver a incluir todo' }
+            })}
             savings={savings}
             currencySymbol={profile.currencySymbol}
             onSelectAll={selectAllExcludedIds}
@@ -45,7 +52,8 @@ export const BottomDock: React.FC<BottomDockProps> = ({ onOpenAddModal }) => {
 
       {/* Centered Modern Floating Dock */}
       <nav
-        aria-label="Navigation principale"
+        aria-label={pick(locale, { fr: 'Navigation principale', en: 'Main navigation', es: 'Navegación principal' })}
+        data-dock="main"
         className="w-full max-w-[580px] h-[68px] rounded-japandi-xl pointer-events-auto flex items-center justify-around px-3 transition-all bg-japandi-surface/95 backdrop-blur-xl border border-japandi-border shadow-japandi-lg"
       >
         {/* Home */}

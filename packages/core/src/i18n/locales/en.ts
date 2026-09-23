@@ -128,7 +128,7 @@ export const en = {
     cycleLabel: 'Billing Frequency',
     startDateLabel: 'First / Next billing date',
     popularPresets: 'Popular Suggestions (France / Global)',
-    cancellationAssistantBtn: 'Cancellation Assistant & Consumer Rights',
+    cancellationAssistantBtn: 'Cancellation assistant',
     submitAdd: 'Add to Budget',
     submitEdit: 'Save Changes'
   },
@@ -145,14 +145,14 @@ export const en = {
     clearSelection: 'Reset Selection'
   },
   cancellation: {
-    title: '1-Click Cancellation Assistant',
-    subtitle: 'French Consumer Law (Loi Chatel), 3-Clicks cancellation & registered letters',
-    directLinkTitle: 'Direct Online Cancellation Link',
-    directLinkDesc: 'Jump directly to the official cancellation portal in 1 click:',
-    openOfficialPage: 'Open Official Cancellation Page',
-    threeClicksNotice: 'Compliant with French 3-Clicks cancellation regulation',
-    legalLetterTitle: 'Registered Legal Letter Generator',
-    legalLetterSubtitle: 'Formal legal notice compliant with French Consumer Code art. L. 215-1 & L. 224-33',
+    title: 'Cancellation assistant',
+    subtitle: 'Cancellation page, indicative notice period and template letter',
+    directLinkTitle: 'Cancel online',
+    directLinkDesc: 'Open the service’s cancellation page:',
+    openOfficialPage: 'Open the cancellation page',
+    threeClicksNotice: 'The service offers online cancellation',
+    legalLetterTitle: 'Cancellation letter',
+    legalLetterSubtitle: 'Template letter to review and complete before sending (preferably by registered mail)',
     yourName: 'Your Full Name',
     yourAddress: 'Your Postal Address',
     contractNumber: 'Account / Contract Number',
@@ -161,10 +161,10 @@ export const en = {
     motiveLoiChatel: 'Failure to provide renewal notice (Loi Chatel art. L. 215-1)',
     motiveHausseTarif: 'Unilateral price increase rejection (Art. L. 224-33)',
     motiveLegitime: 'Legitimate reason (Relocation, loss of employment, force majeure)',
-    generatedLetter: 'Official legal notice draft:',
+    generatedLetter: 'Your letter:',
     copyLetter: 'Copy letter to clipboard',
-    noticePeriod: 'Legal notice period: {days} days',
-    tipsTitle: 'SubFlow Legal Tip:'
+    noticePeriod: 'Indicative notice period: {days} days',
+    tipsTitle: 'Good to know:'
   },
   starterPack: {
     title: '1-Tap Starter Pack',

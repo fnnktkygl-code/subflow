@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Subscription, formatCurrency } from '@subflow/core';
+import { Subscription, formatCurrency, pick, LOCALE_TAG, Locale } from '@subflow/core';
 import { SubscriptionLogo } from '@subflow/ui';
 import { PlusCircle, Edit3, Trash2, X, AlertCircle, Calendar } from 'lucide-react';
 import { useEscapeKey } from '../hooks/useEscapeKey';
@@ -36,7 +36,7 @@ export const CalendarActionsDrawer: React.FC<CalendarActionsDrawerProps> = ({
 
   if (!isOpen) return null;
 
-  const formattedDate = date.toLocaleDateString(locale === 'fr' ? 'fr-FR' : 'en-US', {
+  const formattedDate = date.toLocaleDateString(LOCALE_TAG[locale as Locale] || 'en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
@@ -95,17 +95,15 @@ export const CalendarActionsDrawer: React.FC<CalendarActionsDrawerProps> = ({
               <h3 className="font-bold text-base capitalize text-japandi-text">{formattedDate}</h3>
               <p className="text-xs font-semibold text-japandi-muted">
                 {hasSubscriptions
-                  ? (locale === 'fr'
-                      ? `${subscriptionsForDay.length} abonnement${subscriptionsForDay.length > 1 ? 's' : ''} ce jour`
-                      : `${subscriptionsForDay.length} scheduled subscription${subscriptionsForDay.length > 1 ? 's' : ''}`)
-                  : (locale === 'fr' ? 'Aucun abonnement ce jour' : 'No scheduled subscriptions')}
+                  ? (pick(locale, { fr: `${subscriptionsForDay.length} abonnement${subscriptionsForDay.length > 1 ? 's' : ''} ce jour`, en: `${subscriptionsForDay.length} scheduled subscription${subscriptionsForDay.length > 1 ? 's' : ''}`, es: `${subscriptionsForDay.length} suscripci${subscriptionsForDay.length > 1 ? 'ones previstas' : 'ón prevista'}` }))
+                  : (pick(locale, { fr: 'Aucun abonnement ce jour', en: 'No scheduled subscriptions', es: 'Ninguna suscripción prevista' }))}
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={pick(locale, { fr: 'Fermer', en: 'Close', es: 'Cerrar' })}
             className="p-1.5 rounded-japandi-full text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand transition-colors"
           >
             <X className="w-5 h-5" />
@@ -118,13 +116,11 @@ export const CalendarActionsDrawer: React.FC<CalendarActionsDrawerProps> = ({
             <div className="flex items-center gap-2 text-japandi-akane">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <h4 className="font-bold text-sm">
-                {locale === 'fr' ? 'Confirmer la suppression' : 'Confirm Deletion'}
+                {pick(locale, { fr: 'Confirmer la suppression', en: 'Confirm Deletion', es: 'Confirmar la eliminación' })}
               </h4>
             </div>
             <p className="text-xs text-japandi-muted">
-              {locale === 'fr'
-                ? `Êtes-vous sûr de vouloir supprimer ${deletingSub.name} ?`
-                : `Are you sure you want to delete ${deletingSub.name}?`}
+              {pick(locale, { fr: `Êtes-vous sûr de vouloir supprimer ${deletingSub.name} ?`, en: `Are you sure you want to delete ${deletingSub.name}?`, es: `¿Seguro que quieres eliminar ${deletingSub.name}?` })}
             </p>
             <div className="flex items-center justify-end gap-2 mt-2">
               <button
@@ -132,14 +128,14 @@ export const CalendarActionsDrawer: React.FC<CalendarActionsDrawerProps> = ({
                 onClick={() => setDeletingSub(null)}
                 className="px-4 py-2 rounded-japandi-md border border-japandi-border text-xs font-semibold text-japandi-text hover:bg-japandi-sand transition-colors"
               >
-                {locale === 'fr' ? 'Annuler' : 'Cancel'}
+                {pick(locale, { fr: 'Annuler', en: 'Cancel', es: 'Cancelar' })}
               </button>
               <button
                 type="button"
                 onClick={confirmDelete}
                 className="px-4 py-2 rounded-japandi-md bg-japandi-akane text-white text-xs font-bold hover:opacity-90 transition-opacity"
               >
-                {locale === 'fr' ? 'Supprimer' : 'Delete'}
+                {pick(locale, { fr: 'Supprimer', en: 'Delete', es: 'Eliminar' })}
               </button>
             </div>
           </div>
@@ -148,16 +144,14 @@ export const CalendarActionsDrawer: React.FC<CalendarActionsDrawerProps> = ({
           <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <h4 className="font-bold text-xs text-japandi-text uppercase tracking-wider">
-                {locale === 'fr'
-                  ? `Choisir l'abonnement à ${subSelectionMode === 'edit' ? 'modifier' : 'supprimer'}`
-                  : `Select subscription to ${subSelectionMode}`}
+                {pick(locale, { fr: `Choisir l'abonnement à ${subSelectionMode === 'edit' ? 'modifier' : 'supprimer'}`, en: `Select subscription to ${subSelectionMode}`, es: `Elige la suscripción que quieres ${subSelectionMode === 'edit' ? 'editar' : 'eliminar'}` })}
               </h4>
               <button
                 type="button"
                 onClick={() => setSubSelectionMode(null)}
                 className="text-xs text-japandi-pine font-bold hover:underline"
               >
-                {locale === 'fr' ? 'Retour' : 'Back'}
+                {pick(locale, { fr: 'Retour', en: 'Back', es: 'Atrás' })}
               </button>
             </div>
             <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
@@ -200,7 +194,7 @@ export const CalendarActionsDrawer: React.FC<CalendarActionsDrawerProps> = ({
               className="w-full flex items-center gap-3 p-3.5 rounded-japandi-xl bg-japandi-pine/10 border border-japandi-pine/30 hover:bg-japandi-pine/15 text-japandi-pine font-bold text-sm transition-all shadow-xs"
             >
               <PlusCircle className="w-5 h-5" />
-              <span>{locale === 'fr' ? 'Ajouter un abonnement à cette date' : 'Add subscription on this date'}</span>
+              <span>{pick(locale, { fr: 'Ajouter un abonnement à cette date', en: 'Add subscription on this date', es: 'Añadir una suscripción en esta fecha' })}</span>
             </button>
 
             {/* If Day Has Subscriptions: Edit & Delete */}
@@ -212,7 +206,7 @@ export const CalendarActionsDrawer: React.FC<CalendarActionsDrawerProps> = ({
                   className="w-full flex items-center gap-3 p-3.5 rounded-japandi-xl bg-japandi-elevated border border-japandi-border hover:border-japandi-border-strong text-japandi-text font-bold text-sm transition-all shadow-xs"
                 >
                   <Edit3 className="w-5 h-5 text-japandi-terracotta" />
-                  <span>{locale === 'fr' ? 'Modifier un abonnement' : 'Edit subscription'}</span>
+                  <span>{pick(locale, { fr: 'Modifier un abonnement', en: 'Edit subscription', es: 'Editar la suscripción' })}</span>
                 </button>
 
                 <button
@@ -221,7 +215,7 @@ export const CalendarActionsDrawer: React.FC<CalendarActionsDrawerProps> = ({
                   className="w-full flex items-center gap-3 p-3.5 rounded-japandi-xl bg-japandi-akane/10 border border-japandi-akane/20 hover:bg-japandi-akane/15 text-japandi-akane font-bold text-sm transition-all shadow-xs"
                 >
                   <Trash2 className="w-5 h-5" />
-                  <span>{locale === 'fr' ? 'Supprimer un abonnement' : 'Delete subscription'}</span>
+                  <span>{pick(locale, { fr: 'Supprimer un abonnement', en: 'Delete subscription', es: 'Eliminar la suscripción' })}</span>
                 </button>
               </>
             )}

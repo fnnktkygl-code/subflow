@@ -1,4 +1,6 @@
 'use client';
+import { pick } from '@subflow/core';
+import { translateMessage } from '../lib/messages';
 
 import React, { useState } from 'react';
 import {
@@ -49,13 +51,13 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
 
     try {
       await loginWithGoogleAndSync();
-      setSuccessNotice(locale === 'fr' ? 'Connecté avec succès à Google Drive !' : 'Successfully connected to Google Drive!');
+      setSuccessNotice(pick(locale, { fr: 'Connecté avec succès à Google Drive !', en: 'Successfully connected to Google Drive!', es: '¡Conectado a Google Drive!' }));
       setTimeout(() => {
         setSuccessNotice(null);
         onClose();
       }, 1500);
     } catch (err: any) {
-      setErrorMessage(err.message || (locale === 'fr' ? 'Impossible d\'ouvrir la fenêtre de connexion Google.' : 'Unable to open Google login.'));
+      setErrorMessage(err.message || (pick(locale, { fr: 'Impossible d\'ouvrir la fenêtre de connexion Google.', en: 'Unable to open Google login.', es: 'No se puede abrir el inicio de sesión de Google.' })));
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +68,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
     setErrorMessage(null);
     try {
       await pushToGoogleDrive();
-      setSuccessNotice(locale === 'fr' ? 'Sauvegarde Google Drive synchronisée !' : 'Google Drive backup synced!');
+      setSuccessNotice(pick(locale, { fr: 'Sauvegarde Google Drive synchronisée !', en: 'Google Drive backup synced!', es: '¡Copia sincronizada en Google Drive!' }));
       setTimeout(() => setSuccessNotice(null), 3000);
     } catch (err: any) {
       setErrorMessage(err.message || 'Erreur lors de la synchronisation.');
@@ -80,7 +82,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
     setErrorMessage(null);
     try {
       await pullFromGoogleDrive();
-      setSuccessNotice(locale === 'fr' ? 'Données restaurées. Une copie locale précédente est disponible dans Sauvegardes.' : 'Data restored from Google Drive!');
+      setSuccessNotice(pick(locale, { fr: 'Données restaurées. Une copie locale précédente est disponible dans Sauvegardes.', en: 'Data restored from Google Drive!', es: '¡Datos restaurados desde Google Drive!' }));
       setTimeout(() => setSuccessNotice(null), 3000);
     } catch (err: any) {
       setErrorMessage(err.message || 'Erreur lors de la restauration.');
@@ -91,7 +93,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
 
   const handleLogout = () => {
     disconnectGoogleAccount();
-    setSuccessNotice(locale === 'fr' ? 'Déconnecté. Vos données sont désormais conservées en local.' : 'Disconnected. Your data is now kept locally.');
+    setSuccessNotice(pick(locale, { fr: 'Déconnecté. Vos données sont désormais conservées en local.', en: 'Disconnected. Your data is now kept locally.', es: 'Desconectado. Tus datos se guardan ahora en este dispositivo.' }));
     setTimeout(() => setSuccessNotice(null), 3000);
   };
 
@@ -104,7 +106,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
       />
 
       {/* Modal Box */}
-      <div role="dialog" aria-modal="true" aria-label="Sauvegarde Google Drive" className="relative w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
+      <div role="dialog" aria-modal="true" aria-label={pick(locale, { fr: 'Sauvegarde Google Drive', en: 'Google Drive backup', es: 'Copia en Google Drive' })} className="relative w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden z-10 flex flex-col max-h-[92vh] animate-in zoom-in-95 duration-200">
         
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-japandi-border bg-japandi-sand/20">
@@ -115,12 +117,12 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
             <div>
               <h2 className="text-base font-bold text-japandi-text">
                 {googleAccount
-                  ? (locale === 'fr' ? 'Compte Google & Drive' : 'Google Account & Drive')
-                  : (locale === 'fr' ? 'Sauvegarde & Stockage' : 'Cloud Backup & Storage')}
+                  ? (pick(locale, { fr: 'Compte Google & Drive', en: 'Google Account & Drive', es: 'Cuenta de Google y Drive' }))
+                  : (pick(locale, { fr: 'Sauvegarde & Stockage', en: 'Cloud Backup & Storage', es: 'Copia de seguridad y almacenamiento' }))}
               </h2>
               <p className="text-[11px] text-japandi-muted flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 text-japandi-pine" />
-                {locale === 'fr' ? 'Sécurisé & Privé (zéro publicité)' : 'Private & Sandboxed'}
+                {pick(locale, { fr: 'Sécurisé & Privé (zéro publicité)', en: 'Private & Sandboxed', es: 'Privado y aislado' })}
               </p>
             </div>
           </div>
@@ -128,7 +130,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
+            aria-label={pick(locale, { fr: 'Fermer', en: 'Close', es: 'Cerrar' })}
             className="p-2 rounded-japandi-md text-japandi-muted hover:text-japandi-text hover:bg-japandi-sand/60 transition-colors"
           >
             <X className="w-5 h-5" />
@@ -151,7 +153,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
             <div className="p-3 rounded-japandi-xl bg-japandi-terracotta/10 border border-japandi-terracotta/30 text-japandi-terracotta text-xs font-semibold flex items-start gap-2 animate-in fade-in">
               <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <span>{errorMessage || driveSyncError}</span>
+                <span>{translateMessage(errorMessage || driveSyncError, locale)}</span>
               </div>
             </div>
           )}
@@ -185,7 +187,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
 
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>{driveSyncStatus === 'synced' ? (locale === 'fr' ? 'Sauvegardé' : 'Saved') : driveSyncStatus === 'syncing' ? 'En cours…' : driveSyncStatus === 'error' ? 'À vérifier' : 'Connecté'}</span>
+                  <span>{driveSyncStatus === 'synced' ? (pick(locale, { fr: 'Sauvegardé', en: 'Saved', es: 'Guardado' })) : driveSyncStatus === 'syncing' ? 'En cours…' : driveSyncStatus === 'error' ? 'À vérifier' : 'Connecté'}</span>
                 </span>
               </div>
 
@@ -193,12 +195,10 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
               <div className="p-4 rounded-japandi-xl bg-japandi-sand/30 border border-japandi-border flex flex-col gap-2">
                 <span className="text-xs font-bold text-japandi-text flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5 text-japandi-pine" />
-                  <span>{locale === 'fr' ? 'Sauvegarde Google Drive facultative' : 'Optional Google Drive backup'}</span>
+                  <span>{pick(locale, { fr: 'Sauvegarde Google Drive facultative', en: 'Optional Google Drive backup', es: 'Copia opcional en Google Drive' })}</span>
                 </span>
                 <p className="text-xs text-japandi-muted leading-relaxed">
-                  {locale === 'fr'
-                    ? 'Sauvegardez et restaurez manuellement vos données. La restauration remplace les données de cet appareil ; une copie locale permet de revenir en arrière depuis Sauvegardes. Évitez les modifications simultanées sur plusieurs appareils.'
-                    : 'All your subscriptions and settings are backed up to your private Google Drive and can be restored on another device.'}
+                  {pick(locale, { fr: 'Sauvegardez et restaurez manuellement vos données. La restauration remplace les données de cet appareil ; une copie locale permet de revenir en arrière depuis Sauvegardes. Évitez les modifications simultanées sur plusieurs appareils.', en: 'All your subscriptions and settings are backed up to your private Google Drive and can be restored on another device.', es: 'Todas tus suscripciones y ajustes se guardan en tu Google Drive privado y se pueden restaurar en otro dispositivo.' })}
                 </p>
                 <div className="flex items-center justify-center gap-3 text-xs font-semibold text-japandi-muted pt-2 border-t border-japandi-border/40">
                   <div className="flex items-center gap-1">
@@ -222,7 +222,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                   className="w-full py-2.5 px-4 rounded-japandi-xl bg-japandi-pine text-white text-xs font-bold hover:bg-japandi-pine/90 transition-all flex items-center justify-center gap-2 shadow-japandi-xs disabled:opacity-50"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                  <span>{locale === 'fr' ? 'Sauvegarder maintenant sur Google Drive' : 'Sync to Google Drive Now'}</span>
+                  <span>{pick(locale, { fr: 'Sauvegarder maintenant sur Google Drive', en: 'Sync to Google Drive Now', es: 'Sincronizar ahora con Google Drive' })}</span>
                 </button>
 
                 <button
@@ -232,7 +232,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                   className="w-full py-2.5 px-4 rounded-japandi-xl bg-japandi-elevated border border-japandi-border text-japandi-text text-xs font-bold hover:border-japandi-pine transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <Cloud className="w-3.5 h-3.5 text-japandi-pine" />
-                  <span>{locale === 'fr' ? 'Restaurer depuis Google Drive' : 'Restore from Google Drive'}</span>
+                  <span>{pick(locale, { fr: 'Restaurer depuis Google Drive', en: 'Restore from Google Drive', es: 'Restaurar desde Google Drive' })}</span>
                 </button>
 
                 <button
@@ -241,7 +241,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                   className="w-full py-2 px-4 rounded-japandi-xl border border-japandi-border text-japandi-terracotta hover:bg-japandi-terracotta/10 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 mt-2"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>{locale === 'fr' ? 'Se déconnecter (Repasser en mode local)' : 'Sign out (Switch to Local Only)'}</span>
+                  <span>{pick(locale, { fr: 'Se déconnecter (Repasser en mode local)', en: 'Sign out (Switch to Local Only)', es: 'Cerrar sesión (solo en este dispositivo)' })}</span>
                 </button>
               </div>
             </div>
@@ -255,32 +255,30 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                   <div className="flex items-center gap-2">
                     <Cloud className="w-4 h-4 text-japandi-pine" />
                     <span className="font-extrabold text-sm text-japandi-text">
-                      {locale === 'fr' ? '1. Sauvegarde Cloud Google Drive' : '1. Google Drive Cloud Sync'}
+                      {pick(locale, { fr: '1. Sauvegarde Cloud Google Drive', en: '1. Google Drive Cloud Sync', es: '1. Sincronización con Google Drive' })}
                     </span>
                   </div>
                   <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-japandi-pine text-white">
-                    {locale === 'fr' ? 'Recommandé' : 'Recommended'}
+                    {pick(locale, { fr: 'Recommandé', en: 'Recommended', es: 'Recomendado' })}
                   </span>
                 </div>
 
                 <p className="text-xs text-japandi-muted leading-relaxed">
-                  {locale === 'fr'
-                    ? 'Connectez votre compte Google pour sauvegarder vos abonnements en manuelle sur votre Google Drive privé.'
-                    : 'Connect your Google account to back up subscriptions in real time to your private Google Drive.'}
+                  {pick(locale, { fr: 'Connectez votre compte Google pour sauvegarder vos abonnements en manuelle sur votre Google Drive privé.', en: 'Connect your Google account to back up subscriptions in real time to your private Google Drive.', es: 'Conecta tu cuenta de Google para guardar tus suscripciones en tiempo real en tu Google Drive privado.' })}
                 </p>
 
                 <div className="flex flex-col gap-1.5 text-xs text-japandi-text pt-1">
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />
-                    <span>{locale === 'fr' ? 'Sauvegarde et restauration sur vos appareils' : 'Backup and restore across your devices'}</span>
+                    <span>{pick(locale, { fr: 'Sauvegarde et restauration sur vos appareils', en: 'Backup and restore across your devices', es: 'Copia y restauración entre tus dispositivos' })}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />
-                    <span>{locale === 'fr' ? 'Restauration manuelle de la dernière sauvegarde disponible' : 'Instant recovery if you change or reset your phone'}</span>
+                    <span>{pick(locale, { fr: 'Restauration manuelle de la dernière sauvegarde disponible', en: 'Instant recovery if you change or reset your phone', es: 'Recuperación inmediata si cambias o reinicias tu móvil' })}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="w-3.5 h-3.5 text-japandi-pine flex-shrink-0 mt-0.5" />
-                    <span>{locale === 'fr' ? 'Dossier applicatif isolé dans votre Drive (sans chiffrement de bout en bout)' : 'App-only folder in your Drive (not end-to-end encrypted)'}</span>
+                    <span>{pick(locale, { fr: 'Dossier applicatif isolé dans votre Drive (sans chiffrement de bout en bout)', en: 'App-only folder in your Drive (not end-to-end encrypted)', es: 'Carpeta propia de la app en tu Drive (sin cifrado de extremo a extremo)' })}</span>
                   </div>
                 </div>
 
@@ -312,8 +310,8 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                   </svg>
                   <span>
                     {isLoading
-                      ? (locale === 'fr' ? 'Connexion en cours...' : 'Connecting...')
-                      : (locale === 'fr' ? 'Se connecter avec Google' : 'Sign in with Google')}
+                      ? (pick(locale, { fr: 'Connexion en cours...', en: 'Connecting...', es: 'Conectando...' }))
+                      : (pick(locale, { fr: 'Se connecter avec Google', en: 'Sign in with Google', es: 'Iniciar sesión con Google' }))}
                   </span>
                 </button>
               </div>
@@ -323,16 +321,14 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                 <div className="flex items-center gap-2">
                   <HardDrive className="w-4 h-4 text-japandi-muted" />
                   <span className="font-bold text-xs text-japandi-text">
-                    {locale === 'fr' ? '2. Mode Local Uniquement (Hors-ligne)' : '2. Local Only Mode (Offline)'}
+                    {pick(locale, { fr: '2. Mode Local Uniquement (Hors-ligne)', en: '2. Local Only Mode (Offline)', es: '2. Modo local (sin conexión)' })}
                   </span>
                 </div>
 
                 <div className="p-2.5 rounded-japandi-lg bg-amber-500/10 border border-amber-500/20 flex items-start gap-2 text-[11px] text-amber-700 dark:text-amber-400">
                   <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                   <span>
-                    {locale === 'fr'
-                      ? 'Attention : en mode local, vos données restent uniquement dans ce navigateur. Elles ne seront pas synchronisées sur votre téléphone et seront perdues si vous videz le cache ou changez d\'appareil.'
-                      : 'Notice: in local mode, data is only stored in this browser. You won\'t be able to sync across devices or recover data if you reset your browser cache.'}
+                    {pick(locale, { fr: 'Attention : en mode local, vos données restent uniquement dans ce navigateur. Elles ne seront pas synchronisées sur votre téléphone et seront perdues si vous videz le cache ou changez d\'appareil.', en: 'Notice: in local mode, data is only stored in this browser. You won\'t be able to sync across devices or recover data if you reset your browser cache.', es: 'Aviso: en modo local, los datos solo se guardan en este navegador. No podrás sincronizar entre dispositivos ni recuperarlos si borras la caché del navegador.' })}
                   </span>
                 </div>
 
@@ -341,7 +337,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
                   onClick={onClose}
                   className="w-full py-2 px-3 rounded-japandi-lg border border-japandi-border bg-japandi-surface text-japandi-muted hover:text-japandi-text hover:border-japandi-pine text-xs font-semibold transition-all mt-1"
                 >
-                  {locale === 'fr' ? 'Continuer en mode local uniquement' : 'Continue in Local Mode'}
+                  {pick(locale, { fr: 'Continuer en mode local uniquement', en: 'Continue in Local Mode', es: 'Continuar en modo local' })}
                 </button>
               </div>
 
@@ -356,7 +352,7 @@ export const GoogleAccountModal: React.FC<GoogleAccountModalProps> = ({ isOpen, 
             onClick={onClose}
             className="px-4 py-2 rounded-japandi-lg border border-japandi-border text-japandi-muted hover:text-japandi-text text-xs font-semibold transition-colors"
           >
-            {locale === 'fr' ? 'Fermer' : 'Close'}
+            {pick(locale, { fr: 'Fermer', en: 'Close', es: 'Cerrar' })}
           </button>
         </div>
       </div>
