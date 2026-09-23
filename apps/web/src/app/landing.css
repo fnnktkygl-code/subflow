@@ -148,3 +148,5 @@
   .lp-js [data-reveal] { opacity: 1; transform: none; transition: none; }
   .lp-stage-phone { transition: none; }
 }
+.lp-companions { margin-top: 12px; }
+.lp-uko-copy .lp-note { margin-top: 10px; }

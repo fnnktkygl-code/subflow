@@ -15,7 +15,7 @@ declare module 'react' {
     interface IntrinsicElements {
       'uko-mascot': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         state?: string; hair?: string; brand?: string; 'hair-color'?: string; theme?: string;
-        interactive?: string; 'one-shot'?: string; cheeks?: string;
+        interactive?: string; 'one-shot'?: string; cheeks?: string; character?: string;
       };
     }
   }
@@ -46,8 +46,15 @@ export const UKO_THEME: Record<string, { brand: string; hair: string }> = {
   barbie: { brand: '#FBCFE8', hair: '#DB2777' }
 };
 
+export type UkoCharacter = 'uko' | 'aituko' | 'meowuko';
+export const UKO_CHARACTERS: { id: UkoCharacter; name: string }[] = [
+  { id: 'uko', name: 'Uko' }, { id: 'aituko', name: 'Aituko' }, { id: 'meowuko', name: 'Meowuko' }
+];
+
 export interface UkoMascotProps {
   state?: UkoState;
+  /** Which member of the family; defaults to the companion chosen in the settings. */
+  character?: UkoCharacter;
   hair?: string;
   interactive?: boolean;
   oneShot?: 'return' | 'loop';
@@ -59,11 +66,14 @@ export interface UkoMascotProps {
 }
 
 export const UkoMascot: React.FC<UkoMascotProps> = ({
-  state = 'idle', hair = 'original', interactive = true, oneShot = 'return', className, label, palette, onComplete
+  state = 'idle', character, hair = 'original', interactive = true, oneShot = 'return', className, label, palette, onComplete
 }) => {
   const ref = useRef<HTMLElement | null>(null);
   const [ready, setReady] = useState(false);
   const themeMode = useSubscriptionStore((s) => s.profile.themeMode) || 'light';
+  const companion = useSubscriptionStore((s) => s.profile.companion) || 'uko';
+  const who = character ?? companion;
+  const name = UKO_CHARACTERS.find((c) => c.id === who)?.name ?? 'Uko';
   const colors = UKO_THEME[palette ?? themeMode] ?? LIGHT;
 
   useEffect(() => {
@@ -81,11 +91,12 @@ export const UkoMascot: React.FC<UkoMascotProps> = ({
   }, [onComplete, ready]);
 
   return (
-    <div className={className} role="img" aria-label={label || `Uko : ${state}`}>
+    <div className={className} role="img" aria-label={(label || `Uko : ${state}`).replace(/^Uko\b/, name)}>
       {ready && (
         <uko-mascot
           ref={ref as React.Ref<HTMLElement>}
           state={state}
+          character={who}
           hair={hair}
           brand={colors.brand}
           hair-color={colors.hair}

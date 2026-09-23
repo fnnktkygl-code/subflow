@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { ArrowRight, ArrowUpRight, Check } from 'lucide-react';
 import { Locale } from '@subflow/core';
 import { PhoneClip } from '../components/landing/PhoneClip';
-import { UkoMascot } from '../components/uko/UkoMascot';
+import { UkoMascot, UKO_CHARACTERS, type UkoCharacter } from '../components/uko/UkoMascot';
 import type { UkoState } from '../components/uko/ukoBus';
 import { useTranslation } from '../hooks/useTranslation';
 import './landing.css';
@@ -22,7 +22,7 @@ type Copy = {
   factsLabel: string; facts: [string, string, string, string, string];
   tourEyebrow: string; tourTitle: React.ReactNode;
   steps: { tag: string; title: React.ReactNode; text: string; points: string[] }[];
-  ukoEyebrow: string; ukoTitle: React.ReactNode; ukoLead: string; moodsLabel: string;
+  ukoEyebrow: string; ukoTitle: React.ReactNode; ukoLead: string; moodsLabel: string; companionLabel: string; companionNote: string;
   moods: { label: string; text: string }[];
   privacyEyebrow: string; privacyTitle: React.ReactNode; privacy: string[]; privacyNote: string; privacyLink: string;
   closingTitle: React.ReactNode; closingText: string; closingCta: string; feedback: string;
@@ -47,6 +47,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     ukoEyebrow: 'Le compagnon', ukoTitle: <>Uko suit<br /><em>vos comptes.</em></>,
     ukoLead: 'Il réagit à ce qui se passe dans l’app et prend les couleurs de votre thème. Touchez une situation :', moodsLabel: 'Situations',
+    companionLabel: 'Compagnon', companionNote: 'Uko, Aituko le robot ou Meowuko le chat : à choisir dans les réglages.',
     moods: [
       { label: 'Liste vide', text: 'Aucun abonnement pour l’instant.' },
       { label: 'Prélèvement proche', text: 'Un débit arrive dans les prochains jours.' },
@@ -80,6 +81,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     ukoEyebrow: 'The companion', ukoTitle: <>Uko keeps an eye<br /><em>on your budget.</em></>,
     ukoLead: 'He reacts to what happens in the app and takes on your theme’s colours. Tap a situation:', moodsLabel: 'Situations',
+    companionLabel: 'Companion', companionNote: 'Uko, Aituko the robot or Meowuko the cat: pick one in the settings.',
     moods: [
       { label: 'Empty list', text: 'No subscriptions yet.' },
       { label: 'Payment soon', text: 'A payment is due in the next few days.' },
@@ -113,6 +115,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     ukoEyebrow: 'El compañero', ukoTitle: <>Uko sigue<br /><em>tus cuentas.</em></>,
     ukoLead: 'Reacciona a lo que pasa en la app y adopta los colores de tu tema. Toca una situación:', moodsLabel: 'Situaciones',
+    companionLabel: 'Compañero', companionNote: 'Uko, Aituko el robot o Meowuko el gato: elígelo en los ajustes.',
     moods: [
       { label: 'Lista vacía', text: 'Aún no hay suscripciones.' },
       { label: 'Cargo próximo', text: 'Llega un cargo en los próximos días.' },
@@ -138,6 +141,7 @@ export default function LandingPage() {
   const root = useRef<HTMLDivElement>(null);
   const [step, setStep] = useState(0);
   const [mood, setMood] = useState<UkoState>('thinking');
+  const [companion, setCompanion] = useState<UkoCharacter>('uko');
   const [scrolled, setScrolled] = useState(false);
   const clip = (name: string) => `${locale}/${name}`;
 
@@ -251,7 +255,7 @@ export default function LandingPage() {
 
     <section id="uko" className="lp-uko">
       <div className="lp-uko-stage" data-reveal>
-        <UkoMascot state={mood} palette="light" oneShot="loop" className="lp-uko-mascot" label={`Uko : ${current.label}`} />
+        <UkoMascot state={mood} character={companion} palette="light" oneShot="loop" className="lp-uko-mascot" label={`Uko : ${current.label}`} />
         <p className="lp-uko-says" aria-live="polite">{current.text}</p>
       </div>
       <div className="lp-uko-copy" data-reveal>
@@ -261,6 +265,10 @@ export default function LandingPage() {
         <div className="lp-moods" role="group" aria-label={C.moodsLabel}>
           {MOOD_STATES.map((s, i) => <button key={s} type="button" aria-pressed={mood === s} onClick={() => setMood(s)}>{C.moods[i]!.label}</button>)}
         </div>
+        <div className="lp-moods lp-companions" role="group" aria-label={C.companionLabel}>
+          {UKO_CHARACTERS.map(({ id, name }) => <button key={id} type="button" aria-pressed={companion === id} onClick={() => setCompanion(id)}>{name}</button>)}
+        </div>
+        <p className="lp-note">{C.companionNote}</p>
       </div>
     </section>
 

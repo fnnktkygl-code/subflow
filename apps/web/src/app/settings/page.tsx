@@ -12,6 +12,7 @@ import { BackupManagerModal } from '../../components/BackupManagerModal';
 import { TrueLayerSyncModal } from '../../components/TrueLayerSyncModal';
 import { NotificationSettingsCard } from '../../components/NotificationSettingsCard';
 import { GoogleDriveSyncCard } from '../../components/GoogleDriveSyncCard';
+import { UkoMascot, UKO_CHARACTERS } from '../../components/uko/UkoMascot';
 
 import {
   Globe,
@@ -190,6 +191,37 @@ export default function SettingsPage() {
                 {label}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Companion: Uko, Aituko (robot) or Meowuko (cat) */}
+        <div className="flex flex-col gap-2 pt-3 border-t border-japandi-border">
+          <div>
+            <label className="text-xs font-semibold text-japandi-text">
+              {pick(locale, { fr: 'Compagnon', en: 'Companion', es: 'Compañero' })}
+            </label>
+            <p className="text-[11px] text-japandi-muted">
+              {pick(locale, { fr: 'La mascotte qui réagit dans l’app', en: 'The mascot that reacts in the app', es: 'La mascota que reacciona en la app' })}
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2" role="group" aria-label={pick(locale, { fr: 'Compagnon', en: 'Companion', es: 'Compañero' })}>
+            {UKO_CHARACTERS.map(({ id, name }) => {
+              const on = (profile.companion || 'uko') === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => updateProfile({ companion: id })}
+                  className={`flex flex-col items-center gap-1 rounded-japandi-xl border p-2 transition-all ${
+                    on ? 'border-japandi-pine bg-japandi-elevated shadow-japandi-xs' : 'border-japandi-border hover:border-japandi-pine/50'
+                  }`}
+                >
+                  <UkoMascot character={id} state={on ? 'welcome' : 'idle'} oneShot="loop" interactive={false} className="w-12 h-16 pointer-events-none" label={name} />
+                  <span className={`text-xs font-bold ${on ? 'text-japandi-pine' : 'text-japandi-muted'}`}>{name}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 

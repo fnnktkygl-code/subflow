@@ -41,6 +41,8 @@ export interface UserProfile {
   isIncomeConfigured: boolean;
   themeMode: ThemeMode;
   language?: 'fr' | 'en' | 'es';
+  /** Mascot shown in the app: Uko, Aituko (robot) or Meowuko (cat). */
+  companion?: 'uko' | 'aituko' | 'meowuko';
 }
 
 export interface PresetCatalogItem {
