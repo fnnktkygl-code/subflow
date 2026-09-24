@@ -407,6 +407,11 @@
     // centre, before head rotation) so the beard opens exactly around it.
     const FACE_X={shift:0,scaleX:1};
     let BEARD_MOUTH=null;
+    // Level of detail: below ~200 device pixels wide, the faint texture strokes of the hair (opacity
+    // ≤ .3) are thinner than a pixel and invisible, but they are most of the DOM of the
+    // afro, dreadlocks and braids. The runtime sets this flag before each render.
+    let HAIR_LOD=false;
+    const hairLod=svg=>svg.indexOf('hairDetail')<0?svg:svg.replace(/<path [^>]*class="hairDetail" style="[^"]*opacity:(0?\.[0-2]\d*|\.30*)"\/>/g,'');
     function quadMaxY(y0,qy,y1){const d=y0-2*qy+y1,t=d?clamp((y0-qy)/d):0;return Math.max(y0,y1,(1-t)*(1-t)*y0+2*(1-t)*t*qy+t*t*y1);}
     // The beard is one of Uko's hairstyles: the other characters never wear it.
     function wearsBeard(){return typeof APPEARANCE!=='undefined'&&APPEARANCE.hairStyle==='barbe'&&!characterDef();}
@@ -847,6 +852,22 @@
      }
      if(run.length>1)runs.push(run);return runs;
     }
+    // Rounded closed polygon without duplicate or aligned points: the same shape (drift
+    // under 0.6 viewBox unit, ~0.15 px on screen) with far fewer points to re-parse
+    // every frame.
+    function hairPoly(ps){
+     const q=[];
+     for(const p of ps){
+      const x=Math.round(p[0]),y=Math.round(p[1]),l=q[q.length-1];
+      if(l&&l[0]===x&&l[1]===y)continue;
+      if(q.length>=2){
+       const a=q[q.length-2],cr=(l[0]-a[0])*(y-a[1])-(l[1]-a[1])*(x-a[0]);
+       if(Math.abs(cr)<=0.6*Math.hypot(x-a[0],y-a[1])){q[q.length-1]=[x,y];continue;}
+      }
+      q.push([x,y]);
+     }
+     return q.length<3?'':'M '+q.map(p=>p[0]+' '+p[1]).join(' L ')+' Z ';
+    }
     function hairSmoothPath(points){
      const n=points.length;
      if(n<2)return '';
@@ -900,7 +921,7 @@
      svg+=`<g clip-path="url(#${id})">`;
      for(const line of g.lines){
       const points=deform(line.front,side<0?line.leftProfile:line.profile);
-      svg+=`<path d="${hairSmoothPath(points)}" class="hairDetail" style="stroke-width:${1.5*f.scale};opacity:.28"/>`;
+      if(!HAIR_LOD)svg+=`<path d="${hairSmoothPath(points)}" class="hairDetail" style="stroke-width:${1.5*f.scale};opacity:.28"/>`;
      }
      return svg+'</g>';
     }
@@ -936,7 +957,7 @@
       return q;
      };
 
-     const add=(z,svg)=>items.push({z,svg});
+     const add=(z,svg)=>items.push({z,svg:HAIR_LOD?hairLod(svg):svg});
      if(model.beard)model.cap=model.beard(yaw,BEARD_MOUTH);
      const fill=model.style==='degrade'?`url(#hair-fade-${layer})`:'var(--hairColor)';
      // The whole cap of a layer is ONE path: cells are cut exactly at the depth
@@ -954,7 +975,7 @@
        let area=0;for(let i=0;i<ps.length;i++){const a=ps[i],b=ps[(i+1)%ps.length];area+=a[0]*b[1]-b[0]*a[1];}
        if(Math.abs(area)<1e-3)continue;
        if(area<0)ps.reverse();
-       mesh+=`M ${ps.map(fmt).join(' L ')} Z `;
+       mesh+=hairPoly(ps);
       }
       if(mesh)add(-1e9,`<path d="${mesh}" fill="${fill}"${model.style==='degrade'?'':` stroke="${fill}" stroke-width="${(f.scale*1.4).toFixed(2)}" stroke-linejoin="round"`}/>`);
      }
@@ -973,13 +994,13 @@
         if(inside)ps.push(b);
        }
        if(ps.length<3)continue;
-       mesh+=`M ${ps.map(fmt).join(' L ')} Z `;
+       mesh+=hairPoly(ps);
       }
       add(0,`<path d="${mesh}" class="hairFill" stroke="var(--hairColor)" stroke-width="${1.1*f.scale}" stroke-linejoin="round"/>`);
       for(const curl of model.afro.curls){
        const p=projectVolume(curl.p,null,curl.r);if((p[2]>=0)!==front)continue;
-       const rad=curl.r*f.scale;
-       add(p[2]+2,`<circle cx="${p[0]}" cy="${p[1]}" r="${rad}" class="hairFill"/><path d="M ${p[0]-rad*.32} ${p[1]} q ${-rad*.1} ${-rad*.6} ${rad*.62} ${-rad*.45}" class="hairDetail" style="stroke-width:${1.2*f.scale};opacity:.12"/>`);
+       const rad=curl.r*f.scale,r1=v=>Math.round(v*10)/10;
+       add(p[2]+2,`<circle cx="${r1(p[0])}" cy="${r1(p[1])}" r="${r1(rad)}" class="hairFill"/><path d="M ${r1(p[0]-rad*.32)} ${r1(p[1])} q ${r1(-rad*.1)} ${r1(-rad*.6)} ${r1(rad*.62)} ${r1(-rad*.45)}" class="hairDetail" style="stroke-width:${r1(1.2*f.scale)};opacity:.12"/>`);
       }
      }
      for(const ink of model.ink)for(const run of hairDepthRuns(ink.points.map(p=>projectVolume(p)),front)){
@@ -4626,7 +4647,7 @@
       // Life layer (core/life.js): breathing, weight shifts and small gestures in the
       // persistent states, paused while a tap reaction or the pointer owns Uko.
       let life = { rot: 0, eye: [0, 0] };
-      if (now - LIFE.gainAt > 500 || now < LIFE.gainAt) { LIFE.gain = lifeGainFor(el.clientWidth || 240); LIFE.gainAt = now; }
+      if (now - LIFE.gainAt > 500 || now < LIFE.gainAt) { const w = el.clientWidth || 240; LIFE.gain = lifeGainFor(w); LIFE.lod = w * ((typeof window !== "undefined" && window.devicePixelRatio) || 1) < 200; LIFE.gainAt = now; }
       if (!walkActive && !CLOCK.reduced && !mv) {
         const busy = cur === 'idle' && (MICRO.tap.active || MICRO.idleVariation.active || MICRO.eyeTracking.hovering || !!GAZE.target);
         life = applyLife(p, cur, now, cur === 'idle' || curEntered, busy);
@@ -4688,6 +4709,7 @@
       updateHairPhysics(now, hx, hy, q.head_radius, rot, headYaw);
       const blink = CLOCK.reduced ? 0 : blinkAmount(now, faceMode);
       const laptop = cur === 'loading';
+      HAIR_LOD = !!LIFE.lod;
       rigEl.innerHTML = renderRig(q, faceMode, rot, blink, laptop, attention.eye, yaw, headYaw);
       fxEl.innerHTML = fxMarkup(cur, q, t, loop, laptop ? true : curEntered) + laptopExitMarkup(now) + microFxMarkup(now);
       // Debug builds expose the composed frame (used to bake the Rive file).
@@ -4704,9 +4726,18 @@
       // Time runs under reduced motion too (one-shots still complete); only the visuals are static.
       if (!document.hidden && !CLOCK.paused) CLOCK.time += delta;
       sinceDraw += delta;
-      if (sinceDraw + 1 >= minFrameMs && !CLOCK.paused) { sinceDraw = 0; frame(motionNow()); }
+      if (sinceDraw + 1 >= (onScreen ? minFrameMs : OFFSCREEN_FRAME_MS) && !CLOCK.paused) { sinceDraw = 0; frame(motionNow()); }
       rafId = requestAnimationFrame(loopTick);
     }
+
+    // Off screen (scrolled away, display: none), a mascot keeps its clock and logic
+    // (one-shots end, moves call onDone) but redraws only 4 times a second.
+    const OFFSCREEN_FRAME_MS = 250;
+    let onScreen = true;
+    const viewObserver = typeof IntersectionObserver === 'function'
+      ? new IntersectionObserver(es => { const e = es[es.length - 1]; const was = onScreen; onScreen = e.isIntersecting; if (onScreen && !was) sinceDraw = Infinity; }, { rootMargin: '120px' })
+      : null;
+    if (viewObserver) viewObserver.observe(el);
 
     curStart = motionNow();
     // No onStateChange during create(): the host already knows the initial state and
@@ -4863,6 +4894,7 @@
         window.removeEventListener('pointerdown', onPagePointer);
         document.removeEventListener('pointerleave', onPageLeave);
         themeObserver.disconnect();
+        if (viewObserver) viewObserver.disconnect();
         if (systemDarkQuery && systemDarkQuery.removeEventListener) systemDarkQuery.removeEventListener('change', updateColors);
         el.innerHTML = '';
       }
