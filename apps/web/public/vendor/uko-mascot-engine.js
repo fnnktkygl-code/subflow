@@ -1742,7 +1742,8 @@
       // its forearm and hand are drawn over the hair, the upper arm stays behind.
       const reachPx=hairReach()*p.head_radius/185;
       const raisedInHair=h=>current!=='sleep'&&current!=='wake'&&h[1]<p.neck[1]-40&&(characterDef()?characterCovers(p,h,rot,40):Math.hypot(h[0]-cx,h[1]-cy)<reachPx+40);
-      const front={L:touchesHead(hcL)||raisedInHair(hcL),R:thinkingFront||touchesHead(hcR)||raisedInHair(hcR)};
+      // A scripted move (climb) draws both forearms in front: hands gripping above the head.
+      const front={L:MOVE_FRONT_ARMS||touchesHead(hcL)||raisedInHair(hcL),R:MOVE_FRONT_ARMS||thinkingFront||touchesHead(hcR)||raisedInHair(hcR)};
       const hand=(c,a)=>`<ellipse class="hand" cx="${c[0]}" cy="${c[1]}" rx="46" ry="26" transform="rotate(${a} ${c[0]} ${c[1]})"/>`;
 
       // Hair behind the head is also behind the body (long hair, ponytails, braids).
@@ -3660,6 +3661,95 @@
       return p;
     }
 
+    // Scripted moves (web engine): full-body actions an app can play on top of the
+    // states, e.g. to climb onto an element of its interface.
+    //
+    //   uko.climb({ onDone, behind })  — the mascot hangs from the ledge its feet stand on
+    //   (the feet line of its box, y = 1408), pulls itself up, swings a leg over and
+    //   stands up. Place the mascot box so that its feet line sits on the edge to climb.
+    //   behind: true = it climbs up the far side of the element: shoulder-width grip, and
+    //   the host hides what is below the edge (the element is in front of the body).
+    //
+    // Phases (u = 0..1 over MOVES.climb.dur):
+    //   .00–.16 hang     hands on the ledge, arms straight, body dangling and swaying
+    //   .16–.56 pull     elbows bend outwards, the chin comes over the edge, legs kick
+    //   .56–.80 mantle   arms push down, the right leg swings over (knee on the ledge)
+    //   .80–1.0 stand    the left leg follows, hands let go, standing pose
+    const MOVES = { climb: { dur: 3200 } };
+    const LEDGE = 1408;
+    let MOVE_FRONT_ARMS = false;   // read by renderRig
+
+    function climbPose(u, behind = false) {
+      const base = DATA.poses.idle, p = cpy(base), S = SKELETON;
+      const ease = smooth5;
+      const arm = S.upperArm.L + S.foreArm.L, reach = arm * 0.97 + S.hand.L * 0.9;
+      const A = .16, B = .56, C = .80;
+      const pull = ease(clamp((u - A) / (B - A))), mantle = ease(clamp((u - B) / (C - B))), stand = ease(clamp((u - C) / (1 - C)));
+      // A wide grip (arms beside the head, like a pull-up); hands come in to push down.
+      const wide = behind ? 118 : 255;
+      const half = lp(wide, behind ? 118 : 128, mantle), cx = (base.shoulder_L[0] + base.shoulder_R[0]) / 2;
+      const grip = { L: [cx - half, LEDGE - 10], R: [cx + half, LEDGE - 10] };
+      // Body offset (down +): fully hanging → chin over the edge → chest over → standing.
+      const dxHang = wide - (base.shoulder_R[0] - base.shoulder_L[0]) / 2;
+      const dyHang = LEDGE - 10 + Math.sqrt(reach * reach - dxHang * dxHang) - base.shoulder_L[1];
+      const dyChin = LEDGE + 34 - base.shoulder_L[1];
+      const dyChest = LEDGE - Math.sqrt(reach * reach - (behind ? 118 : 128) ** 2) * 0.9 - base.shoulder_L[1];
+      const dy = u < B ? lp(dyHang, dyChin, pull) : u < C ? lp(dyChin, dyChest, mantle) : lp(dyChest, 0, stand);
+      // Hanging bodies swing; the swing dies out as the pull starts.
+      const sway = u < B ? Math.sin(u * 22) * 18 * (1 - pull) : 0;
+      for (const k of ['head_center', 'neck', 'shoulder_L', 'shoulder_R', 'pelvis', 'hip_L', 'hip_R']) p[k] = [base[k][0] + sway * (k === 'pelvis' || k.startsWith('hip') ? 1 : .35), base[k][1] + dy];
+
+      // Arms: hands on the ledge until they let go while standing up.
+      const release = ease(clamp((u - .86) / .12));
+      for (const [s, dir] of [['L', -1], ['R', 1]]) {
+        const sh = p[`shoulder_${s}`], g = grip[s];
+        const hand = [lp(g[0], base[`hand_${s}_center`][0], release), lp(g[1], base[`hand_${s}_center`][1] + dy, release)];
+        const wrist = [hand[0], hand[1] + S.hand[s] * (1 - release) - S.hand[s] * .9 * release];
+        // Elbow direction: straight up while hanging, out and down at the top of the pull,
+        // slightly out while pushing down on the ledge.
+        // From behind the elbows stay close to the body (arms mostly hidden below the edge).
+        const out = (u < B ? pull : 1 - mantle * .6) * (behind ? .55 : 1);
+        const mid = [(sh[0] + wrist[0]) / 2, (sh[1] + wrist[1]) / 2];
+        const elbow = [mid[0] + dir * 150 * out, mid[1] + 70 * out];
+        p[`elbow_${s}`] = [lp(elbow[0], base[`elbow_${s}`][0], release), lp(elbow[1], base[`elbow_${s}`][1] + dy, release)];
+        p[`wrist_${s}`] = wrist;
+        p[`hand_${s}_center`] = hand;
+      }
+
+      // Legs: dangle and kick while pulling; the right one swings over the edge, the left follows.
+      const legLen = S.thigh.L + S.shin.L, t = u * MOVES.climb.dur / 1000;
+      for (const [s, dir, phase] of [['L', -1, 0], ['R', 1, Math.PI]]) {
+        const hip = p[`hip_${s}`];
+        const kick = u < B ? Math.max(0, Math.sin(t * 7 + phase)) * pull : 0;
+        const dangle = [hip[0] + dir * 30 + sway * .6, hip[1] + legLen * (0.97 - .38 * kick)];
+        const knee = [hip[0] + dir * (40 + 90 * kick), hip[1] + S.thigh[s] * (1 - .5 * kick)];
+        const stood = [base[`ankle_${s}`][0], base[`ankle_${s}`][1]];
+        let ankle, kn;
+        if (s === 'R') {
+          // Over the edge during the mantle: knee on the ledge, then the foot plants.
+          const onEdge = [hip[0] + 170, LEDGE - 26], knOnEdge = [hip[0] + 190, LEDGE - 18];
+          const over = mantle;
+          ankle = u < C ? [lp(dangle[0], onEdge[0], over), lp(dangle[1], onEdge[1], over)] : [lp(onEdge[0], stood[0], stand), lp(onEdge[1], stood[1], stand)];
+          kn = u < C ? [lp(knee[0], knOnEdge[0], over), lp(knee[1], knOnEdge[1], over)] : [lp(knOnEdge[0], base.knee_R[0], stand), lp(knOnEdge[1], base.knee_R[1], stand)];
+        } else {
+          // Keeps dangling until the stand-up, then comes up over the edge.
+          const up = ease(clamp((u - C) / (.95 - C)));
+          const arc = [lp(dangle[0], stood[0], up), lp(dangle[1], stood[1], up) - Math.sin(Math.PI * up) * 160];
+          ankle = u < C ? dangle : arc;
+          kn = u < C ? knee : [lp(knee[0], base.knee_L[0], up) - Math.sin(Math.PI * up) * 90, lp(knee[1], base.knee_L[1], up) - Math.sin(Math.PI * up) * 160];
+        }
+        p[`ankle_${s}`] = ankle; p[`knee_${s}`] = kn;
+        p[`foot_${s}_center`] = [ankle[0] + (base[`foot_${s}_center`][0] - base[`ankle_${s}`][0]), ankle[1] + (base[`foot_${s}_center`][1] - base[`ankle_${s}`][1])];
+      }
+      p.head_radius = base.head_radius;
+      return p;
+    }
+
+    // Face and head tilt along the climb: worried while hanging, straining while pulling
+    // and getting over, happy once standing.
+    function climbFace(u) { return u < .14 ? 'empty' : u < .84 ? 'tapOuch' : 'success'; }
+    function climbRot(u) { return u < .56 ? Math.sin(u * 22) * 4 * (1 - smooth5(clamp((u - .16) / .4))) : u < .84 ? -6 * Math.sin(Math.PI * clamp((u - .56) / .28)) : 0; }
+
     // Life layer: keeps the persistent states (idle, thinking, loading, sleep) alive.
     //
     // What people read as "alive" in a character, and how it is built here:
@@ -4294,6 +4384,8 @@
 
     // Core state change. Always blends from what is on screen.
     function go(next, reason) {
+      // Any state change interrupts a scripted move (e.g. the form closes mid-climb).
+      if (MOVE.name) { MOVE.name = null; MOVE.done = null; }
       if (!ORDER.includes(next)) {
         // Starter edition: a full-pack state keeps Uko where he is instead of breaking the app.
         if (FULL_ORDER.includes(next)) { fullPackNotice(next); return; }
@@ -4484,6 +4576,21 @@
     }
 
     let debugFrame = null;
+    // Scripted move in progress (climb): it owns the whole body until it ends.
+    const MOVE = { name: null, start: 0, done: null, behind: false };
+    function moveFrame(now) {
+      const u = clamp((now - MOVE.start) / MOVES[MOVE.name].dur);
+      if (u >= 1) {
+        const done = MOVE.done;
+        MOVE.name = null; MOVE.done = null;
+        if (shown) blend = { from: cpy(shown), fromFace: shownFace, fromRot: shownRot, start: now, dur: 380, fromThinking: false };
+        if (done) done();
+        if (options.onComplete) options.onComplete('climb');
+        return null;
+      }
+      return { pose: climbPose(u, MOVE.behind), face: climbFace(u), rot: climbRot(u), frontArms: !MOVE.behind && u < .86 };
+    }
+
     function frame(now) {
       // Legacy layer reads these.
       current = cur; start = curStart; entered = curEntered;
@@ -4496,10 +4603,13 @@
       const main = resolveMainMotionFrame(now, 1);
       let p = main.pose, t = main.t, loop = main.loop;
       curEntered = entered = main.entered;
+      const mv = MOVE.name && !CLOCK.reduced ? moveFrame(now) : null;
+      if (mv) p = mv.pose;
+      MOVE_FRONT_ARMS = !!mv && mv.frontArms;
 
       const walkActive = WALK.active;
       let rotOffset = 0;
-      if (cur === 'idle' && !walkActive && !CLOCK.reduced) {
+      if (cur === 'idle' && !walkActive && !CLOCK.reduced && !mv) {
         rotOffset += applyIdleLife(p, loop);
         rotOffset += applyMicroInteractions(p, now);
       }
@@ -4508,7 +4618,7 @@
       // persistent states, paused while a tap reaction or the pointer owns Uko.
       let life = { rot: 0, eye: [0, 0] };
       if (now - LIFE.gainAt > 500 || now < LIFE.gainAt) { LIFE.gain = lifeGainFor(el.clientWidth || 240); LIFE.gainAt = now; }
-      if (!walkActive && !CLOCK.reduced) {
+      if (!walkActive && !CLOCK.reduced && !mv) {
         const busy = cur === 'idle' && (MICRO.tap.active || MICRO.idleVariation.active || MICRO.eyeTracking.hovering || !!GAZE.target);
         life = applyLife(p, cur, now, cur === 'idle' || curEntered, busy);
         rotOffset += life.rot;
@@ -4516,20 +4626,22 @@
 
       let faceMode = CLOCK.reduced ? (cur === 'wake' ? 'idle' : DATA.faceModes[cur]) : faceSpecFor(cur, t, curEntered, now);
       faceMode = applyMicroFace(faceMode, now);
+      if (mv) faceMode = mv.face;
 
       if (!CLOCK.reduced) updateGaze();
-      const attention = CLOCK.reduced ? { eye: [0, 0], head: [0, 0, 0] } : updateAttentionTracking(now, faceMode, p);
+      const attention = CLOCK.reduced || mv ? { eye: [0, 0], head: [0, 0, 0] } : updateAttentionTracking(now, faceMode, p);
       const attentionRot = applyAttentionPose(p, attention);
       attention.eye = [attention.eye[0] + life.eye[0], attention.eye[1] + life.eye[1]];
 
       let q = solveSkeleton(p);
-      if (!CLOCK.reduced) applyGestures(q, cur, t);
-      if (!CLOCK.reduced && !walkActive) applyLifeGestures(q, cur, now);
-      clearHairForHands(q);
+      if (!CLOCK.reduced && !mv) applyGestures(q, cur, t);
+      if (!CLOCK.reduced && !walkActive && !mv) applyLifeGestures(q, cur, now);
+      if (!mv) clearHairForHands(q);
       let rot = (CLOCK.reduced ? (DATA.headRot[cur === 'wake' ? 'idle' : cur] || 0) : headRotationFor(cur, t, curEntered)) + rotOffset + attentionRot;
+      if (mv) rot = mv.rot;
 
       const orient = orientationMotionFrame(now);
-      const yaw = cur === 'idle' || walkActive ? orient.bodyYaw : 0;
+      const yaw = mv ? 0 : cur === 'idle' || walkActive ? orient.bodyYaw : 0;
       const headYaw = orient.headYaw;
       if (Math.abs(yaw) > 0.001) q = applyOrientationPose(q, yaw);
       if (Math.abs(orient.velocity) > 0.00001 && cur === 'idle') q = applyTurnDynamics(q, yaw, orient.velocity);
@@ -4539,7 +4651,7 @@
       // First gait frame: ease from the planted stance into the stride.
       if (gaitLive && !wasGaitLive && shown && !blend && !CLOCK.reduced) blend = { from: cpy(shown), fromFace: shownFace, fromRot: shownRot, start: now, dur: 300, fromThinking: false };
       wasGaitLive = gaitLive;
-      if (cur === 'idle' && !gaitLive && !blend) applyFootPlanting(q, now, shown, yaw); else resetFootwork();
+      if (cur === 'idle' && !gaitLive && !blend && !mv) applyFootPlanting(q, now, shown, yaw); else resetFootwork();
       if (gaitLive) { q = applyWalkCycle(q, yaw, now); rot += WALK.rot; }
       resolveLimbs(q); reattachHead(q);
 
@@ -4664,6 +4776,16 @@
       getTheme() { return currentThemeMode(); },
       setHairStyle(style) { APPEARANCE.hairStyle = normalizeHairStyle(style); },
       setCheeks(on) { APPEARANCE.cheeks = on !== false; },
+      // Scripted move: climb onto the ledge the mascot stands on (see core/moves.js).
+      // Idle afterwards; onDone when standing. Ignored under prefers-reduced-motion.
+      climb({ onDone, behind = false } = {}) {
+        if (CLOCK.reduced) { if (onDone) onDone(); return; }
+        if (WALK.active) stopWalk();
+        if (cur !== 'idle') go('idle');
+        blend = null;
+        MOVE.name = 'climb'; MOVE.start = motionNow(); MOVE.done = onDone || null; MOVE.behind = Boolean(behind);
+      },
+      isMoving() { return Boolean(MOVE.name); },
       setCharacter(id) { CHARACTER.id = normalizeCharacter(id); },
       setAccentColor(hex) { CHARACTER.accent = hex || '#FFC93C'; updateColors(); },
       setBrandContrast(mode) { brandContrastMode = mode; updateColors(); },
