@@ -3100,7 +3100,8 @@
       bolts: [-1, 1].map(side => ({ side, x: side * ROBOT.boltX - 16, y: -52, w: 32, h: 78, r: 12 })),
       box: { x: -192, y: -165, w: 384, h: 318, r: 86 },
       screen: { x: -150, y: -122, w: 300, h: 232, r: 56 },
-      glare: 'M -118 -96 Q -128 -60 -118 -40'
+      glare: 'M -118 -96 Q -128 -60 -118 -40',
+      neck: [140, 200]      // y range, box bottom → the body's neck (head centre + 183, + lift)
     };
     const rectAttrs = b => `x="${b.x}" y="${b.y}" width="${b.w}" height="${b.h}" rx="${b.r}"`;
 
@@ -3113,7 +3114,9 @@
       const antenna = `<g transform="rotate(${wob.toFixed(2)} ${A.pivot[0]} ${A.pivot[1]})">`
         + `<path class="accessory" d="${A.antenna}"/><circle class="robotMark" cx="${A.ball[0]}" cy="${A.ball[1]}" r="${A.ball[2]}"/></g>`;
       const screen = `<g transform="${robotScreenTransform(u, dir)}"><rect class="robotScreen" ${rectAttrs(A.screen)}/><path class="robotGlare" d="${A.glare}"/></g>`;
-      return `<g transform="translate(${cx} ${cy}) rotate(${rot}) scale(${s}) translate(0 ${-ROBOT.lift})">${antenna}<g transform="scale(${sx} 1)">${bolts}<rect class="headCircle" ${rectAttrs(A.box)}/>${screen}</g></g>`;
+      // Short neck from the box down to the body (the box sits `lift` higher than Uko's head).
+      const neck = `<line class="bone" x1="0" y1="${A.neck[0]}" x2="0" y2="${A.neck[1]}"/>`;
+      return `<g transform="translate(${cx} ${cy}) rotate(${rot}) scale(${s}) translate(0 ${-ROBOT.lift})">${neck}${antenna}<g transform="scale(${sx} 1)">${bolts}<rect class="headCircle" ${rectAttrs(A.box)}/>${screen}</g></g>`;
     }
     // In a turn the box narrows and the screen slides towards the facing side.
     function robotScreenTransform(u, dir) { return `translate(${dir * 42 * u} 0) scale(${1 - .4 * u} 1)`; }
