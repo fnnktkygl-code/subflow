@@ -14,6 +14,7 @@ import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { ukoBus } from './uko/ukoBus';
 import { UkoMascot } from './uko/UkoMascot';
+import { ukoStage } from './uko/ukoBus';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { CategoryIcon } from './CategoryIcon';
 import { JapandiDatePicker } from './JapandiDatePicker';
@@ -84,6 +85,13 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   const [isTrueLayerOpen, setIsTrueLayerOpen] = useState(false);
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // The companion climbs onto this modal's top edge while it is open (see UkoTraveler).
+  const perchRef = React.useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!isOpen) return;
+    const t = window.setTimeout(() => ukoStage.perch(perchRef.current), 60);
+    return () => { window.clearTimeout(t); ukoStage.perch(null); };
+  }, [isOpen]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
 
@@ -161,12 +169,16 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
         currencySymbol: profile.currencySymbol || '€'
       });
     }
+    // The companion jumps home for joy (UkoTraveler); without a home on this page, the
+    // reaction goes through the bus as before.
+    const hasHome = Boolean(ukoStage.home());
+    ukoStage.verdict('success');
     onClose();
-    // Uko celebrates on the dashboard once the modal is closed.
-    window.setTimeout(() => ukoBus.emit('success'), 180);
+    if (!hasHome) window.setTimeout(() => ukoBus.emit('success'), 180);
     } catch {
       setSubmitError(pick(locale, { fr: 'Vérifiez le nom (100 caractères maximum), le montant et la date du prélèvement.', en: 'Check the name (100 characters max), the amount and the payment date.', es: 'Revisa el nombre (100 caracteres como máximo), el importe y la fecha del cargo.' }));
       ukoBus.emit('error');
+      ukoStage.verdict('error');
     }
   };
 
@@ -183,12 +195,13 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={onClose}
     >
+      <div className="relative w-full max-w-lg mt-20" onClick={(e) => e.stopPropagation()}>
+      <div ref={perchRef} aria-hidden="true" data-uko-error="#sub-form [data-uko-field='amount']" className="absolute inset-x-0 top-0 h-0" />
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="w-full max-w-lg rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden flex flex-col max-h-[90vh]"
-        onClick={(e) => e.stopPropagation()}
+        className="w-full rounded-japandi-2xl bg-japandi-surface border border-japandi-border shadow-japandi-xl overflow-hidden flex flex-col max-h-[calc(90vh-5rem)]"
       >
         {/* Header */}
         <div className="p-5 flex items-center justify-between border-b border-japandi-border">
@@ -239,7 +252,6 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
 
         {submitError && (
           <div role="alert" className="mx-5 mt-3 flex items-center gap-3 p-2.5 pr-3 rounded-xl bg-japandi-akane/10 border border-japandi-akane/25 text-japandi-text text-sm">
-            <UkoMascot state="error" interactive={false} oneShot="loop" lookAt="#sub-form [data-uko-field='amount']" className="w-11 h-16 shrink-0" label="Uko signale une erreur" />
             <span>{submitError}</span>
           </div>
         )}
@@ -483,6 +495,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
         </div>
 
 
+      </div>
       </div>
 
       {/* Linked Cancellation Assistant Modal */}

@@ -29,3 +29,21 @@ export const ukoBus = {
     return () => { lookListeners.delete(listener); };
   }
 };
+
+// Continuity: there is one companion. It lives in a "home" (its spot in the header)
+// and can travel to a perch (a modal's top edge) and back; UkoTraveler plays the trip
+// and the home companion hides meanwhile.
+type StageEvent =
+  | { type: 'perch'; anchor: Element | null }          // go sit on this edge (null = come back)
+  | { type: 'verdict'; result: 'error' | 'success' }   // the form's answer, seen from the perch
+  | { type: 'away'; away: boolean };                    // the home companion is (not) travelling
+const stageListeners = new Set<(e: StageEvent) => void>();
+let home: Element | null = null;
+export const ukoStage = {
+  setHome(el: Element | null) { home = el; },
+  home() { return home && home.isConnected && (home as HTMLElement).offsetParent !== null ? home : null; },
+  perch(anchor: Element | null) { stageListeners.forEach((l) => l({ type: 'perch', anchor })); },
+  verdict(result: 'error' | 'success') { stageListeners.forEach((l) => l({ type: 'verdict', result })); },
+  away(away: boolean) { stageListeners.forEach((l) => l({ type: 'away', away })); },
+  on(listener: (e: StageEvent) => void) { stageListeners.add(listener); return () => { stageListeners.delete(listener); }; }
+};

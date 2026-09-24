@@ -8,6 +8,7 @@ import { StorageNotice } from '../components/StorageNotice';
 import { TopAppBar } from '../components/TopAppBar';
 import { BottomDock } from '../components/BottomDock';
 import { AddSubscriptionModal } from '../components/AddSubscriptionModal';
+import { UkoTraveler } from '../components/uko/UkoTraveler';
 
 import { TooltipProvider } from '@subflow/ui';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             isOpen={isAddModalOpen}
             onClose={() => setIsAddModalOpen(false)}
           />}
+          {mounted && !publicPage && <UkoTraveler />}
         </TooltipProvider>
       </body>
     </html>

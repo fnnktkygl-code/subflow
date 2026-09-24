@@ -16,7 +16,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { UkoMascot } from './UkoMascot';
-import { ukoBus, UkoState } from './ukoBus';
+import { ukoBus, ukoStage, UkoState } from './ukoBus';
 
 const ONE_SHOTS = new Set<UkoState>(['welcome', 'success', 'error', 'empty', 'wake']);
 const EXPRESS_MS = 7000;         // how long a persistent mood (thinking, loading) is shown
@@ -32,6 +32,13 @@ export const UkoCompanion: React.FC<{ mood: UkoState; className?: string; label?
   const [waking, setWaking] = useState(false);
   const timer = useRef<number | undefined>(undefined);
   const box = useRef<HTMLDivElement | null>(null);
+  // This spot is the companion's home: UkoTraveler takes off from here and comes back.
+  const [away, setAway] = useState(false);
+  useEffect(() => {
+    ukoStage.setHome(box.current);
+    const off = ukoStage.on((e) => { if (e.type === 'away') setAway(e.away); });
+    return () => { off(); ukoStage.setHome(null); };
+  }, []);
   const expressTimer = useRef<number | undefined>(undefined);
 
   const express = useCallback(() => { setSettled(false); }, []);
@@ -128,7 +135,7 @@ export const UkoCompanion: React.FC<{ mood: UkoState; className?: string; label?
   const moodState: UkoState = settled || mood === 'sleep' ? 'idle' : mood;
   const state: UkoState = override ?? (asleep ? 'sleep' : waking ? 'wake' : moodState);
   return (
-    <div ref={box} onClick={express} className={className}>
+    <div ref={box} onClick={express} className={className} style={{ visibility: away ? 'hidden' : 'visible' }}>
       <UkoMascot state={state} follow="page" className="w-full h-full" label={label} onComplete={handleComplete} />
     </div>
   );
