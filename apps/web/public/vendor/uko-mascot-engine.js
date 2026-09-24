@@ -4126,6 +4126,62 @@
     function climbFace(u) { return u < .14 ? 'empty' : u < .84 ? 'tapOuch' : 'success'; }
     function climbRot(u) { return u < .56 ? Math.sin(u * 22) * 4 * (1 - smooth5(clamp((u - .16) / .4))) : u < .84 ? -6 * Math.sin(Math.PI * clamp((u - .56) / .28)) : 0; }
 
+    // Climbing onto a low object (a box, a step, a bench): climb({ onto }), onto = height of
+    // its top above the feet line, as a fraction of the mascot box (0.1–0.45). The mascot
+    // stands behind it (the host draws the object in front): hands on the top, press up,
+    // right knee on it, the left leg follows, stand up. At the end the pose stands `onto`
+    // higher: the host moves the mascot box up by the same amount (in onDone).
+    //   .00–.20 reach    small dip, both hands on the top edge
+    //   .20–.50 press    arms push, the body rises, the right knee comes onto the top
+    //   .50–.78 crouch   the body comes over, the left leg follows (knee forward)
+    //   .78–1.0 stand    legs straighten, hands let go
+    MOVES.climbOnto = { dur: 2600 };
+    function climbOntoPose(u, h) {
+      const base = DATA.poses.idle, p = cpy(base), ease = smooth5;
+      const L = LEDGE - h, A = .2, B = .5, C = .78;
+      const a = ease(clamp(u / A)), b = ease(clamp((u - A) / (B - A))), c = ease(clamp((u - B) / (C - B))), d = ease(clamp((u - C) / (1 - C)));
+      const dip = 36, press = -h * .55, crouched = -h + 70;
+      const dy = u < A ? dip * a : u < B ? lp(dip, press, b) : u < C ? lp(press, crouched, c) : lp(crouched, -h, d);
+      for (const k of ['head_center', 'neck', 'shoulder_L', 'shoulder_R', 'pelvis', 'hip_L', 'hip_R']) p[k] = [base[k][0], base[k][1] + dy];
+
+      // Hands: onto the top edge (shoulder width), kept there, then back to rest.
+      const cx = (base.shoulder_L[0] + base.shoulder_R[0]) / 2;
+      for (const [s, dir] of [['L', -1], ['R', 1]]) {
+        const grip = [cx + dir * 100, L - 8];
+        const rest = k => [base[k][0], base[k][1] + dy];
+        const restH = rest(`hand_${s}_center`), restW = rest(`wrist_${s}`);
+        const hand = u < A ? [lp(restH[0], grip[0], a), lp(restH[1], grip[1], a)] : u < C ? grip : [lp(grip[0], restH[0], d), lp(grip[1], restH[1], d)];
+        const gripW = [grip[0], grip[1] - 30];
+        const wrist = u < A ? [lp(restW[0], gripW[0], a), lp(restW[1], gripW[1], a)] : u < C ? gripW : [lp(gripW[0], restW[0], d), lp(gripW[1], restW[1], d)];
+        const sh = p[`shoulder_${s}`];
+        // Elbows out while the arms are bent (dip, press), close to the body at rest.
+        const bentK = u < C ? 1 : 1 - d;
+        p[`elbow_${s}`] = [(sh[0] + wrist[0]) / 2 + dir * 70 * bentK, (sh[1] + wrist[1]) / 2];
+        p[`wrist_${s}`] = wrist; p[`hand_${s}_center`] = hand;
+      }
+
+      // Legs. Standing on the top = the rest pose raised by h.
+      const top = s => [base[`ankle_${s}`][0], base[`ankle_${s}`][1] - h];
+      const ground = s => base[`ankle_${s}`];
+      // Right: knee up onto the top during the press, stays there.
+      const r0 = ground('R'), r1 = top('R');
+      const ankleR = u < A ? r0 : u < B ? [lp(r0[0], r1[0], b), lp(r0[1], r1[1], b) - Math.sin(Math.PI * b) * 60] : r1;
+      // Left: planted, then brought up over the edge (knee forward, i.e. up in this view).
+      const l0 = ground('L'), l1 = top('L');
+      const ankleL = u < B ? l0 : u < C ? [lp(l0[0], l1[0], c), lp(l0[1], l1[1], c) - Math.sin(Math.PI * c) * 90] : l1;
+      for (const [s, dir, ank] of [['R', 1, ankleR], ['L', -1, ankleL]]) {
+        const hip = p[`hip_${s}`];
+        p[`ankle_${s}`] = ank;
+        // Knee hint: outwards and forward (up) while the leg is bent.
+        p[`knee_${s}`] = [(hip[0] + ank[0]) / 2 + dir * 70, (hip[1] + ank[1]) / 2 - 20];
+        p[`foot_${s}_center`] = [ank[0] + (base[`foot_${s}_center`][0] - base[`ankle_${s}`][0]), ank[1] + (base[`foot_${s}_center`][1] - base[`ankle_${s}`][1])];
+      }
+      p.head_radius = base.head_radius;
+      return p;
+    }
+    function climbOntoFace(u) { return u < .18 ? 'idle' : u < .8 ? 'tapOuch' : 'success'; }
+    function climbOntoRot(u) { return u < .2 ? 3 * smooth5(u / .2) : u < .78 ? 3 - 8 * Math.sin(Math.PI * clamp((u - .2) / .58)) : 0; }
+
     // Life layer: keeps the persistent states (idle, thinking, loading, sleep) alive.
     //
     // What people read as "alive" in a character, and how it is built here:
@@ -4649,7 +4705,7 @@
 
     el.innerHTML = `
       <div class="uko-mascot-wrapper" style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
-        <svg viewBox="0 0 1024 1536" class="uko-mascot-svg" style="width:100%;height:100%;max-height:100%;display:block;overflow:visible;" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Uko mascot">
+        <svg viewBox="0 0 1024 1536" class="uko-mascot-svg" style="width:100%;height:100%;max-height:100%;display:block;overflow:visible;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Uko mascot">
           <defs><style>${MASCOT_SVG_STYLES}</style>
             <filter id="${INSTANCE_ID}-hair-outline" x="-10%" y="-10%" width="120%" height="120%">
               <feMorphology in="SourceAlpha" operator="dilate" radius="7" result="grown"/>
@@ -4723,6 +4779,8 @@
     }
     // Touch: the zone under the finger reacts (core/touch.js).
     let pointerOver = false;
+    // Touchable: no blue tap flash, no text selection or callout on a long press (mobile).
+    el.style.webkitTapHighlightColor = 'transparent';
     function onTapDown(e) {
       if (!interactive || CLOCK.reduced || destroyed || (e.button !== undefined && e.button > 0)) return;
       const pt = toSvg(e.clientX, e.clientY); if (!pt || !shown) return;
@@ -4977,17 +5035,23 @@
 
     let debugFrame = null;
     // Scripted move in progress (climb): it owns the whole body until it ends.
-    const MOVE = { name: null, start: 0, done: null, behind: false };
+    const MOVE = { name: null, start: 0, done: null, behind: false, onto: 0 };
     function moveFrame(now) {
-      const u = clamp((now - MOVE.start) / MOVES[MOVE.name].dur);
+      const onto = MOVE.onto;
+      const u = clamp((now - MOVE.start) / (onto ? MOVES.climbOnto.dur : MOVES[MOVE.name].dur));
       if (u >= 1) {
         const done = MOVE.done;
-        MOVE.name = null; MOVE.done = null;
-        if (shown) blend = { from: cpy(shown), fromFace: shownFace, fromRot: shownRot, start: now, dur: 380, fromThinking: false };
+        MOVE.name = null; MOVE.done = null; MOVE.onto = 0;
+        // Onto an object: it ends standing on it, the host raises the box (no blend down).
+        // The last pose drawn moves into the new frame of reference, so the planted feet
+        // stay on the top instead of where they were drawn inside the old box.
+        if (onto && shown) { for (const k of Object.keys(shown)) if (Array.isArray(shown[k]) && shown[k].length === 2) shown[k] = [shown[k][0], shown[k][1] + onto]; resetFootwork(); }
+        if (shown && !onto) blend = { from: cpy(shown), fromFace: shownFace, fromRot: shownRot, start: now, dur: 380, fromThinking: false };
         if (done) done();
         if (options.onComplete) options.onComplete('climb');
         return null;
       }
+      if (onto) return { pose: climbOntoPose(u, onto), face: climbOntoFace(u), rot: climbOntoRot(u), frontArms: false };
       return { pose: climbPose(u, MOVE.behind), face: climbFace(u), rot: climbRot(u), frontArms: !MOVE.behind && u < .86 };
     }
 
@@ -5200,13 +5264,16 @@
       setCheeks(on) { APPEARANCE.cheeks = on !== false; },
       // Scripted move: climb onto the ledge the mascot stands on (see core/moves.js).
       // Idle afterwards; onDone when standing. Ignored under prefers-reduced-motion.
-      climb({ onDone, behind = false } = {}) {
+      // onto: climb onto a low object whose top is that high above the feet line (fraction
+      // of the mascot box, 0.1–0.45); without it, climb up the ledge it hangs from.
+      climb({ onDone, behind = false, onto = 0 } = {}) {
         if (paidOnly('climb')) { if (onDone) onDone(); return; }
         if (CLOCK.reduced) { if (onDone) onDone(); return; }
         if (WALK.active) stopWalk();
         if (cur !== 'idle') go('idle');
         blend = null;
         MOVE.name = 'climb'; MOVE.start = motionNow(); MOVE.done = onDone || null; MOVE.behind = Boolean(behind);
+        MOVE.onto = onto ? clamp(Number(onto) || 0, .1, .45) * 1536 : 0;
       },
       isMoving() { return Boolean(MOVE.name); },
       // Play a touch reaction as if that zone were tapped: 'head', 'hand', 'foot', 'body'

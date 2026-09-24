@@ -135,7 +135,7 @@ export const UkoCompanion: React.FC<{ mood: UkoState; className?: string; label?
   const moodState: UkoState = settled || mood === 'sleep' ? 'idle' : mood;
   const state: UkoState = override ?? (asleep ? 'sleep' : waking ? 'wake' : moodState);
   return (
-    <div ref={box} onClick={express} className={className} style={{ visibility: away ? 'hidden' : 'visible' }}>
+    <div ref={box} onClick={express} className={className} style={{ visibility: away ? 'hidden' : 'visible', WebkitTapHighlightColor: 'transparent' }}>
       <UkoMascot state={state} follow="page" className="w-full h-full" label={label} onComplete={handleComplete} />
     </div>
   );
