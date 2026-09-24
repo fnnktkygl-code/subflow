@@ -15,7 +15,7 @@ declare module 'react' {
     interface IntrinsicElements {
       'uko-mascot': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
         state?: string; hair?: string; brand?: string; 'hair-color'?: string; theme?: string;
-        interactive?: string; 'one-shot'?: string; cheeks?: string; character?: string;
+        interactive?: string; 'one-shot'?: string; cheeks?: string; character?: string; follow?: string;
       };
     }
   }
@@ -60,13 +60,17 @@ export interface UkoMascotProps {
   oneShot?: 'return' | 'loop';
   className?: string;
   label?: string;
+  /** Eyes follow the pointer: over the mascot ('hover') or anywhere, finger included ('page'). */
+  follow?: 'hover' | 'page' | 'none';
+  /** CSS selector of an element the mascot keeps looking at (e.g. the field in error). */
+  lookAt?: string;
   /** Force a palette (public pages stay light whatever the app theme). */
   palette?: keyof typeof UKO_THEME;
   onComplete?: (state: UkoState) => void;
 }
 
 export const UkoMascot: React.FC<UkoMascotProps> = ({
-  state = 'idle', character, hair = 'original', interactive = true, oneShot = 'return', className, label, palette, onComplete
+  state = 'idle', character, hair = 'original', interactive = true, oneShot = 'return', follow = 'hover', lookAt, className, label, palette, onComplete
 }) => {
   const ref = useRef<HTMLElement | null>(null);
   const [ready, setReady] = useState(false);
@@ -90,6 +94,16 @@ export const UkoMascot: React.FC<UkoMascotProps> = ({
     return () => el.removeEventListener('complete', handler);
   }, [onComplete, ready]);
 
+  // Keep looking at an element of the page (the engine's lookAt).
+  useEffect(() => {
+    if (!ready || !lookAt) return;
+    const api = (ref.current as unknown as { mascot?: { lookAt(t: Element | null): void } } | null)?.mascot;
+    const target = document.querySelector(lookAt);
+    if (!api || !target) return;
+    api.lookAt(target);
+    return () => api.lookAt(null);
+  }, [ready, lookAt]);
+
   return (
     <div className={className} role="img" aria-label={(label || `Uko : ${state}`).replace(/^Uko\b/, name)}>
       {ready && (
@@ -103,6 +117,7 @@ export const UkoMascot: React.FC<UkoMascotProps> = ({
           theme={palette ? (palette === 'dark' ? 'dark' : 'light') : 'auto'}
           interactive={String(interactive)}
           one-shot={oneShot}
+          follow={follow}
           style={{ width: '100%', height: '100%', display: 'block' }}
         />
       )}

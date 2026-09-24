@@ -17,6 +17,7 @@ import { SpendingDonut, SubscriptionLogo, Tooltip } from '@subflow/ui';
 import { CategoryIcon } from '../../components/CategoryIcon';
 import { GoalDialog } from '../../components/GoalDialog';
 import { ActionableInsightHeader } from '../../components/ActionableInsightHeader';
+import { ukoBus } from '../../components/uko/ukoBus';
 import { CancellationArenaModal } from '../../components/CancellationArenaModal';
 import { AddSubscriptionModal } from '../../components/AddSubscriptionModal';
 import { GoogleDriveSyncCard } from '../../components/GoogleDriveSyncCard';
@@ -67,6 +68,17 @@ export default function HomePage() {
     setMounted(true);
   }, []);
 
+  // A subscription was just added: once the celebration starts, Uko looks at the total that changed.
+  const subCount = subscriptions.length;
+  const prevCount = React.useRef(subCount);
+  React.useEffect(() => {
+    const added = subCount > prevCount.current;
+    prevCount.current = subCount;
+    if (!added) return;
+    const t = window.setTimeout(() => ukoBus.look(document.querySelector('[data-uko-look="total"]'), 3000), 1200);
+    return () => window.clearTimeout(t);
+  }, [subCount]);
+
   // Hydration safety: render matching blank shell until client store hydrates
   if (!mounted) {
     return (
@@ -111,6 +123,7 @@ export default function HomePage() {
         onTouchEnd={() => {
           if (longPressTimerRef.current) clearTimeout(longPressTimerRef.current);
         }}
+        data-uko-look="total"
         className="rounded-japandi-2xl p-5 sm:p-6 flex flex-col gap-4 relative overflow-hidden transition-all select-none bg-japandi-surface border border-japandi-border hover:border-japandi-pine/50 shadow-japandi-sm cursor-default"
       >
 
@@ -202,6 +215,7 @@ export default function HomePage() {
           <div className="pt-2">
             <button
               type="button"
+              data-uko-look="simulator"
               onClick={toggleSelectionMode}
               aria-expanded={isSelectionMode}
               className={`w-full py-2.5 px-4 rounded-japandi-xl border text-xs font-bold flex items-center justify-between transition-all ${
@@ -241,7 +255,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             {/* Donut Chart */}
-            <div className="flex justify-center">
+            <div className="flex justify-center" data-uko-look="categories">
               <SpendingDonut
                 categories={categoryBreakdown}
                 totalMonthlyAmount={totalMonthly}

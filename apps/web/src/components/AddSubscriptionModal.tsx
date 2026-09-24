@@ -239,7 +239,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
 
         {submitError && (
           <div role="alert" className="mx-5 mt-3 flex items-center gap-3 p-2.5 pr-3 rounded-xl bg-japandi-akane/10 border border-japandi-akane/25 text-japandi-text text-sm">
-            <UkoMascot state="error" interactive={false} oneShot="loop" className="w-11 h-16 shrink-0" label="Uko signale une erreur" />
+            <UkoMascot state="error" interactive={false} oneShot="loop" lookAt="#sub-form [data-uko-field='amount']" className="w-11 h-16 shrink-0" label="Uko signale une erreur" />
             <span>{submitError}</span>
           </div>
         )}
@@ -400,6 +400,7 @@ export const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                     type="text"
                     required
                     inputMode="decimal"
+                    data-uko-field="amount"
                     placeholder="12.99"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}

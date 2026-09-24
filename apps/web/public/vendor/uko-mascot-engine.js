@@ -2031,6 +2031,14 @@
         headCurrent:[0,0,0],
         pointer:[505,420],
         pointerInside:false,
+        // true only while the pointer is over the mascot itself (pauses its idle gestures)
+        hovering:false,
+        // 'full' = eyes and head (idle), 'eyes' = eyes only (other states, lookAt)
+        reach:'full',
+        // lookAt(): the head turns towards the target in any awake state, not only idle
+        headToo:false,
+        // small mascots: gaze amplified like the life gestures (1 at 220 px and above)
+        gain:1,
         lastTime:motionNow()
       },
       autoIdleEnabled:true
@@ -2430,11 +2438,13 @@
     function attentionTrackingEligible(faceSpec){
       if(!MICRO.eyeTracking.enabled)return false;
       if(freeze.checked)return false;
-      if(current!=='idle')return false;
       if(typeof WALK!=='undefined'&&WALK.active)return false;
       if(MICRO.tap.active||MICRO.idleVariation.active)return false;
       if(typeof faceSpec!=='string')return false;
-      return faceSpec==='idle';
+      // Idle: eyes and head. Other awake states: the eyes only (lookAt, page follow).
+      if(current==='idle')return faceSpec==='idle';
+      if(MICRO.eyeTracking.reach!=='eyes')return false;
+      return !['sleep','wake','success','welcome'].includes(current)&&!['sleep','success','welcome'].includes(faceSpec);
     }
 
     function updateAttentionTracking(now,faceSpec,p){
@@ -2455,13 +2465,16 @@
         const ny=(dy/len)*strength;
 
         // Eyes lead.
-        eyeTX=nx*8.0;
-        eyeTY=ny*5.5;
+        const g=a.gain||1;
+        eyeTX=nx*8.0*Math.min(g,1.4);
+        eyeTY=ny*5.5*Math.min(g,1.4);
 
-        // Head follows more slowly and more visibly.
-        headTX=nx*9.0;
-        headTY=ny*8.0;
-        headTR=nx*8.5;
+        // Head follows more slowly and more visibly (idle, or when asked to look at something).
+        if(current==='idle'||a.headToo){
+          headTX=nx*9.0*g;
+          headTY=ny*8.0*g;
+          headTR=nx*8.5*g;
+        }
       }
 
       a.eyeTarget[0]=eyeTX;a.eyeTarget[1]=eyeTY;
@@ -4122,6 +4135,9 @@
       // 'return': one-shot states (welcome, success, error, empty, wake) play once and
       // settle back to idle. 'loop': they repeat (useful for galleries and demos).
       oneShotMode: 'return',
+      // Eyes follow the pointer: 'hover' (over the mascot), 'page' (anywhere on the page,
+      // and the finger on touch screens) or 'none'.
+      follow: 'hover',
       // Kawaii pink cheeks (false to hide them).
       cheeks: true,
       // Cap the drawing rate (e.g. 30 for galleries with many mascots). Time stays exact.
@@ -4215,16 +4231,52 @@
     }
     updateColors();
 
+    // Gaze. Priority: lookAt() target > pointer (hover or page) > nothing.
+    let followMode = ['hover', 'page', 'none'].includes(options.follow) ? options.follow : 'hover';
+    const GAZE = { target: null, releaseAt: 0 };
+    // null while the mascot is not laid out (hidden tab, closed dialog, display:none).
+    const toSvg = (x, y) => { const r = svgEl.getBoundingClientRect(); return r.width > 0 && r.height > 0 ? [(x - r.left) * 1024 / r.width, (y - r.top) * 1536 / r.height] : null; };
     function onPointerMove(e) {
-      if (!interactive || CLOCK.reduced) return;
-      const rect = svgEl.getBoundingClientRect();
-      MICRO.eyeTracking.pointer = [(e.clientX - rect.left) * 1024 / rect.width, (e.clientY - rect.top) * 1536 / rect.height];
+      if (!interactive || CLOCK.reduced || followMode === 'none') return;
+      const pt = toSvg(e.clientX, e.clientY); if (!pt) return;
+      MICRO.eyeTracking.pointer = pt;
       MICRO.eyeTracking.pointerInside = true;
+      MICRO.eyeTracking.hovering = true;
     }
-    function onPointerLeave() { MICRO.eyeTracking.pointerInside = false; }
+    function onPointerLeave() { MICRO.eyeTracking.hovering = false; if (followMode !== 'page') MICRO.eyeTracking.pointerInside = false; }
+    // Page follow: the mouse anywhere on the page; on touch screens the finger, then a
+    // short moment after it lifts. After a few seconds without movement the mascot
+    // looks away and goes back to its own life.
+    function onPagePointer(e) {
+      if (followMode !== 'page' || !interactive || CLOCK.reduced || GAZE.target) return;
+      const pt = toSvg(e.clientX, e.clientY); if (!pt) return;
+      MICRO.eyeTracking.pointer = pt;
+      MICRO.eyeTracking.pointerInside = true;
+      GAZE.releaseAt = performance.now() + (e.pointerType === 'touch' ? 2500 : 5000);
+    }
+    function onPageLeave() { if (followMode === 'page' && !GAZE.target) GAZE.releaseAt = performance.now() + 600; }
+    function updateGaze() {
+      const a = MICRO.eyeTracking;
+      if (GAZE.target) {
+        const t = GAZE.target;
+        let pt;
+        if (t.getBoundingClientRect) { const r = t.getBoundingClientRect(); pt = toSvg(r.left + r.width / 2, r.top + r.height / 2); }
+        else pt = t.viewBox ? [t.x, t.y] : toSvg(t.x, t.y);
+        if (!pt || !Number.isFinite(pt[0]) || !Number.isFinite(pt[1])) { a.pointerInside = false; return; }
+        a.pointer = pt;
+        a.pointerInside = true; a.reach = 'eyes'; a.headToo = true; a.gain = LIFE.gain || 1;
+        return;
+      }
+      a.headToo = false; a.gain = LIFE.gain || 1;
+      a.reach = followMode === 'page' ? 'eyes' : 'full';
+      if (followMode === 'page' && a.pointerInside && !a.hovering && performance.now() > GAZE.releaseAt) a.pointerInside = false;
+    }
     function onVisibility() { CLOCK.lastWall = null; }
     el.addEventListener('pointermove', onPointerMove, { passive: true });
     el.addEventListener('pointerleave', onPointerLeave, { passive: true });
+    window.addEventListener('pointermove', onPagePointer, { passive: true });
+    window.addEventListener('pointerdown', onPagePointer, { passive: true });
+    document.addEventListener('pointerleave', onPageLeave, { passive: true });
     document.addEventListener('visibilitychange', onVisibility);
 
     function dominantFace(spec) {
@@ -4457,7 +4509,7 @@
       let life = { rot: 0, eye: [0, 0] };
       if (now - LIFE.gainAt > 500 || now < LIFE.gainAt) { LIFE.gain = lifeGainFor(el.clientWidth || 240); LIFE.gainAt = now; }
       if (!walkActive && !CLOCK.reduced) {
-        const busy = cur === 'idle' && (MICRO.tap.active || MICRO.idleVariation.active || MICRO.eyeTracking.pointerInside);
+        const busy = cur === 'idle' && (MICRO.tap.active || MICRO.idleVariation.active || MICRO.eyeTracking.hovering || !!GAZE.target);
         life = applyLife(p, cur, now, cur === 'idle' || curEntered, busy);
         rotOffset += life.rot;
       }
@@ -4465,6 +4517,7 @@
       let faceMode = CLOCK.reduced ? (cur === 'wake' ? 'idle' : DATA.faceModes[cur]) : faceSpecFor(cur, t, curEntered, now);
       faceMode = applyMicroFace(faceMode, now);
 
+      if (!CLOCK.reduced) updateGaze();
       const attention = CLOCK.reduced ? { eye: [0, 0], head: [0, 0, 0] } : updateAttentionTracking(now, faceMode, p);
       const attentionRot = applyAttentionPose(p, attention);
       attention.eye = [attention.eye[0] + life.eye[0], attention.eye[1] + life.eye[1]];
@@ -4616,7 +4669,15 @@
       setBrandContrast(mode) { brandContrastMode = mode; updateColors(); },
       setHairContrast(mode) { hairContrastMode = mode; updateColors(); },
       setContrastMode(mode) { brandContrastMode = mode; hairContrastMode = mode; updateColors(); },
-      setInteractive(val) { interactive = Boolean(val); if (!interactive) MICRO.eyeTracking.pointerInside = false; },
+      setInteractive(val) { interactive = Boolean(val); if (!interactive) { MICRO.eyeTracking.pointerInside = false; MICRO.eyeTracking.hovering = false; } },
+      // Eyes follow the pointer: 'hover', 'page' (whole page, finger on touch) or 'none'.
+      setFollow(mode) { followMode = ['hover', 'page', 'none'].includes(mode) ? mode : 'hover'; if (followMode === 'none') MICRO.eyeTracking.pointerInside = false; },
+      // Look at an element, a point on the page ({ x, y } in client px) or a point of the
+      // mascot's own drawing ({ x, y, viewBox: true }); null gives the gaze back.
+      lookAt(target) {
+        GAZE.target = target || null;
+        if (!target) { MICRO.eyeTracking.pointerInside = false; MICRO.eyeTracking.reach = followMode === 'page' ? 'eyes' : 'full'; }
+      },
       setOneShotMode(mode) { oneShotMode = mode === 'loop' ? 'loop' : 'return'; },
       setMaxFps(fps) { minFrameMs = 1000 / Math.max(1, Math.min(120, Number(fps) || 60)); },
       pause() { CLOCK.paused = true; },
@@ -4638,6 +4699,7 @@
           hair: HAIR_DYNAMICS, walk: WALK, orientation: ORIENTATION, frame: debugFrame,
           face: (spec, blink = 0) => orientedFaceSpec(spec, 0, 0, 185, 0, blink, [0, 0], 0),
           fx: () => fxEl.innerHTML,
+          gaze: () => ({ ...MICRO.eyeTracking, follow: followMode, target: !!GAZE.target, idleVar: MICRO.idleVariation.active, tap: MICRO.tap.active }),
           // Head silhouette (head-local units): < 0 inside. Uko: the head circle.
           silhouette: (x, y) => characterDef() ? characterDef().distance(x, y) : Math.hypot(x, y) - 185,
           // Character artwork (head-local units) for the Rive export.
@@ -4661,6 +4723,9 @@
         el.removeEventListener('pointermove', onPointerMove);
         el.removeEventListener('pointerleave', onPointerLeave);
         document.removeEventListener('visibilitychange', onVisibility);
+        window.removeEventListener('pointermove', onPagePointer);
+        window.removeEventListener('pointerdown', onPagePointer);
+        document.removeEventListener('pointerleave', onPageLeave);
         themeObserver.disconnect();
         if (systemDarkQuery && systemDarkQuery.removeEventListener) systemDarkQuery.removeEventListener('change', updateColors);
         el.innerHTML = '';
@@ -4671,11 +4736,12 @@
 
   // <uko-mascot state="idle" hair="dreadlocks" brand="#FFFFFF" hair-color="#0B0B0B" theme="auto|system|light|dark"
   //             contrast="direct|auto" interactive="true|false" walk="true|false"
-  //             one-shot="return|loop" cheeks="true|false" character="uko|aituko|meowuko" accent="#FFC93C">
+  //             one-shot="return|loop" cheeks="true|false" character="uko|aituko|meowuko" accent="#FFC93C"
+  //             follow="hover|page|none">
   if (typeof customElements !== 'undefined' && !customElements.get('uko-mascot')) {
     class UkoMascotElement extends HTMLElement {
       static get observedAttributes() {
-        return ['state', 'brand', 'hair', 'hair-color', 'contrast', 'interactive', 'walk', 'one-shot', 'cheeks', 'theme', 'character', 'accent'];
+        return ['state', 'brand', 'hair', 'hair-color', 'contrast', 'interactive', 'walk', 'one-shot', 'cheeks', 'theme', 'character', 'accent', 'follow'];
       }
       connectedCallback() {
         if (!this.style.display) this.style.display = 'block';
@@ -4691,6 +4757,7 @@
           cheeks: this.getAttribute('cheeks') !== 'false',
           character: this.getAttribute('character') || 'uko',
           accentColor: this.getAttribute('accent') || '#FFC93C',
+          follow: this.getAttribute('follow') || 'hover',
           onStateChange: state => this.dispatchEvent(new CustomEvent('statechange', { detail: { state } })),
           onComplete: state => this.dispatchEvent(new CustomEvent('complete', { detail: { state } }))
         });
@@ -4712,6 +4779,7 @@
         else if (name === 'theme') this.mascot.setTheme(newVal);
         else if (name === 'character') this.mascot.setCharacter(newVal);
         else if (name === 'accent') this.mascot.setAccentColor(newVal);
+        else if (name === 'follow') this.mascot.setFollow(newVal);
         else if (name === 'walk') newVal === 'true' ? this.mascot.startWalk() : this.mascot.stopWalk();
       }
     }

@@ -10,6 +10,9 @@
 //   an invalid form, thinking in the simulator…).
 // - It falls asleep after a while without any activity and wakes up as soon as
 //   the user moves, like someone keeping you company.
+// - Gaze (a custom integration, built on the pack's `follow` and `lookAt`): its eyes
+//   follow the finger or the mouse; it looks at what the user points at or touches
+//   ([data-uko-look]) and at what a screen shows it through ukoBus.look().
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { UkoMascot } from './UkoMascot';
@@ -28,6 +31,7 @@ export const UkoCompanion: React.FC<{ mood: UkoState; className?: string; label?
   const setAsleep = useCallback((v: boolean) => { asleepRef.current = v; setAsleepState(v); }, []);
   const [waking, setWaking] = useState(false);
   const timer = useRef<number | undefined>(undefined);
+  const box = useRef<HTMLDivElement | null>(null);
   const expressTimer = useRef<number | undefined>(undefined);
 
   const express = useCallback(() => { setSettled(false); }, []);
@@ -85,6 +89,36 @@ export const UkoCompanion: React.FC<{ mood: UkoState; className?: string; label?
     };
   }, [express, setAsleep]);
 
+  // Gaze priority: what a screen shows (held a moment) > what the user points at > the pointer.
+  useEffect(() => {
+    type Api = { lookAt(t: Element | null): void };
+    const api = () => (box.current?.querySelector('uko-mascot') as unknown as { mascot?: Api } | null)?.mascot;
+    let held: Element | null = null, heldUntil = 0, pointed: Element | null = null;
+    let release: number | undefined, unhold: number | undefined;
+    const apply = () => { const target = held && Date.now() < heldUntil ? held : pointed; api()?.lookAt(target && target.isConnected ? target : null); };
+    const offLook = ukoBus.onLook(({ target, holdMs = 2500 }) => {
+      held = target; heldUntil = Date.now() + holdMs;
+      window.clearTimeout(unhold); unhold = window.setTimeout(apply, holdMs + 30);
+      apply();
+    });
+    const lookable = (e: Event) => (e.target instanceof Element ? e.target.closest('[data-uko-look]') : null);
+    const onOver = (e: Event) => {
+      const el = lookable(e); if (!el) return;
+      window.clearTimeout(release); pointed = el; apply();
+      // A tap has no "leave": look for a moment, then give the gaze back.
+      if ((e as PointerEvent).pointerType === 'touch') release = window.setTimeout(() => { pointed = null; apply(); }, 1800);
+    };
+    const onOut = (e: Event) => {
+      const el = lookable(e); if (!el || (e as PointerEvent).pointerType === 'touch') return;
+      const next = (e as PointerEvent | FocusEvent).relatedTarget;
+      if (next instanceof Node && el.contains(next)) return;
+      window.clearTimeout(release); release = window.setTimeout(() => { pointed = null; apply(); }, 400);
+    };
+    const on: [string, EventListener][] = [['pointerover', onOver], ['pointerdown', onOver], ['focusin', onOver], ['pointerout', onOut], ['focusout', onOut]];
+    on.forEach(([n, f]) => document.addEventListener(n, f, { passive: true }));
+    return () => { offLook(); window.clearTimeout(release); window.clearTimeout(unhold); on.forEach(([n, f]) => document.removeEventListener(n, f)); };
+  }, []);
+
   const handleComplete = useCallback((done: UkoState) => {
     if (done === 'wake') setWaking(false);
     else if (override && done === override) setOverride(null);
@@ -94,8 +128,8 @@ export const UkoCompanion: React.FC<{ mood: UkoState; className?: string; label?
   const moodState: UkoState = settled || mood === 'sleep' ? 'idle' : mood;
   const state: UkoState = override ?? (asleep ? 'sleep' : waking ? 'wake' : moodState);
   return (
-    <div onClick={express} className={className}>
-      <UkoMascot state={state} className="w-full h-full" label={label} onComplete={handleComplete} />
+    <div ref={box} onClick={express} className={className}>
+      <UkoMascot state={state} follow="page" className="w-full h-full" label={label} onComplete={handleComplete} />
     </div>
   );
 };

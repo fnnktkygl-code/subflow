@@ -47,7 +47,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     ukoEyebrow: 'Le compagnon', ukoTitle: <>Uko suit<br /><em>vos comptes.</em></>,
     ukoLead: 'Il réagit à ce qui se passe dans l’app et prend les couleurs de votre thème. Touchez une situation :', moodsLabel: 'Situations',
-    companionLabel: 'Compagnon', companionNote: 'Uko, Aituko le robot ou Meowuko le chat : à choisir dans les réglages.',
+    companionLabel: 'Compagnon', companionNote: 'Uko, Aituko le robot ou Meowuko le chat : à choisir dans les réglages. Dans l’app, il suit votre doigt des yeux et regarde ce que vous touchez.',
     moods: [
       { label: 'Liste vide', text: 'Aucun abonnement pour l’instant.' },
       { label: 'Prélèvement proche', text: 'Un débit arrive dans les prochains jours.' },
@@ -81,7 +81,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     ukoEyebrow: 'The companion', ukoTitle: <>Uko keeps an eye<br /><em>on your budget.</em></>,
     ukoLead: 'He reacts to what happens in the app and takes on your theme’s colours. Tap a situation:', moodsLabel: 'Situations',
-    companionLabel: 'Companion', companionNote: 'Uko, Aituko the robot or Meowuko the cat: pick one in the settings.',
+    companionLabel: 'Companion', companionNote: 'Uko, Aituko the robot or Meowuko the cat: pick one in the settings. In the app, its eyes follow your finger and it looks at what you touch.',
     moods: [
       { label: 'Empty list', text: 'No subscriptions yet.' },
       { label: 'Payment soon', text: 'A payment is due in the next few days.' },
@@ -115,7 +115,7 @@ const COPY: Record<Locale, Copy> = {
     ],
     ukoEyebrow: 'El compañero', ukoTitle: <>Uko sigue<br /><em>tus cuentas.</em></>,
     ukoLead: 'Reacciona a lo que pasa en la app y adopta los colores de tu tema. Toca una situación:', moodsLabel: 'Situaciones',
-    companionLabel: 'Compañero', companionNote: 'Uko, Aituko el robot o Meowuko el gato: elígelo en los ajustes.',
+    companionLabel: 'Compañero', companionNote: 'Uko, Aituko el robot o Meowuko el gato: elígelo en los ajustes. En la app, sus ojos siguen tu dedo y mira lo que tocas.',
     moods: [
       { label: 'Lista vacía', text: 'Aún no hay suscripciones.' },
       { label: 'Cargo próximo', text: 'Llega un cargo en los próximos días.' },

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useSubscriptionStore } from '../store/useSubscriptionStore';
 import { useTranslation } from '../hooks/useTranslation';
 import { calculateUpcomingOccurrences, calculateTotalMonthlyCost, pick } from '@subflow/core';
@@ -8,7 +8,7 @@ import { Pencil, Check, Bell, Clock, AlertTriangle, CheckCircle2, Activity } fro
 
 import { Tooltip } from '@subflow/ui';
 import { UkoCompanion } from './uko/UkoCompanion';
-import type { UkoState } from './uko/ukoBus';
+import { ukoBus, type UkoState } from './uko/ukoBus';
 
 export const ActionableInsightHeader: React.FC = () => {
 
@@ -154,6 +154,14 @@ export const ActionableInsightHeader: React.FC = () => {
     return 'idle';
   }, [insight.type, subscriptions.length]);
 
+  // A payment is coming: Uko looks at the notice while it thinks about it.
+  const pillRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (ukoMood !== 'thinking') return;
+    const t = window.setTimeout(() => ukoBus.look(pillRef.current, 5000), 700);
+    return () => window.clearTimeout(t);
+  }, [ukoMood, insight.text]);
+
   return (
     <div className="flex items-start justify-between gap-3 pt-2 select-none">
     <div className="flex flex-col gap-2 min-w-0">
@@ -205,6 +213,8 @@ export const ActionableInsightHeader: React.FC = () => {
       {/* Dynamic Actionable Insight Pill */}
       <div className="flex items-center">
         <div
+          ref={pillRef}
+          data-uko-look="insight"
           className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-japandi-full border text-xs sm:text-sm font-semibold transition-all shadow-2xs ${insight.colorClass}`}
         >
           {insight.icon}
