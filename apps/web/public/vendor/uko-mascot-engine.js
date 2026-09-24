@@ -4277,7 +4277,9 @@
     const systemDarkQuery = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
     let interactive = options.interactive;
     let oneShotMode = options.oneShotMode === 'loop' ? 'loop' : 'return';
-    let minFrameMs = 1000 / Math.max(1, Math.min(120, Number(options.maxFps) || 60)), sinceDraw = Infinity;
+    // Capped frame rate: each instance starts at a random phase, so that several mascots on
+    // a page (30 fps each) don't all redraw on the same display frame.
+    let minFrameMs = 1000 / Math.max(1, Math.min(120, Number(options.maxFps) || 60)), sinceDraw = Math.random() * minFrameMs;
     let destroyed = false, rafId = null, flowTimer = null;
 
     let cur = ORDER.includes(options.state) ? options.state : 'idle';
