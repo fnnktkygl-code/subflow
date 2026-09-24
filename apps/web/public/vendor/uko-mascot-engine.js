@@ -1781,9 +1781,14 @@
       out+=faceSvg;
 
       if(front.L||front.R){
-        // Sticker outline: a halo in the skin colour keeps the arm readable over hair.
-        const halo=(a,b)=>seg(a,b,'boneHalo');
-        out+=`<g class="thinkingForeground">`;
+        // Sticker outline: a halo in the page colour keeps the arm readable over the face
+        // and the hair. It is clipped to the head and hair so it never shows over the
+        // page itself (on a coloured page it would look like a sleeve).
+        // Clip shape: the head (a bit larger than its outline) plus the hair's filled shapes.
+        const clipId=`${INSTANCE_ID}-halo`;
+        const hairShapes=[...(projectedHair(cx,cy,p.head_radius,rot,headYaw,'front')+projectedHair(cx,cy,p.head_radius,rot,headYaw,'back')).matchAll(/<path\b[^>]*?\sd="([^"]+)"/g)].map(m=>`<path d="${m[1]}"/>`).join('');
+        const halo=(a,b)=>`<g clip-path="url(#${clipId})">${seg(a,b,'boneHalo')}</g>`;
+        out+=`<g class="thinkingForeground"><clipPath id="${clipId}"><circle cx="${cx}" cy="${cy}" r="${p.head_radius+12}"/>${hairShapes}</clipPath>`;
         if(front.L)out+=halo(p.elbow_L,p.wrist_L)+seg(p.elbow_L,p.wrist_L)+hand(hcL,hL);
         if(front.R)out+=halo(p.elbow_R,p.wrist_R)+seg(p.elbow_R,p.wrist_R)+hand(hcR,hR);
         out+=`</g>`;
@@ -4323,6 +4328,10 @@
 
     // Gaze. Priority: lookAt() target > pointer (hover or page) > nothing.
     let followMode = ['hover', 'page', 'none'].includes(options.follow) ? options.follow : 'hover';
+    // Full pack only: movements (walk, turn, climb) and the extended gaze (page, lookAt).
+    // The Starter keeps the mascot where it is and says where to get them.
+    const paidOnly = (name) => { if (EDITION !== 'starter') return false; fullPackNotice(name); return true; };
+    if (followMode === 'page' && paidOnly('follow="page"')) followMode = 'hover';
     const GAZE = { target: null, releaseAt: 0 };
     // null while the mascot is not laid out (hidden tab, closed dialog, display:none).
     const toSvg = (x, y) => { const r = svgEl.getBoundingClientRect(); return r.width > 0 && r.height > 0 ? [(x - r.left) * 1024 / r.width, (y - r.top) * 1536 / r.height] : null; };
@@ -4379,7 +4388,7 @@
       const seen = fullPackNotice.seen || (fullPackNotice.seen = new Set());
       if (seen.has(state)) return;
       seen.add(state);
-      console.info(`[UkoMascot] "${state}" fait partie du pack complet (9 états) : ${FULL_PACK_URL}`);
+      console.info(`[UkoMascot] "${state}" fait partie du pack complet (9 états, mouvements, regard) : ${FULL_PACK_URL}`);
     }
 
     // Core state change. Always blends from what is on screen.
@@ -4731,6 +4740,7 @@
       // To walk *across* the screen, move the host element by getWalkVelocity():
       // the planted foot then stays fixed on the ground.
       startWalk(dir = 1, speed = 1) {
+        if (paidOnly('walk')) return;
         if (cur !== 'idle') go('idle');
         blend = null;
         startWalk(dir);
@@ -4754,11 +4764,13 @@
       },
       isWalking() { return Boolean(WALK.active); },
       setOrientation(yaw, duration = 520) {
+        if (paidOnly('setOrientation')) return;
         if (WALK.active) stopWalk();
         if (cur !== 'idle') go('idle');
         setOrientationTarget(yaw, duration);
       },
       playTurnDemo() {
+        if (paidOnly('playTurnDemo')) return;
         if (WALK.active) stopWalk();
         if (cur !== 'idle') go('idle');
         playOrientationTurn();
@@ -4779,6 +4791,7 @@
       // Scripted move: climb onto the ledge the mascot stands on (see core/moves.js).
       // Idle afterwards; onDone when standing. Ignored under prefers-reduced-motion.
       climb({ onDone, behind = false } = {}) {
+        if (paidOnly('climb')) { if (onDone) onDone(); return; }
         if (CLOCK.reduced) { if (onDone) onDone(); return; }
         if (WALK.active) stopWalk();
         if (cur !== 'idle') go('idle');
@@ -4793,10 +4806,11 @@
       setContrastMode(mode) { brandContrastMode = mode; hairContrastMode = mode; updateColors(); },
       setInteractive(val) { interactive = Boolean(val); if (!interactive) { MICRO.eyeTracking.pointerInside = false; MICRO.eyeTracking.hovering = false; } },
       // Eyes follow the pointer: 'hover', 'page' (whole page, finger on touch) or 'none'.
-      setFollow(mode) { followMode = ['hover', 'page', 'none'].includes(mode) ? mode : 'hover'; if (followMode === 'none') MICRO.eyeTracking.pointerInside = false; },
+      setFollow(mode) { if (mode === 'page' && paidOnly('follow="page"')) mode = 'hover'; followMode = ['hover', 'page', 'none'].includes(mode) ? mode : 'hover'; if (followMode === 'none') MICRO.eyeTracking.pointerInside = false; },
       // Look at an element, a point on the page ({ x, y } in client px) or a point of the
       // mascot's own drawing ({ x, y, viewBox: true }); null gives the gaze back.
       lookAt(target) {
+        if (target && paidOnly('lookAt')) return;
         GAZE.target = target || null;
         if (!target) { MICRO.eyeTracking.pointerInside = false; MICRO.eyeTracking.reach = followMode === 'page' ? 'eyes' : 'full'; }
       },
